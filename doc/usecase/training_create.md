@@ -8,6 +8,10 @@
 
 Coach wants to create a training.
 
+## Preconditions
+
+1. Some training session exists.
+
 ## Success Guarantees
 
 Training was saved and coach can see the training in some collection.
@@ -17,7 +21,7 @@ Training was saved and coach can see the training in some collection.
 1. Coach starts the creation process.
 2. Coach defines the training.
 3. Coach gives training a name.
-4. Coach assigns training session to the training
+4. Coach assigns training session to the training.
 5. Coach submits the training.
 
 ## Extensions
@@ -30,4 +34,4 @@ Training was saved and coach can see the training in some collection.
   2.  Highlight the name field
 - 5C Training isn't in valid format
   1.  Don't submit the training
-  2.  Highlight invalid part
+  2.  Highlight invalid fields

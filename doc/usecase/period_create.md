@@ -23,15 +23,12 @@ Period was saved and coach can see new period in some collection of periods.
 
 ## Extensions
 
-- 5A System isn't responding
+- 5A: System isn't responding
   1.  Inform user
   2.  Stay in the creation process
-- 5B Period with given name exists
+- 5B: Period with given name exists
   1.  Don't submit the period
   2.  Highlight the name field
-- 5C Start or end date are in past
-  1.  Don't submit the training
-  2.  Highlight invalid part
-- 5D End date is before start date
+- 5C: End date is before start date
   1.  Don't submit the training
   2.  Highlight end date part

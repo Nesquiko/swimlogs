@@ -22,14 +22,15 @@ Session was saved and coach can see the traning session in collection of session
 2. Coach inputs the day the session takes place.
 3. Coach inputs the start time of the session.
 4. Coach inputs the duration in minutes.
-5. Coach submits the session.
+5. Coach assigns a period to the session.
+6. Coach submits the session.
 
 ## Extensions
 
-- 5A System isn't responding
+- 6A: System isn't responding
   1.  Inform user
   2.  Stay in the creation process
-- 5B An equal session already exists
+- 6B: An equal session already exists
   1.  Don't submit the session
-- 5C Session contains invalid data
+- 6C: Session contains invalid data
   1.  Highlight invalid fields
