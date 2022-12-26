@@ -30,5 +30,5 @@ Period was saved and coach can see new period in some collection of periods.
   1.  Don't submit the period
   2.  Highlight the name field
 - 5C: End date is before start date
-  1.  Don't submit the training
+  1.  Don't submit the period
   2.  Highlight end date part
