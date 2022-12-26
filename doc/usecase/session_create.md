@@ -8,29 +8,24 @@
 
 Coach wants to create a training session.
 
-## Preconditions
-
-1. Some training period exists.
-
 ## Success Guarantees
 
 Session was saved and coach can see the traning session in collection of sessions.
+Also coach can assign sessions to trainings.
 
 ## Success Scenario
 
-1. Coach starts the session creation process.
-2. Coach inputs the day the session takes place.
-3. Coach inputs the start time of the session.
-4. Coach inputs the duration in minutes.
-5. Coach assigns a period to the session.
-6. Coach submits the session.
+1. Coach starts the session creation process
+2. Coach inputs the day the session takes place
+3. Coach inputs the start time of the session
+4. Coach inputs the duration in minutes
+5. Coach submits the session
 
 ## Extensions
 
-- 6A: System isn't responding
-  1.  Inform user
-  2.  Stay in the creation process
-- 6B: An equal session already exists
+- 5A: System isn't responding
+  1.  Stay in the creation process
+- 5B: An equal session already exists
   1.  Don't submit the session
-- 6C: Session contains invalid data
+- 5C: Session contains invalid data
   1.  Highlight invalid fields
