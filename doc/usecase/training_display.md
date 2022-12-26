@@ -1,4 +1,4 @@
-# See a training
+# Display a training
 
 ## Actors
 
@@ -6,14 +6,9 @@
 
 ## Description
 
-User wants to see a training on specific day.
+User wants to see one specific training.
 
 ## Success Scenario
 
 1. User selects one training from list of trainings
 2. The whole trainig is displayed
-
-## Extensions
-
-- 2A: System isn't responding
-  1.  Inform user

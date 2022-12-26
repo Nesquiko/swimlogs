@@ -6,15 +6,15 @@
 
 ## Description
 
-Coach wants to edit training.
+Coach wants to edit a training.
 
 ## Preconditions
 
-1. The training must exist.
+1. The training was created.
 
 ## Success Guarantees
 
-Training was edited and coach can see it in collection of trainings.
+Training was edited and coach can see it with new changes.
 
 ## Success Scenario
 
@@ -24,9 +24,7 @@ Training was edited and coach can see it in collection of trainings.
 
 ## Extensions
 
-- 3A: System isn't responding
-  1.  Inform user
-- 3B Training with given name exists
+- 3A Training with given name exists
   1.  Highlight the name field
-- 3C Training isn't in valid format
+- 3B Training isn't in valid format
   1.  Highlight invalid fields

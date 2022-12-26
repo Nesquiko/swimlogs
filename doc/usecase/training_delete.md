@@ -8,10 +8,6 @@
 
 Coach wants to delete training.
 
-## Preconditions
-
-1. The training must exist
-
 ## Success Guarantees
 
 Training was deleted and it is no longer in collection of trainings.
@@ -23,7 +19,5 @@ Training was deleted and it is no longer in collection of trainings.
 
 ## Extensions
 
-- 2A: System isn't responding
-  1.  Inform user
-- 2B: Training doesn't exits
+- 2A: Training doesn't exits
   1.  Refresh the training collection

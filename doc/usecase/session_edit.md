@@ -6,15 +6,15 @@
 
 ## Description
 
-Coach wants to edit training session.
+Coach wants to edit a training session.
 
 ## Preconditions
 
-1. The session must exits.
+1. The session was created.
 
 ## Success Guarantees
 
-Session was edited and coach can see it in some collection of session.
+Session was edited and coach can see it with new changes.
 
 ## Success Scenario
 
@@ -24,9 +24,7 @@ Session was edited and coach can see it in some collection of session.
 
 ## Extensions
 
-- 3A: System isn't responding
-  1.  Stay in the editing process
-- 3B: An equal session already exists
-  1.  Inform user
-- 3C: Session contains invalid data
-  1.  Highlight invalid fields
+- 3A: A session with specified name already exists
+  1.  Highlight name field
+- 3B: User edited name to empty
+  1.  A name in format `Day Start Duration` (ex. `Mon 17.00 60m`) is used as session name

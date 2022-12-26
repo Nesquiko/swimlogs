@@ -8,13 +8,9 @@
 
 Coach wants to delete training session.
 
-## Preconditions
-
-1. The session must exist
-
 ## Success Guarantees
 
-Session was deleted and it is no longer in collection of session.
+Session was deleted and it is no longer in collection of sessions.
 
 ## Success Scenario
 
@@ -23,7 +19,5 @@ Session was deleted and it is no longer in collection of session.
 
 ## Extensions
 
-- 2A: System isn't responding
-  1.  Inform user
-- 2B: Session doesn't exits
+- 2A: Session doesn't exits
   1.  Refresh the session collection
