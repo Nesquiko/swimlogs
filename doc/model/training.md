@@ -91,14 +91,18 @@ The whole training consists of blocks. Each of them have:
 
 One training contains:
 
-1. many blocks
-2. the date (in format `YYYY-MM-DD`) when it will occur.
-3. sessionId to copy day, start time and duration to training
+1. many [blocks](#block)
+2. name
+3. the date (in format `YYYY-MM-DD`) when it will occur.
+4. sessionId ([see Session](./session.md)) to copy day, start time and duration to training
    - or day, start time and duration set manually
 
 ```json
 {
   "date": "2022-04-04",
+  "day": "tuesday",
+  "startTime": "10:00",
+  "durationMin": 120,
   "blocks": [
     {
       "repeat": 1,
@@ -136,9 +140,6 @@ One training contains:
         }
       ]
     }
-  ],
-  "day": "tuesday",
-  "startTime": "10:00",
-  "durationMin": 120
+  ]
 }
 ```
