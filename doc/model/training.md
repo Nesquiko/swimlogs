@@ -32,8 +32,10 @@ Strategy to how to start in between the set repetitions.
 
 Interval
 : represented in form `I=XX`, where XX is how many seconds one repetition will take
+
 Pause
 : represented in form `P=XX`, where XX is how many seconds to wait in between the repetitions.
+
 None
 : just swim without any time restrictions
 
