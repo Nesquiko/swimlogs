@@ -17,73 +17,126 @@ Current trainings look something like this:
 
 ## New form of trainings
 
-New form would consist of N `set blocks`. Couple JSON examples of `set block`:
+### Set
 
-Simple set block with one repetition.
+The most atomic unit in training. Each of them contains:
+
+1. repeat multiplier
+2. distance
+3. what
+4. starting rule (interval, pause, none)
+
+#### JSON representation
+
+Simple set block with one repetition, with none as starting rule.
 
 ```json
-{ "distance": "400", "what": "freestyle", "start": "-" }
+{ "repeat": 1, "distance": 400, "what": "freestyle", "startingRule": "-" }
 ```
 
-Set block with set of 8x50.
+Set block with set of 8x50, with starting rule pause.
 
 ```json
 {
-  "distance": "8x50",
+  "repeat": 8,
+  "distance": 50,
   "what": "BF/SF with fins and board",
-  "start": "P=20\""
+  "startingRule": "P=20\""
 }
 ```
 
-Set block with set of 5x100
+Set block with set of 5x100, with starting rule interval.
 
 ```json
 {
-  "distance": "5x100",
-  "what": "Mono or fin",
-  "start": "I=1'30\""
+  "repeat": 5,
+  "distance": 100,
+  "what": "Mono or fins",
+  "startingRule": "I=1'30\""
 }
 ```
 
-## JSON of one training
+### Block
 
-One training contains many blocks and the date (in format `YYYY-MM-DD`) when it will occur.
+The whole training consists of blocks. Each of them have:
+
+1. repeat multiplier
+2. name
+3. an array of [sets](#set), ordered by what to swim first
+
+#### JSON representation
 
 ```json
 {
-  "date": "2022-04-04",
-  "training": [
-    { "distance": "400", "what": "freestyle", "start": "-" },
+  "repeat": 2,
+  "name": "Main set",
+  "sets": [
     {
-      "distance": "8x50",
-      "what": "BF/SF with fins and board",
-      "start": "P=20\""
+      "repeat": 8,
+      "distance": 100,
+      "what": "fins, board, BF",
+      "startingRule": "-"
     },
-    { "distance": "100", "what": "cool down", "start": "-" },
     {
-      "distance": "5x100",
-      "what": "Mono or fin",
-      "start": "I=1'30\""
-    },
-    { "distance": "100", "what": "cool down", "start": "-" }
+      "repeat": 1,
+      "distance": 100,
+      "what": "cool down with board",
+      "startingRule": "-"
+    }
   ]
 }
 ```
 
-Also it contains either:
+### Training
 
-1. An id of training session from which to copy day, start time and duration
+One training contains:
 
-```json
-{
-  "sessionId": "b78e1672-90d3-44aa-8019-c802307948e4"
-}
-```
-
-2. Or day, start time and duration
+1. many blocks
+2. the date (in format `YYYY-MM-DD`) when it will occur.
+3. sessionId to copy day, start time and duration to training
+   - or day, start time and duration set manually
 
 ```json
 {
+  "date": "2022-04-04",
+  "blocks": [
+    {
+      "repeat": 1,
+      "name": "Warm up",
+      "sets": [
+        {
+          "repeat": 1,
+          "distance": 400,
+          "what": "freestyle",
+          "startingRule": "-"
+        },
+        {
+          "repeat": 1,
+          "distance": 400,
+          "what": "fins, board",
+          "startingRule": "-"
+        }
+      ]
+    },
+    {
+      "repeat": 2,
+      "name": "Main set",
+      "sets": [
+        {
+          "repeat": 8,
+          "distance": 100,
+          "what": "fins, board, BF",
+          "startingRule": "-"
+        },
+        {
+          "repeat": 1,
+          "distance": 100,
+          "what": "cool down with board",
+          "startingRule": "-"
+        }
+      ]
+    }
+  ],
   "day": "tuesday",
   "startTime": "10:00",
   "durationMin": 120
