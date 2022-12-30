@@ -26,6 +26,17 @@ The most atomic unit in training. Each of them contains:
 3. what
 4. starting rule (interval, pause, none)
 
+#### Starting rule
+
+Strategy to how to start in between the set repetitions.
+
+Interval
+: represented in form `I=XX`, where XX is how many seconds one repetition will take
+Pause
+: represented in form `P=XX`, where XX is how many seconds to wait in between the repetitions.
+None
+: just swim without any time restrictions
+
 #### JSON representation
 
 Simple set block with one repetition, with none as starting rule.
