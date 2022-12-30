@@ -30,21 +30,21 @@ The most atomic unit in training. Each of them contains:
 
 Strategy to how to start in between the set repetitions.
 
-Interval
-: represented in form `I=XX`, where XX is how many seconds one repetition will take
-
-Pause
-: represented in form `P=XX`, where XX is how many seconds to wait in between the repetitions.
-
-None
-: just swim without any time restrictions
+- Interval is how many seconds one repetition will take
+- Pause is how many seconds to wait in between the repetitions
+- None is just swimming without any time restrictions
 
 #### JSON representation
 
 Simple set block with one repetition, with none as starting rule.
 
 ```json
-{ "repeat": 1, "distance": 400, "what": "freestyle", "startingRule": "-" }
+{
+  "repeat": 1,
+  "distance": 400,
+  "what": "freestyle",
+  "startingRule": { "rule": "none" }
+}
 ```
 
 Set block with set of 8x50, with starting rule pause.
@@ -54,7 +54,7 @@ Set block with set of 8x50, with starting rule pause.
   "repeat": 8,
   "distance": 50,
   "what": "BF/SF with fins and board",
-  "startingRule": "P=20\""
+  "startingRule": { "rule": "pause", "seconds": 20 }
 }
 ```
 
@@ -65,7 +65,7 @@ Set block with set of 5x100, with starting rule interval.
   "repeat": 5,
   "distance": 100,
   "what": "Mono or fins",
-  "startingRule": "I=1'30\""
+  "startingRule": { "rule": "interval", "seconds": 90 }
 }
 ```
 
@@ -88,13 +88,13 @@ The whole training consists of blocks. Each of them have:
       "repeat": 8,
       "distance": 100,
       "what": "fins, board, BF",
-      "startingRule": "-"
+      "startingRule": { "rule": "none" }
     },
     {
       "repeat": 1,
       "distance": 100,
       "what": "cool down with board",
-      "startingRule": "-"
+      "startingRule": { "rule": "none" }
     }
   ]
 }
@@ -125,13 +125,13 @@ One training contains:
           "repeat": 1,
           "distance": 400,
           "what": "freestyle",
-          "startingRule": "-"
+          "startingRule": { "rule": "none" }
         },
         {
           "repeat": 1,
           "distance": 400,
           "what": "fins, board",
-          "startingRule": "-"
+          "startingRule": { "rule": "none" }
         }
       ]
     },
@@ -143,13 +143,13 @@ One training contains:
           "repeat": 8,
           "distance": 100,
           "what": "fins, board, BF",
-          "startingRule": "-"
+          "startingRule": { "rule": "interval", "seconds": 90 }
         },
         {
           "repeat": 1,
           "distance": 100,
           "what": "cool down with board",
-          "startingRule": "-"
+          "startingRule": { "rule": "none" }
         }
       ]
     }
