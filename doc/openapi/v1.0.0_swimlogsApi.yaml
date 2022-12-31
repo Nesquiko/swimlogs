@@ -232,6 +232,7 @@ components:
         - day
         - startTime
         - durationMin
+      additionalProperties: false
       
     StartingRule:
       type: object
@@ -248,6 +249,7 @@ components:
           description: Used by rules which require a time parameter
       required:
         - rule
+      additionalProperties: false
 
     Set:
       type: object
@@ -267,6 +269,7 @@ components:
         - distance
         - what
         - startingRule
+      additionalProperties: false
     
     Block:
       type: object
@@ -285,6 +288,7 @@ components:
         - repeat
         - name
         - sets
+      additionalProperties: false
 
     Training:
       type: object
@@ -330,6 +334,7 @@ components:
       required:
         - date
         - blocks
+      additionalProperties: false
 
 
 
