@@ -5,7 +5,7 @@ tasks:
     dir: ./generator
     preconditions:
       - sh: command -v oapi-codegen
-        msg: Oapi-codegen not installed! Run 'go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest'
+        msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
     cmds:
       - mkdir -p generated
       - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
