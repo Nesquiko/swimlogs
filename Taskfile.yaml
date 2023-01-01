@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+  openapi-gen:
+    dir: ./generator
+    preconditions:
+      - sh: command -v oapi-codegen
+        msg: Oapi-codegen not installed! Run 'go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest'
+    cmds:
+      - mkdir -p generated
+      - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
+      - oapi-codegen -config ./config/models.cfg.yaml ../doc/openapi/{{.SPEC}}
+    vars:
+      SPEC:
+        sh: ls -v ../doc/openapi | tail -n 1
