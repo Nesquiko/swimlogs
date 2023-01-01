@@ -1,0 +1,5 @@
+package: oapiGen
+generate:
+  echo-server: true
+  strict-server: true
+output: ./generated/server.gen.go
