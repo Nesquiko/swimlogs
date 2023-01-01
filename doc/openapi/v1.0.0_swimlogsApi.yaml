@@ -205,6 +205,17 @@ components:
             $ref: '#/components/schemas/Training'
 
   schemas:
+    Day:
+      type: string
+      enum:
+        - monday
+        - tuesday
+        - wednesday
+        - thursday
+        - friday
+        - saturday
+        - sunday
+
     Session:
       type: object
       properties:
@@ -215,15 +226,7 @@ components:
           x-go-type-import:
             path: github.com/google/uuid
         day:
-          type: string
-          enum:
-          - monday
-          - tuesday
-          - wednesday
-          - thursday
-          - friday
-          - saturday
-          - sunday
+          $ref: '#/components/schemas/Day'
           description: On which day does the session occur
         startTime:
           type: string
@@ -318,15 +321,7 @@ components:
           description: A session from which to copy day, start time and
             duration to this training.
         day:
-          type: string
-          enum:
-          - monday
-          - tuesday
-          - wednesday
-          - thursday
-          - friday
-          - saturday
-          - sunday
+          $ref: '#/components/schemas/Day'
           description: If sessionId isn't set, then this field is required!
             On which day does the training occur
         startTime:
