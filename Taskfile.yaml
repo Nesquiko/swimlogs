@@ -13,3 +13,10 @@ tasks:
     vars:
       SPEC:
         sh: ls -v ../doc/openapi | tail -n 1
+
+  migration:new:
+    preconditions:
+      - sh: test -n "{{.CLI_ARGS}}"
+        msg: No script name argument passed!
+    cmds:
+      - migrate create -seq -ext=.sql -dir=./migrations "{{.CLI_ARGS}}"
