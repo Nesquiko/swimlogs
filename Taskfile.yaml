@@ -14,9 +14,16 @@ tasks:
       SPEC:
         sh: ls -v ../doc/openapi | tail -n 1
 
-  migration:new:
+  dev-db-start:
     preconditions:
-      - sh: test -n "{{.CLI_ARGS}}"
-        msg: No script name argument passed!
+      - sh: command -v docker
+        msg: Docker isn't installed!
     cmds:
-      - migrate create -seq -ext=.sql -dir=./migrations "{{.CLI_ARGS}}"
+      - |
+        docker run --name dev-psql \
+        -e POSTGRES_USER=swimlogs \
+        -e POSTGRES_PASSWORD=swimlogs \
+        -e POSTGRES_DB=swimlogs \
+        -p 2345:5432 \
+        -d \
+        postgres
