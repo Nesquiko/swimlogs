@@ -5,31 +5,34 @@ vars:
 
 tasks:
   openapi-gen:
+    deps: [check:oapi-codegen]
     dir: ./generator
-    preconditions:
-      - sh: command -v oapi-codegen
-        msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
     cmds:
-      - mkdir oapiGen
+      - mkdir -p oapiGen
       - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
       - oapi-codegen -config ./config/models.cfg.yaml ../doc/openapi/{{.SPEC}}
     vars:
       SPEC:
         sh: ls -v ../doc/openapi | tail -n 1
 
-  dev-db-start:
+  migration:new:
+    deps: [check:migrate]
     preconditions:
-      - sh: command -v docker
-        msg: Docker isn't installed!
+     - sh: test -n "{{.CLI_ARGS}}"
+       msg: No script name argument passed!
+    cmds:
+      - migrate create -seq -ext=.sql -dir=./migrations "{{.CLI_ARGS}}"
+
+  dev-db-start:
+    deps: [check:docker]
+    preconditions:
       - sh: docker ps -a | grep "{{.DB_DOCKER_NAME}}"
         msg: Development DB isn't running! Run task dev-db-create first.
     cmds:
       - docker start "{{.DB_DOCKER_NAME}}"
 
   dev-db-create:
-    preconditions:
-      - sh: command -v docker
-        msg: Docker isn't installed!
+    deps: [check:docker]
     cmds:
       - |
         docker run --name {{.DB_DOCKER_NAME}} \
@@ -39,3 +42,19 @@ tasks:
         -p 2345:5432 \
         -d \
         postgres
+
+  check:migrate:
+    preconditions:
+      - sh: command -v migrate
+        msg: Migrate isn't installed!
+
+  check:docker:
+    preconditions:
+      - sh: command -v docker
+        msg: Docker isn't installed!
+
+  check:oapi-codegen:
+    preconditions:
+      - sh: command -v oapi-codegen
+        msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
+
