@@ -1,5 +1,8 @@
 version: '3'
 
+vars:
+  DB_DOCKER_NAME: dev-psql
+
 tasks:
   openapi-gen:
     dir: ./generator
@@ -18,9 +21,18 @@ tasks:
     preconditions:
       - sh: command -v docker
         msg: Docker isn't installed!
+      - sh: docker ps -a | grep "{{.DB_DOCKER_NAME}}"
+        msg: Development DB isn't running! Run task dev-db-create first.
+    cmds:
+      - docker start "{{.DB_DOCKER_NAME}}"
+
+  dev-db-create:
+    preconditions:
+      - sh: command -v docker
+        msg: Docker isn't installed!
     cmds:
       - |
-        docker run --name dev-psql \
+        docker run --name {{.DB_DOCKER_NAME}} \
         -e POSTGRES_USER=swimlogs \
         -e POSTGRES_PASSWORD=swimlogs \
         -e POSTGRES_DB=swimlogs \
