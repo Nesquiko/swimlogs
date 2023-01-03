@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 	"github.com/labstack/echo/v4"
@@ -16,7 +17,8 @@ func main() {
 	}
 	defer db.Close()
 
-	server := server.New(db)
+	swimlogs := app.New(db)
+	server := server.New(swimlogs)
 	handler := oapiGen.NewStrictHandler(server, nil)
 	e := echo.New()
 

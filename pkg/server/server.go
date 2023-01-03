@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
-	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
 type SwimLogsServer struct {
-	db data.DBConn
+	swimLogs app.SwimLogs
 }
 
-func New(db data.DBConn) *SwimLogsServer {
-	return &SwimLogsServer{db}
+func New(swimLogs app.SwimLogs) *SwimLogsServer {
+	return &SwimLogsServer{swimLogs: swimLogs}
 }
 
 func (server *SwimLogsServer) GetAllSessions(
