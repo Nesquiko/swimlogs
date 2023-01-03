@@ -7,7 +7,7 @@ tasks:
       - sh: command -v oapi-codegen
         msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
     cmds:
-      - mkdir -p generated
+      - mkdir oapiGen
       - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
       - oapi-codegen -config ./config/models.cfg.yaml ../doc/openapi/{{.SPEC}}
     vars:
