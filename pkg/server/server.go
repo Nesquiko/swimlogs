@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"context"
@@ -7,64 +7,64 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
-type SwimLogsApp struct {
+type SwimLogsServer struct {
 	db data.DBConn
 }
 
-func NewApp(db data.DBConn) *SwimLogsApp {
-	return &SwimLogsApp{db}
+func New(db data.DBConn) *SwimLogsServer {
+	return &SwimLogsServer{db}
 }
 
-func (app *SwimLogsApp) GetAllSessions(
+func (server *SwimLogsServer) GetAllSessions(
 	ctx context.Context,
 	request oapiGen.GetAllSessionsRequestObject,
 ) (oapiGen.GetAllSessionsResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) CreateSession(
+func (server *SwimLogsServer) CreateSession(
 	ctx context.Context,
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) DeleteSession(
+func (server *SwimLogsServer) DeleteSession(
 	ctx context.Context,
 	request oapiGen.DeleteSessionRequestObject,
 ) (oapiGen.DeleteSessionResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) UpdateSession(
+func (server *SwimLogsServer) UpdateSession(
 	ctx context.Context,
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) CreateTraining(
+func (server *SwimLogsServer) CreateTraining(
 	ctx context.Context,
 	request oapiGen.CreateTrainingRequestObject,
 ) (oapiGen.CreateTrainingResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) DeleteTraining(
+func (server *SwimLogsServer) DeleteTraining(
 	ctx context.Context,
 	request oapiGen.DeleteTrainingRequestObject,
 ) (oapiGen.DeleteTrainingResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) GetTrainingById(
+func (server *SwimLogsServer) GetTrainingById(
 	ctx context.Context,
 	request oapiGen.GetTrainingByIdRequestObject,
 ) (oapiGen.GetTrainingByIdResponseObject, error) {
 	return nil, nil
 }
 
-func (app *SwimLogsApp) UpdateTraining(
+func (server *SwimLogsServer) UpdateTraining(
 	ctx context.Context,
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
