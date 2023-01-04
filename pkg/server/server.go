@@ -26,7 +26,7 @@ func (server *SwimLogsServer) CreateSession(
 	ctx context.Context,
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.CreateSession(ctx, request)
 }
 
 func (server *SwimLogsServer) DeleteSession(
