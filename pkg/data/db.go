@@ -7,6 +7,7 @@ import (
 )
 
 type DBConn interface {
+	InTx(func(*sql.Tx) error) error
 	Close() error
 }
 
@@ -30,4 +31,22 @@ type postgresDbConn struct {
 
 func (psql *postgresDbConn) Close() error {
 	return psql.DB.Close()
+}
+
+func (psql *postgresDbConn) InTx(f func(*sql.Tx) error) error {
+	tx, err := psql.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err = f(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
