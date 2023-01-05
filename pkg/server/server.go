@@ -40,7 +40,7 @@ func (server *SwimLogsServer) UpdateSession(
 	ctx context.Context,
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.UpdateSession(ctx, request)
 }
 
 func (server *SwimLogsServer) CreateTraining(

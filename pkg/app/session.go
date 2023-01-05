@@ -88,7 +88,34 @@ func (app *swimLogsApp) UpdateSession(
 	ctx context.Context,
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
-	return nil, nil
+	if invalid := validateSession(request.Body); len(invalid) != 0 {
+		return oapiGen.UpdateSession400JSONResponse{
+			InvalidSessionErrorResponseJSONResponse: invalidSessionError(invalid),
+		}, nil
+	}
+	updated := transformRestSession(*request.Body)
+
+	var session oapiGen.Session
+	err := app.db.InTx(func(tx *sql.Tx) error {
+		sess, err := app.db.UpdateSession(request.Id, updated, tx)
+		if err != nil {
+			return err
+		}
+		session = transformDataSession(sess)
+		return nil
+	})
+	if err == data.ErrNotFound {
+		return oapiGen.UpdateSession404JSONResponse{
+			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(request.Id),
+		}, nil
+	} else if err != nil {
+		app.logger.Error(err)
+		return oapiGen.UpdateSession500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	return oapiGen.UpdateSession200JSONResponse(session), nil
 }
 
 func transformRestSession(session oapiGen.Session) data.Session {

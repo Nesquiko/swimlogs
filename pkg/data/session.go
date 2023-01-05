@@ -24,6 +24,7 @@ const (
 	INSERT_SESSION = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
 	SELECT_SESSION = "select * from session"
 	DELETE_SESSION = "delete from session where id = $1"
+	UPDATE_SESSION = "update session set modified_at = $2, day = $3, starttime = $4, duration = $5 where id = $1 returning id, day, starttime, duration"
 )
 
 type Session struct {
@@ -104,4 +105,38 @@ func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
 	}
 
 	return nil
+}
+
+func (psql *postgresDbConn) UpdateSession(
+	id uuid.UUID,
+	updated Session,
+	tx *sql.Tx,
+) (Session, error) {
+	var session Session
+	var startTime string
+	err := tx.QueryRow(
+		UPDATE_SESSION,
+		id,
+		time.Now(),
+		updated.Day,
+		updated.StartTime,
+		updated.DurationMin,
+	).Scan(
+		&session.Id,
+		&session.Day,
+		&startTime,
+		&session.DurationMin,
+	)
+	if err == sql.ErrNoRows {
+		return session, ErrNotFound
+	} else if err != nil {
+		return session, fmt.Errorf("UpdateSession: %w", err)
+	}
+
+	st, err := time.Parse(TIME_LAYOUT, startTime)
+	if err != nil {
+		return session, fmt.Errorf("UpdateSession: %w", err)
+	}
+	session.StartTime = st.Format("15:04")
+	return session, nil
 }
