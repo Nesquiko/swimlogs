@@ -5,6 +5,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -18,10 +19,7 @@ type SwimLogs interface {
 		request oapiGen.CreateSessionRequestObject,
 	) (oapiGen.CreateSessionResponseObject, error)
 
-	DeleteSession(
-		ctx context.Context,
-		request oapiGen.DeleteSessionRequestObject,
-	) (oapiGen.DeleteSessionResponseObject, error)
+	DeleteSession(ctx context.Context, id uuid.UUID) (oapiGen.DeleteSessionResponseObject, error)
 
 	UpdateSession(
 		ctx context.Context,

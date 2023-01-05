@@ -2,16 +2,20 @@ package data
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
+
+var ErrNotFound = errors.New("didn't find row")
 
 type DBConn interface {
 	InTx(func(*sql.Tx) error) error
 
 	SaveSession(Session, *sql.Tx) (*uuid.UUID, error)
 	GetAllSessions() ([]Session, error)
+	DeleteSession(uuid.UUID, *sql.Tx) error
 
 	Close() error
 }

@@ -21,8 +21,9 @@ const (
 const TIME_LAYOUT = "2006-01-02T15:04:05Z"
 
 const (
-	INSERT_SESSION = `insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)`
-	SELECT_SESSION = `select * from session`
+	INSERT_SESSION = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
+	SELECT_SESSION = "select * from session"
+	DELETE_SESSION = "delete from session where id = $1"
 )
 
 type Session struct {
@@ -89,4 +90,18 @@ func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 	}
 
 	return sessions, nil
+}
+
+func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
+	res, err := tx.Exec(DELETE_SESSION, id)
+	if err != nil {
+		return fmt.Errorf("DeleteSession: %w", err)
+	}
+
+	// Err can be ignored, because Postgres supports rows affected
+	if rows, _ := res.RowsAffected(); rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/google/uuid"
 )
 
 func (app *swimLogsApp) GetAllSessions(
@@ -61,9 +62,26 @@ func (app *swimLogsApp) CreateSession(
 
 func (app *swimLogsApp) DeleteSession(
 	ctx context.Context,
-	request oapiGen.DeleteSessionRequestObject,
+	id uuid.UUID,
 ) (oapiGen.DeleteSessionResponseObject, error) {
-	return nil, nil
+	err := app.db.InTx(func(tx *sql.Tx) error {
+		return app.db.DeleteSession(id, tx)
+	})
+
+	if err == data.ErrNotFound {
+		return oapiGen.DeleteSession404JSONResponse{
+			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(id),
+		}, nil
+	}
+
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.DeleteSession500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	return oapiGen.DeleteSession200Response{}, nil
 }
 
 func (app *swimLogsApp) UpdateSession(

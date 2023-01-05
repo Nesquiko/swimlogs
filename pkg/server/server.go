@@ -33,7 +33,7 @@ func (server *SwimLogsServer) DeleteSession(
 	ctx context.Context,
 	request oapiGen.DeleteSessionRequestObject,
 ) (oapiGen.DeleteSessionResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.DeleteSession(ctx, request.Id)
 }
 
 func (server *SwimLogsServer) UpdateSession(
