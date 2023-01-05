@@ -5,6 +5,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"go.uber.org/zap"
 )
 
 type SwimLogs interface {
@@ -48,10 +49,11 @@ type SwimLogs interface {
 	) (oapiGen.UpdateTrainingResponseObject, error)
 }
 
-func New(db data.DBConn) SwimLogs {
-	return &swimLogsApp{db}
+func New(db data.DBConn, logger *zap.SugaredLogger) SwimLogs {
+	return &swimLogsApp{db, logger}
 }
 
 type swimLogsApp struct {
-	db data.DBConn
+	db     data.DBConn
+	logger *zap.SugaredLogger
 }
