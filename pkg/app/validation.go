@@ -57,7 +57,7 @@ func isTimeValid(startTime string) bool {
 	minutes, err := strconv.Atoi(time[1])
 	if err != nil {
 		return false
-	} else if minutes < 0 || hours > 59 {
+	} else if minutes < 0 || minutes > 59 {
 		return false
 	}
 

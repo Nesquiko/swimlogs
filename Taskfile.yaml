@@ -4,6 +4,10 @@ vars:
   DB_DOCKER_NAME: dev-psql
 
 tasks:
+  test:
+    cmds:
+      - go test ./...
+
   openapi-gen:
     deps: [check:oapi-codegen]
     dir: ./generator
@@ -18,8 +22,8 @@ tasks:
   migration:new:
     deps: [check:migrate]
     preconditions:
-     - sh: test -n "{{.CLI_ARGS}}"
-       msg: No script name argument passed!
+      - sh: test -n "{{.CLI_ARGS}}"
+        msg: No script name argument passed!
     cmds:
       - migrate create -seq -ext=.sql -dir=./migrations "{{.CLI_ARGS}}"
 
@@ -57,4 +61,3 @@ tasks:
     preconditions:
       - sh: command -v oapi-codegen
         msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
-
