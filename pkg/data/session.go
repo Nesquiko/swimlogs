@@ -101,7 +101,7 @@ func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
 
 	// Err can be ignored, because Postgres supports rows affected
 	if rows, _ := res.RowsAffected(); rows == 0 {
-		return ErrNotFound
+		return ErrRowNotFound
 	}
 
 	return nil
@@ -128,7 +128,7 @@ func (psql *postgresDbConn) UpdateSession(
 		&session.DurationMin,
 	)
 	if err == sql.ErrNoRows {
-		return session, ErrNotFound
+		return session, ErrRowNotFound
 	} else if err != nil {
 		return session, fmt.Errorf("UpdateSession: %w", err)
 	}

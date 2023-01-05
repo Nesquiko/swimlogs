@@ -10,19 +10,15 @@ import (
 )
 
 type SwimLogs interface {
-	GetAllSessions(
-		ctx context.Context,
-	) (oapiGen.GetAllSessionsResponseObject, error)
+	GetAllSessions() (oapiGen.GetAllSessionsResponseObject, error)
 
 	CreateSession(
-		ctx context.Context,
 		request oapiGen.CreateSessionRequestObject,
 	) (oapiGen.CreateSessionResponseObject, error)
 
-	DeleteSession(ctx context.Context, id uuid.UUID) (oapiGen.DeleteSessionResponseObject, error)
+	DeleteSession(id uuid.UUID) (oapiGen.DeleteSessionResponseObject, error)
 
 	UpdateSession(
-		ctx context.Context,
 		request oapiGen.UpdateSessionRequestObject,
 	) (oapiGen.UpdateSessionResponseObject, error)
 

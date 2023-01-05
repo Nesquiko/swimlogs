@@ -7,6 +7,8 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
+// SwimLogsServer implements interface oapiGen.StrictServerInterface,
+// which is generated from OpenApi spec located in documentation.
 type SwimLogsServer struct {
 	swimLogs app.SwimLogs
 }
@@ -19,28 +21,28 @@ func (server *SwimLogsServer) GetAllSessions(
 	ctx context.Context,
 	request oapiGen.GetAllSessionsRequestObject,
 ) (oapiGen.GetAllSessionsResponseObject, error) {
-	return server.swimLogs.GetAllSessions(ctx)
+	return server.swimLogs.GetAllSessions()
 }
 
 func (server *SwimLogsServer) CreateSession(
 	ctx context.Context,
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
-	return server.swimLogs.CreateSession(ctx, request)
+	return server.swimLogs.CreateSession(request)
 }
 
 func (server *SwimLogsServer) DeleteSession(
 	ctx context.Context,
 	request oapiGen.DeleteSessionRequestObject,
 ) (oapiGen.DeleteSessionResponseObject, error) {
-	return server.swimLogs.DeleteSession(ctx, request.Id)
+	return server.swimLogs.DeleteSession(request.Id)
 }
 
 func (server *SwimLogsServer) UpdateSession(
 	ctx context.Context,
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
-	return server.swimLogs.UpdateSession(ctx, request)
+	return server.swimLogs.UpdateSession(request)
 }
 
 func (server *SwimLogsServer) CreateTraining(

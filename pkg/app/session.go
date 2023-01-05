@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"strings"
 
@@ -10,9 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (app *swimLogsApp) GetAllSessions(
-	ctx context.Context,
-) (oapiGen.GetAllSessionsResponseObject, error) {
+func (app *swimLogsApp) GetAllSessions() (oapiGen.GetAllSessionsResponseObject, error) {
 	sessions, err := app.db.GetAllSessions()
 	if err != nil {
 		app.logger.Error(err)
@@ -30,7 +27,6 @@ func (app *swimLogsApp) GetAllSessions(
 }
 
 func (app *swimLogsApp) CreateSession(
-	ctx context.Context,
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
 	newSession := request.Body
@@ -60,15 +56,12 @@ func (app *swimLogsApp) CreateSession(
 	return oapiGen.CreateSession201JSONResponse(*newSession), nil
 }
 
-func (app *swimLogsApp) DeleteSession(
-	ctx context.Context,
-	id uuid.UUID,
-) (oapiGen.DeleteSessionResponseObject, error) {
+func (app *swimLogsApp) DeleteSession(id uuid.UUID) (oapiGen.DeleteSessionResponseObject, error) {
 	err := app.db.InTx(func(tx *sql.Tx) error {
 		return app.db.DeleteSession(id, tx)
 	})
 
-	if err == data.ErrNotFound {
+	if err == data.ErrRowNotFound {
 		return oapiGen.DeleteSession404JSONResponse{
 			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(id),
 		}, nil
@@ -85,7 +78,6 @@ func (app *swimLogsApp) DeleteSession(
 }
 
 func (app *swimLogsApp) UpdateSession(
-	ctx context.Context,
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
 	if invalid := validateSession(request.Body); len(invalid) != 0 {
@@ -104,7 +96,7 @@ func (app *swimLogsApp) UpdateSession(
 		session = transformDataSession(sess)
 		return nil
 	})
-	if err == data.ErrNotFound {
+	if err == data.ErrRowNotFound {
 		return oapiGen.UpdateSession404JSONResponse{
 			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(request.Id),
 		}, nil

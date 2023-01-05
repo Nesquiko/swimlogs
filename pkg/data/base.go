@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Base contains essential fields used by database tables
 type Base struct {
 	Id         uuid.UUID
 	CreatedAt  time.Time

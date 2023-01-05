@@ -8,6 +8,7 @@ import (
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 )
 
+// days is a set of day names
 var days = map[string]bool{
 	string(oapiGen.Monday):    true,
 	string(oapiGen.Tuesday):   true,
@@ -18,6 +19,8 @@ var days = map[string]bool{
 	string(oapiGen.Sunday):    true,
 }
 
+// validateSession returns a map with keys being names of session fields, which
+// aren't valid, and values being reasons why they aren't valid.
 func validateSession(session *oapiGen.Session) map[string]string {
 	invalid := make(map[string]string)
 
