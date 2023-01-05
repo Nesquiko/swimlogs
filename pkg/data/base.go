@@ -12,8 +12,8 @@ type Base struct {
 	ModifiedAt time.Time
 }
 
-func createBase() *Base {
-	return &Base{
+func createBase() Base {
+	return Base{
 		Id:         uuid.New(),
 		CreatedAt:  time.Now(),
 		ModifiedAt: time.Now(),

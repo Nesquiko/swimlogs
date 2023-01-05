@@ -9,7 +9,9 @@ import (
 
 type DBConn interface {
 	InTx(func(*sql.Tx) error) error
+
 	SaveSession(Session, *sql.Tx) (*uuid.UUID, error)
+	GetAllSessions() ([]Session, error)
 
 	Close() error
 }

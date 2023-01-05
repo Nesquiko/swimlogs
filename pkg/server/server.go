@@ -19,7 +19,7 @@ func (server *SwimLogsServer) GetAllSessions(
 	ctx context.Context,
 	request oapiGen.GetAllSessionsRequestObject,
 ) (oapiGen.GetAllSessionsResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.GetAllSessions(ctx)
 }
 
 func (server *SwimLogsServer) CreateSession(

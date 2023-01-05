@@ -2,15 +2,15 @@ package app
 
 import "github.com/Nesquiko/swimlogs/generator/oapiGen"
 
-func invalidSessionError(invalid map[string]string) oapiGen.CreateSession400JSONResponse {
+func invalidSessionError(
+	invalid map[string]string,
+) oapiGen.InvalidSessionErrorResponseJSONResponse {
 	errorDetail := oapiGen.InvalidSessionErrorResponseJSONResponse{
 		Title:                "Invalid request",
 		Detail:               "There were invalid session attributes",
 		AdditionalProperties: invalid,
 	}
-	return oapiGen.CreateSession400JSONResponse{
-		InvalidSessionErrorResponseJSONResponse: errorDetail,
-	}
+	return errorDetail
 }
 
 func internalServerError() oapiGen.InternalServerErrorResponseJSONResponse {
