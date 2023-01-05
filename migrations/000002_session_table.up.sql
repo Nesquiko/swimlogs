@@ -3,7 +3,7 @@ create table if not exists session (
 	created_at timestamp not null,
 	modified_at timestamp not null,
 	day day not null,
-	startTime time  with time zone not null,
+	startTime time not null,
 	duration smallint not null,
 
 	constraint session_duration_check check (duration >= 0)
