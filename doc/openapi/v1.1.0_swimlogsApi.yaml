@@ -20,7 +20,16 @@ paths:
       operationId: getAllSessions
       responses:
         200:
-          $ref: '#/components/responses/GetAllSessionsResponse'
+          description: Response containing all sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Session'
         500:
           $ref: '#/components/responses/InternalServerErrorResponse'
     post:
@@ -32,7 +41,12 @@ paths:
         $ref: '#/components/requestBodies/CreateSessionRequest'
       responses:
         201:
-          $ref: '#/components/responses/CreateSessionResponse'
+          description: A new session was successfully created and
+            it is returned, also with newly generated id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
         400:
           $ref: '#/components/responses/InvalidSessionErrorResponse'
         500:
@@ -71,7 +85,11 @@ paths:
         $ref: '#/components/requestBodies/UpdateSessionRequest'
       responses:
         200:
-          $ref: '#/components/responses/UpdateSessionResponse'
+          description: Returns the updated Session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
         400:
           $ref: '#/components/responses/InvalidSessionErrorResponse'
         404:
@@ -89,8 +107,12 @@ paths:
         $ref: '#/components/requestBodies/CreateTrainingRequest'
       responses:
         201:
-          $ref: '#/components/responses/CreateTrainingResponse'
-
+          description: New training was successfully created and it is returned,
+            also with newly generated id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Training'
   /training/{id}:
     parameters:
       - name: id
@@ -110,7 +132,11 @@ paths:
       operationId: getTrainingById
       responses:
         200:
-          $ref: '#/components/responses/GetTrainingResponse'
+          description: Response with a training
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Training'
     put:
       description: Updates training with matching id according to the training
         object in the request. The Id of the object is ignored, as it can't be
@@ -122,7 +148,11 @@ paths:
         $ref: '#/components/requestBodies/UpdateTrainingRequest'
       responses:
         200:
-          $ref: '#/components/responses/UpdateTrainingResponse'
+          description: Returns the updated Training
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Training'
     delete:
       description: Deletes a training with matching id
       tags:
@@ -171,55 +201,6 @@ components:
             $ref: '#/components/schemas/Training'
 
   responses:
-    GetAllSessionsResponse:
-      description: Response containing all sessions
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              sessions:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Session'
-
-    CreateSessionResponse:
-      description: A new session was successfully created and
-        it is returned, also with newly generated id.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Session'
-
-    UpdateSessionResponse:
-      description: Returns the updated Session
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Session'
-
-    CreateTrainingResponse:
-      description: New training was successfully created and it is returned,
-        also with newly generated id.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Training'
-
-    GetTrainingResponse:
-      description: Response with a training
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Training'
-
-    UpdateTrainingResponse:
-      description: Returns the updated Training
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Training'
-      
     SessionNotFoundErrorResponse:
       description: Session with matching Id wasn't found
       content:
