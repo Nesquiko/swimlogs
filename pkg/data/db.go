@@ -3,11 +3,14 @@ package data
 import (
 	"database/sql"
 
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
 type DBConn interface {
 	InTx(func(*sql.Tx) error) error
+	SaveSession(Session, *sql.Tx) (*uuid.UUID, error)
+
 	Close() error
 }
 

@@ -7,7 +7,15 @@ import (
 )
 
 type Base struct {
-	Id        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id         uuid.UUID
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+}
+
+func createBase() *Base {
+	return &Base{
+		Id:         uuid.New(),
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
+	}
 }
