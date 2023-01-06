@@ -9,30 +9,11 @@ import (
 )
 
 const (
-	Friday    string = "friday"
-	Monday    string = "monday"
-	Saturday  string = "saturday"
-	Sunday    string = "sunday"
-	Thursday  string = "thursday"
-	Tuesday   string = "tuesday"
-	Wednesday string = "wednesday"
-)
-
-const TIME_LAYOUT = "2006-01-02T15:04:05Z"
-
-const (
 	INSERT_SESSION = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
 	SELECT_SESSION = "select * from session"
 	DELETE_SESSION = "delete from session where id = $1"
 	UPDATE_SESSION = "update session set modified_at = $2, day = $3, starttime = $4, duration = $5 where id = $1 returning id, day, starttime, duration"
 )
-
-type Session struct {
-	Base
-	Day         string
-	DurationMin int
-	StartTime   string
-}
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()
