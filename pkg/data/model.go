@@ -42,7 +42,7 @@ type Session struct {
 type Training struct {
 	Base
 
-	date        time.Time
+	Date        time.Time
 	Day         string
 	DurationMin int
 	StartTime   string

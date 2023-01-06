@@ -8,6 +8,8 @@ import (
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 )
 
+const MaxNameLen = 255
+
 // days is a set of day names
 var days = map[string]bool{
 	string(oapiGen.Monday):    true,
@@ -19,23 +21,34 @@ var days = map[string]bool{
 	string(oapiGen.Sunday):    true,
 }
 
+// startingRules is a set of allowed startingRule names
+var startingRules = map[string]bool{
+	string(oapiGen.None):     true,
+	string(oapiGen.Pause):    true,
+	string(oapiGen.Interval): true,
+}
+
 // validateSession returns a map with keys being names of session fields, which
 // aren't valid, and values being reasons why they aren't valid.
-func validateSession(session *oapiGen.Session) map[string]string {
+func validateSession(s oapiGen.Session) map[string]string {
+	return validateSessionData(string(s.Day), s.StartTime, s.DurationMin)
+}
+
+func validateSessionData(day, startTime string, durationMin int) map[string]string {
 	invalid := make(map[string]string)
 
-	if !days[strings.ToLower(string(session.Day))] {
-		invalid["day"] = fmt.Sprintf("Unkwnown day name %q", session.Day)
+	if !days[strings.ToLower(day)] {
+		invalid["day"] = fmt.Sprintf("Unknown day name '%s'", day)
 	}
 
-	if !isTimeValid(session.StartTime) {
+	if !isTimeValid(startTime) {
 		invalid["startTime"] = fmt.Sprintf(
-			"Start time must be from 00:00 to 23:59, but was %q",
-			session.StartTime,
+			"Start time must be from 00:00 to 23:59, but was '%s'",
+			startTime,
 		)
 	}
 
-	if session.DurationMin <= 0 {
+	if durationMin <= 0 {
 		invalid["durationMin"] = "Duration can't be less than 1"
 	}
 
@@ -62,4 +75,78 @@ func isTimeValid(startTime string) bool {
 	}
 
 	return true
+}
+
+func validateTraining(t oapiGen.Training) map[string]string {
+	var invalid map[string]string
+	if t.SessionId == nil {
+		invalid = validateSessionData(string(*t.Day), *t.StartTime, *t.DurationMin)
+	} else {
+		invalid = make(map[string]string)
+	}
+
+	if len(t.Blocks) == 0 {
+		invalid["blocks"] = "No blocks in training"
+	}
+
+	for i, b := range t.Blocks {
+		invalidBlock := validateBlock(b)
+		for k, v := range invalidBlock {
+			invalid[fmt.Sprintf("block#%d-%s", i, k)] = v
+		}
+	}
+	return invalid
+}
+
+func validateBlock(b oapiGen.Block) map[string]string {
+	invalid := make(map[string]string)
+	if len(b.Name) != MaxNameLen {
+		invalid["name"] = fmt.Sprintf("Name must have less than %d characters", MaxNameLen)
+	}
+
+	if b.Repeat <= 0 {
+		invalid["repeat"] = "Repeat must be greater than 0"
+	}
+
+	if len(b.Sets) == 0 {
+		invalid["sets"] = "No sets in block"
+	}
+
+	for i, s := range b.Sets {
+		invalidSet := validateSet(s)
+		for k, v := range invalidSet {
+			invalid[fmt.Sprintf("set#%d-%s", i, k)] = v
+		}
+	}
+	return invalid
+}
+
+func validateSet(s oapiGen.Set) map[string]string {
+	invalid := make(map[string]string)
+
+	if !startingRules[strings.ToLower(string(s.StartingRule.Rule))] {
+		invalid["startingRule"] = fmt.Sprintf(
+			"Unkwnown starting rule name '%s'",
+			s.StartingRule.Rule,
+		)
+	}
+
+	if s.StartingRule.Rule == oapiGen.Pause || s.StartingRule.Rule == oapiGen.Interval {
+		if s.StartingRule.Seconds == nil {
+			invalid["startingRule"] = fmt.Sprintf(
+				"Rule '%s' must have seconds set",
+				string(s.StartingRule.Rule),
+			)
+		}
+	}
+
+	if s.Distance <= 0 {
+		invalid["distance"] = "Distance must be greater than 0"
+	}
+
+	if s.Repeat <= 0 {
+		invalid["repeat"] = "Repeat must be greater than 0"
+	}
+
+	return invalid
 }

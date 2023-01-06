@@ -4,9 +4,9 @@ vars:
   DB_DOCKER_NAME: dev-psql
 
 tasks:
-  test:
+  test:unit:
     cmds:
-      - go test ./...
+      - go test -v ./...
 
   openapi-gen:
     deps: [check:oapi-codegen]
