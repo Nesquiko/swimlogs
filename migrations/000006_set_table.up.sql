@@ -6,6 +6,7 @@ create table if not exists set(
 	what text not null,
 	starting_rule starting_rule not null,
 	rule_seconds smallint,
+	block_id uuid references block on delete cascade,
 
 	constraint set_repeat_check check (repeat > 0),
 	constraint set_distance_check check (distance > 0),
