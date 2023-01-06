@@ -1,7 +1,5 @@
 create table if not exists set(
 	id uuid primary key,
-	created_at timestamp not null,
-	modified_at timestamp not null,
 
 	repeat smallint not null,
 	distance smallint not null,
