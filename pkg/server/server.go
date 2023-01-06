@@ -45,11 +45,18 @@ func (server *SwimLogsServer) UpdateSession(
 	return server.swimLogs.UpdateSession(request)
 }
 
+func (server *SwimLogsServer) GetTrainings(
+	ctx context.Context,
+	request oapiGen.GetTrainingsRequestObject,
+) (oapiGen.GetTrainingsResponseObject, error) {
+	return nil, nil
+}
+
 func (server *SwimLogsServer) CreateTraining(
 	ctx context.Context,
 	request oapiGen.CreateTrainingRequestObject,
 ) (oapiGen.CreateTrainingResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.CreateTraining(request)
 }
 
 func (server *SwimLogsServer) DeleteTraining(
@@ -70,5 +77,12 @@ func (server *SwimLogsServer) UpdateTraining(
 	ctx context.Context,
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
+	return nil, nil
+}
+
+func (server *SwimLogsServer) GetTrainingsDetails(
+	ctx context.Context,
+	request oapiGen.GetTrainingsDetailsRequestObject,
+) (oapiGen.GetTrainingsDetailsResponseObject, error) {
 	return nil, nil
 }

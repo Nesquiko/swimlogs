@@ -23,7 +23,6 @@ type SwimLogs interface {
 	) (oapiGen.UpdateSessionResponseObject, error)
 
 	CreateTraining(
-		ctx context.Context,
 		request oapiGen.CreateTrainingRequestObject,
 	) (oapiGen.CreateTrainingResponseObject, error)
 

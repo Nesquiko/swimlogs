@@ -100,7 +100,7 @@ func validateTraining(t oapiGen.Training) map[string]string {
 
 func validateBlock(b oapiGen.Block) map[string]string {
 	invalid := make(map[string]string)
-	if len(b.Name) != MaxNameLen {
+	if len(b.Name) > MaxNameLen {
 		invalid["name"] = fmt.Sprintf("Name must have less than %d characters", MaxNameLen)
 	}
 

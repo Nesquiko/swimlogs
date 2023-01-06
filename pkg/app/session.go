@@ -30,7 +30,7 @@ func (app *swimLogsApp) CreateSession(
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
 	newSession := request.Body
-	if invalid := validateSession(newSession); len(invalid) != 0 {
+	if invalid := validateSession(*newSession); len(invalid) != 0 {
 		return oapiGen.CreateSession400JSONResponse{
 			InvalidSessionErrorResponseJSONResponse: invalidSessionError(invalid),
 		}, nil
@@ -80,7 +80,7 @@ func (app *swimLogsApp) DeleteSession(id uuid.UUID) (oapiGen.DeleteSessionRespon
 func (app *swimLogsApp) UpdateSession(
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
-	if invalid := validateSession(request.Body); len(invalid) != 0 {
+	if invalid := validateSession(*request.Body); len(invalid) != 0 {
 		return oapiGen.UpdateSession400JSONResponse{
 			InvalidSessionErrorResponseJSONResponse: invalidSessionError(invalid),
 		}, nil

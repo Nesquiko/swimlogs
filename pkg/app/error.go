@@ -31,3 +31,13 @@ func internalServerError() oapiGen.InternalServerErrorResponseJSONResponse {
 		Detail: "Internal server error",
 	}
 }
+
+func invalidTrainingError(
+	invalid map[string]string,
+) oapiGen.InvalidTrainingErrorResponseJSONResponse {
+	return oapiGen.InvalidTrainingErrorResponseJSONResponse{
+		Title:                "Invalid request",
+		Detail:               "There were invalid training attributes",
+		AdditionalProperties: invalid,
+	}
+}

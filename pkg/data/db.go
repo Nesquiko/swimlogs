@@ -34,6 +34,14 @@ type DBConn interface {
 	// Also ModifiedAt is updated to current time of execution.
 	UpdateSession(id uuid.UUID, updated Session, tx *sql.Tx) (Session, error)
 
+	// SaveTraining saves passed training into storage, MUST be executed in
+	// transaction (see DBConn.InTx)
+	SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error)
+
+	// SaveTrainingWithSesssionData saves passed training with data from session
+	// with matching sId into storage. MUST be executed in transaction (see DBConn.InTx)
+	SaveTrainingWithSesssionData(t Training, sId uuid.UUID, tx *sql.Tx) (*uuid.UUID, error)
+
 	// Closes the db connection
 	Close() error
 }

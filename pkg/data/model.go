@@ -17,7 +17,7 @@ const (
 	Wednesday string = "wednesday"
 )
 
-const TIME_LAYOUT = "2006-01-02T15:04:05Z"
+const TimeLayout = "2006-01-02T15:04:05Z"
 
 const (
 	Interval string = "interval"
@@ -43,9 +43,9 @@ type Training struct {
 	Base
 
 	Date        time.Time
-	Day         string
-	DurationMin int
-	StartTime   string
+	Day         *string
+	DurationMin *int
+	StartTime   *string
 
 	Blocks []Block
 }

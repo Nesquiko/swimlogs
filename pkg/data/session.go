@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	INSERT_SESSION = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
-	SELECT_SESSION = "select * from session"
-	DELETE_SESSION = "delete from session where id = $1"
-	UPDATE_SESSION = "update session set modified_at = $2, day = $3, starttime = $4, duration = $5 where id = $1 returning id, day, starttime, duration"
+	InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
+	SelectSession = "select * from session"
+	DeleteSession = "delete from session where id = $1"
+	UpdateSession = "update session set modified_at = $2, day = $3, starttime = $4, duration = $5 where id = $1 returning id, day, starttime, duration"
 )
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
@@ -20,7 +20,7 @@ func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, 
 	session.Base = base
 
 	_, err := tx.Exec(
-		INSERT_SESSION,
+		InsertSession,
 		session.Id,
 		session.CreatedAt,
 		session.ModifiedAt,
@@ -38,7 +38,7 @@ func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, 
 func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 	sessions := make([]Session, 0)
 
-	rows, err := db.Query(SELECT_SESSION)
+	rows, err := db.Query(SelectSession)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllSessions: %w", err)
 	}
@@ -59,7 +59,7 @@ func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 			return nil, fmt.Errorf("GetAllSessions: %w", err)
 		}
 
-		st, err := time.Parse(TIME_LAYOUT, startTime)
+		st, err := time.Parse(TimeLayout, startTime)
 		if err != nil {
 			return nil, fmt.Errorf("GetAllSessions: %w", err)
 		}
@@ -75,7 +75,7 @@ func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 }
 
 func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
-	res, err := tx.Exec(DELETE_SESSION, id)
+	res, err := tx.Exec(DeleteSession, id)
 	if err != nil {
 		return fmt.Errorf("DeleteSession: %w", err)
 	}
@@ -96,7 +96,7 @@ func (psql *postgresDbConn) UpdateSession(
 	var session Session
 	var startTime string
 	err := tx.QueryRow(
-		UPDATE_SESSION,
+		UpdateSession,
 		id,
 		time.Now(),
 		updated.Day,
@@ -114,7 +114,7 @@ func (psql *postgresDbConn) UpdateSession(
 		return session, fmt.Errorf("UpdateSession: %w", err)
 	}
 
-	st, err := time.Parse(TIME_LAYOUT, startTime)
+	st, err := time.Parse(TimeLayout, startTime)
 	if err != nil {
 		return session, fmt.Errorf("UpdateSession: %w", err)
 	}
