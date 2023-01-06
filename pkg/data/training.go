@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -13,10 +14,11 @@ const (
 	InsertBlock               = "insert into block (id, num, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5, $6)"
 	InsertTraining            = "insert into training (id, created_at, modified_at, date, day, starttime, duration, total_dist) values ($1, $2, $3, $4, $5, $6, $7, $8)"
 	InsertTrainingFromSession = `insert into training (id, created_at, modified_at, date, total_dist, day, starttime, duration)
-	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6`
+	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6
+	returning id, day, starttime, duration`
 
 	SelectTrainings    = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
-	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.repeat, b.name, b.total_dist, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
+	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
 
 	DeleteTraining = "delete from training where id = $1"
 )
@@ -33,17 +35,20 @@ func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 	cts := make([]completeTraining, 0)
 	for rows.Next() {
 		var ct completeTraining
+		var startTime string
 		err := rows.Scan(
 			&ct.tId,
 			&ct.tDate,
 			&ct.tDay,
-			&ct.tStartT,
+			&startTime,
 			&ct.tDur,
 			&ct.tTotDist,
 			&ct.bId,
+			&ct.bNum,
 			&ct.bRepeat,
 			&ct.bName,
 			&ct.bTotDist,
+			&ct.sNum,
 			&ct.sRepeat,
 			&ct.sDist,
 			&ct.sWhat,
@@ -53,6 +58,13 @@ func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 		)
 		if err != nil {
 			return training, fmt.Errorf("GetTrainingById: %w", err)
+		}
+
+		st, err := time.Parse(TimeLayout, startTime)
+		if err != nil {
+			ct.tStartT = startTime
+		} else {
+			ct.tStartT = st.Format("15:04")
 		}
 		cts = append(cts, ct)
 	}
@@ -113,11 +125,12 @@ func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 	t Training,
 	sId uuid.UUID,
 	tx *sql.Tx,
-) (*uuid.UUID, error) {
+) (*Training, error) {
 	base := createBase()
 	t.Base = base
 
-	_, err := tx.Exec(
+	var startTime string
+	err := tx.QueryRow(
 		InsertTrainingFromSession,
 		t.Id,
 		t.CreatedAt,
@@ -125,9 +138,16 @@ func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 		t.Date,
 		t.TotalDistance,
 		sId,
-	)
+	).Scan(&t.Id, &t.Day, &startTime, &t.DurationMin)
 	if err != nil {
 		return nil, fmt.Errorf("SaveTrainingWithSesssionData: %w", err)
+	}
+	st, err := time.Parse(TimeLayout, startTime)
+	if err != nil {
+		t.StartTime = &startTime
+	} else {
+		formatted := st.Format("15:04")
+		t.StartTime = &formatted
 	}
 
 	for _, b := range t.Blocks {
@@ -137,7 +157,7 @@ func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 		}
 	}
 
-	return &t.Id, nil
+	return &t, nil
 }
 
 func (psql *postgresDbConn) saveBlock(b Block, trainingId uuid.UUID, tx *sql.Tx) error {

@@ -39,8 +39,10 @@ type DBConn interface {
 	SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error)
 
 	// SaveTrainingWithSesssionData saves passed training with data from session
-	// with matching sId into storage. MUST be executed in transaction (see DBConn.InTx)
-	SaveTrainingWithSesssionData(t Training, sId uuid.UUID, tx *sql.Tx) (*uuid.UUID, error)
+	// with matching sId into storage. Returns Training with only values copied
+	// from session with matching sId (Day, StartTime, DurationMin).
+	// MUST be executed in transaction (see DBConn.InTx)
+	SaveTrainingWithSesssionData(t Training, sId uuid.UUID, tx *sql.Tx) (*Training, error)
 
 	// GetTraining returns paginated list with length of pageSize and with
 	// offset of page

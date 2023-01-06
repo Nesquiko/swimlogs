@@ -28,7 +28,12 @@ func (app *swimLogsApp) CreateTraining(
 		if newTraining.SessionId == nil {
 			id, err = app.db.SaveTraining(t, tx)
 		} else {
-			id, err = app.db.SaveTrainingWithSesssionData(t, *newTraining.SessionId, tx)
+			var populatedT *data.Training
+			populatedT, err = app.db.SaveTrainingWithSesssionData(t, *newTraining.SessionId, tx)
+			id = &populatedT.Id
+			newTraining.Day = (*oapiGen.Day)(populatedT.Day)
+			newTraining.StartTime = populatedT.StartTime
+			newTraining.DurationMin = populatedT.DurationMin
 		}
 
 		if err != nil {
