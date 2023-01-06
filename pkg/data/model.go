@@ -42,10 +42,11 @@ type Session struct {
 type Training struct {
 	Base
 
-	Date        time.Time
-	Day         *string
-	DurationMin *int
-	StartTime   *string
+	Date          time.Time
+	Day           *string
+	DurationMin   *int
+	StartTime     *string
+	TotalDistance int
 
 	Blocks []Block
 }
@@ -53,8 +54,9 @@ type Training struct {
 type Block struct {
 	Id uuid.UUID
 
-	Repeat int
-	Name   string
+	Repeat        int
+	Name          string
+	TotalDistance int
 
 	Sets []Set
 }
@@ -62,11 +64,12 @@ type Block struct {
 type Set struct {
 	Id uuid.UUID
 
-	Repeat       int
-	Distance     int
-	What         string
-	StartingRule string
-	RuleSeconds  sql.NullInt16
+	Repeat        int
+	Distance      int
+	What          string
+	StartingRule  string
+	RuleSeconds   sql.NullInt16
+	TotalDistance int
 }
 
 func createBase() Base {

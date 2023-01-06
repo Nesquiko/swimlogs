@@ -26,7 +26,7 @@ func transformDataSession(session data.Session) oapiGen.Session {
 	}
 }
 
-func transformRestTraining(t oapiGen.Training) data.Training {
+func transformRestTraining(t *oapiGen.Training) data.Training {
 	training := data.Training{
 		Date:        t.Date.Time,
 		Day:         (*string)(t.Day),
@@ -35,9 +35,13 @@ func transformRestTraining(t oapiGen.Training) data.Training {
 	}
 
 	training.Blocks = make([]data.Block, len(t.Blocks))
+	totDist := 0
 	for i, b := range t.Blocks {
-		training.Blocks[i] = transformRestBlock(b)
+		block := transformRestBlock(b)
+		training.Blocks[i] = block
+		totDist += block.TotalDistance
 	}
+	training.TotalDistance = totDist
 
 	return training
 }
@@ -49,9 +53,13 @@ func transformRestBlock(b oapiGen.Block) data.Block {
 	}
 
 	block.Sets = make([]data.Set, len(b.Sets))
+	totDist := 0
 	for i, s := range b.Sets {
-		block.Sets[i] = transformRestSet(s)
+		set := transformRestSet(s)
+		block.Sets[i] = set
+		totDist += set.TotalDistance
 	}
+	block.TotalDistance = totDist
 
 	return block
 }
@@ -63,15 +71,16 @@ func transformRestSet(s oapiGen.Set) data.Set {
 		ruleSeconds.Int16 = int16(*s.StartingRule.Seconds)
 		ruleSeconds.Valid = true
 	}
+	totDist := s.Distance * s.Repeat
 
 	return data.Set{
-		Repeat:       s.Repeat,
-		Distance:     s.Distance,
-		What:         s.What,
-		StartingRule: string(s.StartingRule.Rule),
-		RuleSeconds:  ruleSeconds,
+		Repeat:        s.Repeat,
+		Distance:      s.Distance,
+		What:          s.What,
+		StartingRule:  string(s.StartingRule.Rule),
+		RuleSeconds:   ruleSeconds,
+		TotalDistance: totDist,
 	}
-
 }
 
 func transformDataTraining(t data.Training) oapiGen.Training {
@@ -81,6 +90,7 @@ func transformDataTraining(t data.Training) oapiGen.Training {
 		Day:         (*oapiGen.Day)(t.Day),
 		DurationMin: t.DurationMin,
 		StartTime:   t.StartTime,
+		TotalDist:   &t.TotalDistance,
 	}
 
 	training.Blocks = make([]oapiGen.Block, len(t.Blocks))
@@ -93,8 +103,9 @@ func transformDataTraining(t data.Training) oapiGen.Training {
 
 func transformDataBlock(b data.Block) oapiGen.Block {
 	block := oapiGen.Block{
-		Name:   b.Name,
-		Repeat: b.Repeat,
+		Name:      b.Name,
+		Repeat:    b.Repeat,
+		TotalDist: &b.TotalDistance,
 	}
 
 	block.Sets = make([]oapiGen.Set, len(b.Sets))
@@ -126,5 +137,6 @@ func transformDataSet(s data.Set) oapiGen.Set {
 		Repeat:       s.Repeat,
 		StartingRule: sr,
 		What:         s.What,
+		TotalDist:    &s.TotalDistance,
 	}
 }

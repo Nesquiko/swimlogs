@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +19,8 @@ func (app *swimLogsApp) CreateTraining(
 		}, nil
 	}
 
-	t := transformRestTraining(*newTraining)
+	t := transformRestTraining(newTraining)
+	updateTotalDist(newTraining, t)
 	err := app.db.InTx(func(tx *sql.Tx) error {
 		var id *uuid.UUID
 		var err error
@@ -72,4 +74,15 @@ func (app *swimLogsApp) UpdateTraining(
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
 	return nil, nil
+}
+
+func updateTotalDist(t *oapiGen.Training, data data.Training) {
+	t.TotalDist = &data.TotalDistance
+
+	for i, b := range data.Blocks {
+		t.Blocks[i].TotalDist = &b.TotalDistance
+		for j, s := range b.Sets {
+			t.Blocks[i].Sets[j].TotalDist = &s.TotalDistance
+		}
+	}
 }

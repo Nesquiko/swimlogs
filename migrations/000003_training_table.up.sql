@@ -7,6 +7,8 @@ create table if not exists training(
 	day day not null,
 	startTime time not null,
 	duration smallint not null,
+	total_dist smallint not null,
 
-	constraint training_duration_check check (duration > 0)
+	constraint training_duration_check check (duration > 0),
+	constraint training_total_dist_check check (total_dist > 0)
 );
