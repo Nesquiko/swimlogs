@@ -2,7 +2,6 @@ package app
 
 import (
 	"database/sql"
-	"strings"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -108,21 +107,4 @@ func (app *swimLogsApp) UpdateSession(
 	}
 
 	return oapiGen.UpdateSession200JSONResponse(session), nil
-}
-
-func transformRestSession(session oapiGen.Session) data.Session {
-	return data.Session{
-		Day:         strings.ToLower(string(session.Day)),
-		StartTime:   session.StartTime,
-		DurationMin: session.DurationMin,
-	}
-}
-
-func transformDataSession(session data.Session) oapiGen.Session {
-	return oapiGen.Session{
-		Id:          session.Id,
-		Day:         oapiGen.Day(session.Day),
-		StartTime:   session.StartTime,
-		DurationMin: session.DurationMin,
-	}
 }
