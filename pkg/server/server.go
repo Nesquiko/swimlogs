@@ -49,7 +49,7 @@ func (server *SwimLogsServer) GetTrainings(
 	ctx context.Context,
 	request oapiGen.GetTrainingsRequestObject,
 ) (oapiGen.GetTrainingsResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.GetTrainings(request)
 }
 
 func (server *SwimLogsServer) CreateTraining(

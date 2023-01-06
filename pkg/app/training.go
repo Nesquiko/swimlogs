@@ -6,6 +6,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 )
 
@@ -45,6 +46,13 @@ func (app *swimLogsApp) CreateTraining(
 	}
 
 	return oapiGen.CreateTraining201JSONResponse(*newTraining), nil
+}
+
+func (app *swimLogsApp) GetTrainings(
+	request oapiGen.GetTrainingsRequestObject,
+) (oapiGen.GetTrainingsResponseObject, error) {
+	app.logger.Info("GetTrainings endpoint called, but it shouldn't have been")
+	return nil, nil
 }
 
 func (app *swimLogsApp) DeleteTraining(
@@ -116,3 +124,57 @@ func transformRestSet(s oapiGen.Set) data.Set {
 
 }
 
+func transformDataTraining(t data.Training) oapiGen.Training {
+	training := oapiGen.Training{
+		Id:          t.Id,
+		Date:        types.Date{Time: t.Date},
+		Day:         (*oapiGen.Day)(t.Day),
+		DurationMin: t.DurationMin,
+		StartTime:   t.StartTime,
+	}
+
+	training.Blocks = make([]oapiGen.Block, len(t.Blocks))
+	for i, b := range t.Blocks {
+		training.Blocks[i] = transformDataBlock(b)
+	}
+
+	return training
+}
+
+func transformDataBlock(b data.Block) oapiGen.Block {
+	block := oapiGen.Block{
+		Name:   b.Name,
+		Repeat: b.Repeat,
+	}
+
+	block.Sets = make([]oapiGen.Set, len(b.Sets))
+	for i, s := range b.Sets {
+		block.Sets[i] = transformDataSet(s)
+	}
+
+	return block
+}
+
+func transformDataSet(s data.Set) oapiGen.Set {
+
+	var seconds *int
+	switch s.StartingRule {
+	case string(oapiGen.Pause), string(oapiGen.Interval):
+		s := int(s.RuleSeconds.Int16)
+		seconds = &s
+	default:
+		seconds = nil
+	}
+
+	sr := oapiGen.StartingRule{
+		Rule:    oapiGen.StartingRuleRule(s.StartingRule),
+		Seconds: seconds,
+	}
+
+	return oapiGen.Set{
+		Distance:     s.Distance,
+		Repeat:       s.Repeat,
+		StartingRule: sr,
+		What:         s.What,
+	}
+}

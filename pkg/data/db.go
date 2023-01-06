@@ -42,6 +42,10 @@ type DBConn interface {
 	// with matching sId into storage. MUST be executed in transaction (see DBConn.InTx)
 	SaveTrainingWithSesssionData(t Training, sId uuid.UUID, tx *sql.Tx) (*uuid.UUID, error)
 
+	// GetTraining returns paginated list with length of pageSize and with
+	// offset of page
+	GetTrainings(page, pageSize int) ([]Training, error)
+
 	// Closes the db connection
 	Close() error
 }

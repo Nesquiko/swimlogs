@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,7 +14,13 @@ const (
 	InsertTraining            = "insert into training (id, created_at, modified_at, date, day, starttime, duration) values ($1, $2, $3, $4, $5, $6, $7)"
 	InsertTrainingFromSession = `insert into training (id, created_at, modified_at, date, day, starttime, duration)
 	select $1, $2, $3, $4, s.day ,s.starttime ,s.duration from session as s where s.id = $5`
+
+	SelectTrainings = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
 )
+
+func (psql *postgresDbConn) GetTrainings(page, pageSize int) ([]Training, error) {
+	return nil, errors.New("not implemented, not needed yet")
+}
 
 func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()

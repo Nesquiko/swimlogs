@@ -26,6 +26,10 @@ type SwimLogs interface {
 		request oapiGen.CreateTrainingRequestObject,
 	) (oapiGen.CreateTrainingResponseObject, error)
 
+	GetTrainings(
+		request oapiGen.GetTrainingsRequestObject,
+	) (oapiGen.GetTrainingsResponseObject, error)
+
 	DeleteTraining(
 		ctx context.Context,
 		request oapiGen.DeleteTrainingRequestObject,
