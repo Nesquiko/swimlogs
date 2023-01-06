@@ -51,6 +51,10 @@ type DBConn interface {
 	// sets are deleted. MUST be executed in transaction (see DBConn.InTx)
 	DeleteTraining(id uuid.UUID, tx *sql.Tx) error
 
+	// GetTrainingById returns a training with matching id. If it doesn't exist
+	// returns ErrRowNotFound.
+	GetTrainingById(id uuid.UUID) (Training, error)
+
 	// Closes the db connection
 	Close() error
 }

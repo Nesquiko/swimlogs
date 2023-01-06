@@ -79,10 +79,24 @@ func (app *swimLogsApp) DeleteTraining(
 }
 
 func (app *swimLogsApp) GetTrainingById(
-	ctx context.Context,
 	request oapiGen.GetTrainingByIdRequestObject,
 ) (oapiGen.GetTrainingByIdResponseObject, error) {
-	return nil, nil
+	t, err := app.db.GetTrainingById(request.Id)
+	if err == data.ErrRowNotFound {
+		return oapiGen.GetTrainingById404JSONResponse{
+			TrainingNotFoundErrorResponseJSONResponse: trainingNotFound(request.Id),
+		}, nil
+	}
+
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.GetTrainingById500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	training := transformDataTraining(t)
+	return oapiGen.GetTrainingById200JSONResponse(training), nil
 }
 
 func (app *swimLogsApp) UpdateTraining(

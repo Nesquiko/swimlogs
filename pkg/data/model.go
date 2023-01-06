@@ -72,6 +72,27 @@ type Set struct {
 	TotalDistance int
 }
 
+type completeTraining struct {
+	tId      uuid.UUID
+	tDate    time.Time
+	tDay     string
+	tStartT  string
+	tDur     int
+	tTotDist int
+
+	bId      uuid.UUID
+	bRepeat  int
+	bName    string
+	bTotDist int
+
+	sRepeat    int
+	sDist      int
+	sWhat      string
+	sStartRule string
+	sRuleSecs  sql.NullInt16
+	sTotDist   int
+}
+
 func createBase() Base {
 	return Base{
 		Id:         uuid.New(),

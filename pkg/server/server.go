@@ -70,7 +70,7 @@ func (server *SwimLogsServer) GetTrainingById(
 	ctx context.Context,
 	request oapiGen.GetTrainingByIdRequestObject,
 ) (oapiGen.GetTrainingByIdResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.GetTrainingById(request)
 }
 
 func (server *SwimLogsServer) UpdateTraining(
