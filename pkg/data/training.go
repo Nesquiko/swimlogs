@@ -16,10 +16,21 @@ const (
 	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6`
 
 	SelectTrainings = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
+
+	DeleteTraining = "delete from training where id = $1"
 )
 
-func (psql *postgresDbConn) GetTrainings(page, pageSize int) ([]Training, error) {
-	return nil, errors.New("not implemented, not needed yet")
+func (psql *postgresDbConn) DeleteTraining(id uuid.UUID, tx *sql.Tx) error {
+	res, err := tx.Exec(DeleteTraining, id)
+	if err != nil {
+		return fmt.Errorf("DeleteTraining: %w", err)
+	}
+
+	// Err can be ignored, because Postgres supports rows affected
+	if rows, _ := res.RowsAffected(); rows == 0 {
+		return ErrRowNotFound
+	}
+	return nil
 }
 
 func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error) {
@@ -119,4 +130,8 @@ func (psql *postgresDbConn) saveSet(s Set, blockId uuid.UUID, tx *sql.Tx) error 
 	}
 
 	return nil
+}
+
+func (psql *postgresDbConn) GetTrainings(page, pageSize int) ([]Training, error) {
+	return nil, errors.New("not implemented, not needed yet")
 }

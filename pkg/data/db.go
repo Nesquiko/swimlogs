@@ -46,6 +46,11 @@ type DBConn interface {
 	// offset of page
 	GetTrainings(page, pageSize int) ([]Training, error)
 
+	// DeleteTraining deletes a training with matching id, if no training with
+	// matching id exists, returns ErrRowNotFound. Also all the blocks and
+	// sets are deleted. MUST be executed in transaction (see DBConn.InTx)
+	DeleteTraining(id uuid.UUID, tx *sql.Tx) error
+
 	// Closes the db connection
 	Close() error
 }

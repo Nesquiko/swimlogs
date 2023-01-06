@@ -63,7 +63,7 @@ func (server *SwimLogsServer) DeleteTraining(
 	ctx context.Context,
 	request oapiGen.DeleteTrainingRequestObject,
 ) (oapiGen.DeleteTrainingResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.DeleteTraining(request)
 }
 
 func (server *SwimLogsServer) GetTrainingById(

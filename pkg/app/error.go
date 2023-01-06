@@ -41,3 +41,10 @@ func invalidTrainingError(
 		AdditionalProperties: invalid,
 	}
 }
+
+func trainingNotFound(id uuid.UUID) oapiGen.TrainingNotFoundErrorResponseJSONResponse {
+	return oapiGen.TrainingNotFoundErrorResponseJSONResponse{
+		Title:  "Training wasn't found",
+		Detail: fmt.Sprintf("Training with Id '%s' wasn't found", id.String()),
+	}
+}
