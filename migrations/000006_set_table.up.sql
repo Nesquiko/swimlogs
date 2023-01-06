@@ -1,6 +1,7 @@
 create table if not exists set(
 	id uuid primary key,
 
+	num smallint not null,
 	repeat smallint not null,
 	distance smallint not null,
 	what text not null,

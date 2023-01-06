@@ -1,6 +1,7 @@
 create table if not exists block(
 	id uuid primary key,
 
+	num smallint not null,
 	repeat smallint not null,
 	name varchar(255) not null,
 	training_id uuid references training on delete cascade,

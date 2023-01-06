@@ -54,6 +54,7 @@ type Training struct {
 type Block struct {
 	Id uuid.UUID
 
+	Num           int
 	Repeat        int
 	Name          string
 	TotalDistance int
@@ -64,6 +65,7 @@ type Block struct {
 type Set struct {
 	Id uuid.UUID
 
+	Num           int
 	Repeat        int
 	Distance      int
 	What          string
@@ -81,11 +83,13 @@ type completeTraining struct {
 	tTotDist int
 
 	bId      uuid.UUID
+	bNum     int
 	bRepeat  int
 	bName    string
 	bTotDist int
 
 	sRepeat    int
+	sNum       int
 	sDist      int
 	sWhat      string
 	sStartRule string

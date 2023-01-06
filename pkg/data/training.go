@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	InsertSet                 = "insert into set (id, repeat, distance, what, starting_rule, rule_seconds, total_dist, block_id) values ($1, $2, $3, $4, $5, $6, $7, $8)"
-	InsertBlock               = "insert into block (id, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5)"
+	InsertSet                 = "insert into set (id, num, repeat, distance, what, starting_rule, rule_seconds, total_dist, block_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+	InsertBlock               = "insert into block (id, num, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5, $6)"
 	InsertTraining            = "insert into training (id, created_at, modified_at, date, day, starttime, duration, total_dist) values ($1, $2, $3, $4, $5, $6, $7, $8)"
 	InsertTrainingFromSession = `insert into training (id, created_at, modified_at, date, total_dist, day, starttime, duration)
 	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6`
@@ -143,7 +143,7 @@ func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 func (psql *postgresDbConn) saveBlock(b Block, trainingId uuid.UUID, tx *sql.Tx) error {
 	b.Id = uuid.New()
 
-	_, err := tx.Exec(InsertBlock, b.Id, b.Repeat, b.Name, b.TotalDistance, trainingId)
+	_, err := tx.Exec(InsertBlock, b.Id, b.Num, b.Repeat, b.Name, b.TotalDistance, trainingId)
 	if err != nil {
 		return fmt.Errorf("saveBlock: %w", err)
 	}
@@ -164,6 +164,7 @@ func (psql *postgresDbConn) saveSet(s Set, blockId uuid.UUID, tx *sql.Tx) error 
 	_, err := tx.Exec(
 		InsertSet,
 		s.Id,
+		s.Num,
 		s.Repeat,
 		s.Distance,
 		s.What,
@@ -199,6 +200,7 @@ func createTraining(cts []completeTraining) Training {
 		if _, ok := blocks[ct.bId]; !ok {
 			blocks[ct.bId] = &Block{
 				Id:            ct.bId,
+				Num:           ct.bNum,
 				Repeat:        ct.bRepeat,
 				Name:          ct.bName,
 				TotalDistance: ct.bTotDist,
@@ -208,6 +210,7 @@ func createTraining(cts []completeTraining) Training {
 
 		b := blocks[ct.bId]
 		s := Set{
+			Num:           ct.sNum,
 			Repeat:        ct.sRepeat,
 			Distance:      ct.sDist,
 			What:          ct.sWhat,
