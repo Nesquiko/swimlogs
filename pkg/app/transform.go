@@ -148,3 +148,20 @@ func transformDataSet(s data.Set) oapiGen.Set {
 		TotalDist:    &s.TotalDistance,
 	}
 }
+
+func transormToDetails(ts []data.Training) []oapiGen.TrainingDetail {
+	details := make([]oapiGen.TrainingDetail, len(ts))
+
+	for i, t := range ts {
+		details[i] = oapiGen.TrainingDetail{
+			Id:          t.Id,
+			Date:        types.Date{t.Date},
+			Day:         oapiGen.Day(*t.Day),
+			StartTime:   *t.StartTime,
+			DurationMin: *t.DurationMin,
+			TotalDist:   t.TotalDistance,
+		}
+	}
+
+	return details
+}

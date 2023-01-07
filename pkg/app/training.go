@@ -3,11 +3,59 @@ package app
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/google/uuid"
 )
+
+func (app *swimLogsApp) GetTrainingsDetails(
+	request oapiGen.GetTrainingsDetailsRequestObject,
+) (oapiGen.GetTrainingsDetailsResponseObject, error) {
+	page, pageSize := request.Params.Page, request.Params.PageSize
+
+	if page < 0 {
+		errorDetail := oapiGen.ErrorDetail{
+			Title:  "Page can't be less than 0",
+			Detail: fmt.Sprintf("Page can't be less than 0, was '%d'", page),
+		}
+		return oapiGen.GetTrainingsDetails400JSONResponse(errorDetail), nil
+	} else if pageSize < 1 {
+		errorDetail := oapiGen.ErrorDetail{
+			Title:  "Page size can't be less than 1",
+			Detail: fmt.Sprintf("Page size can't be less than 1, was '%d'", pageSize),
+		}
+		return oapiGen.GetTrainingsDetails400JSONResponse(errorDetail), nil
+	}
+
+	trainings, err := app.db.GetDetailsOfTrainings(page, pageSize)
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.GetTrainingsDetails500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+	totalTrainings, err := app.db.GetTrainingCount()
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.GetTrainingsDetails500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	details := transormToDetails(trainings)
+	pagination := oapiGen.Pagination{
+		Total:    totalTrainings,
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	return oapiGen.GetTrainingsDetails200JSONResponse{
+		Details:    &details,
+		Pagination: &pagination,
+	}, nil
+}
 
 func (app *swimLogsApp) CreateTraining(
 	request oapiGen.CreateTrainingRequestObject,

@@ -61,6 +61,13 @@ type DBConn interface {
 	// MUST be executed in transaction (see DBConn.InTx)
 	UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error
 
+	// GetDetailsOfTrainings returns paginated list of Training with only values
+	// needed in detail.
+	GetDetailsOfTrainings(page, pageSize int) ([]Training, error)
+
+	// GetTrainingCount return how many trainings are save in storage
+	GetTrainingCount() (int, error)
+
 	// Closes the db connection
 	Close() error
 }

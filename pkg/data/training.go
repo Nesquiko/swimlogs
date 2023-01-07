@@ -18,15 +18,50 @@ const (
 	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6
 	returning id, day, starttime, duration`
 
-	SelectTrainings    = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
-	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
+	SelectTrainings       = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
+	SelectTrainingById    = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
+	SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
 
 	UpdateSet     = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8, where id = $1"
 	UpdateBlock   = "update block set num = $2, repeat = $3, name = $4, total_dist = $5 where id = $1"
 	UpdateTrainig = "update training set modified_at = now(), date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1"
 
 	DeleteTraining = "delete from training where id = $1"
+
+	TrainingCount = "select count(id) from training"
 )
+
+func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Training, error) {
+	rows, err := psql.Query(SelectTrainingDetails, page, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
+	}
+	defer rows.Close()
+
+	trainings := make([]Training, 0, pageSize)
+	for rows.Next() {
+		var t Training
+		err = rows.Scan(&t.Id, &t.Date, &t.Day, &t.StartTime, &t.DurationMin, &t.TotalDistance)
+		if err != nil {
+			return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
+		}
+		trainings = append(trainings, t)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
+	}
+
+	return trainings, nil
+}
+
+func (psql *postgresDbConn) GetTrainingCount() (int, error) {
+	var count int
+	err := psql.QueryRow(TrainingCount).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("GetTrainingCount: %w", err)
+	}
+	return count, nil
+}
 
 func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error {
 	res, err := tx.Exec(

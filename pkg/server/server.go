@@ -84,5 +84,5 @@ func (server *SwimLogsServer) GetTrainingsDetails(
 	ctx context.Context,
 	request oapiGen.GetTrainingsDetailsRequestObject,
 ) (oapiGen.GetTrainingsDetailsResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.GetTrainingsDetails(request)
 }
