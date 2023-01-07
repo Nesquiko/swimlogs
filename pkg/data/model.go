@@ -88,6 +88,7 @@ type completeTraining struct {
 	bName    string
 	bTotDist int
 
+	sId        uuid.UUID
 	sRepeat    int
 	sNum       int
 	sDist      int

@@ -1,8 +1,6 @@
 package app
 
 import (
-	"context"
-
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/google/uuid"
@@ -39,7 +37,6 @@ type SwimLogs interface {
 	) (oapiGen.GetTrainingByIdResponseObject, error)
 
 	UpdateTraining(
-		ctx context.Context,
 		request oapiGen.UpdateTrainingRequestObject,
 	) (oapiGen.UpdateTrainingResponseObject, error)
 }

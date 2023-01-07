@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
@@ -21,9 +20,17 @@ func (app *swimLogsApp) CreateTraining(
 
 	t := transformRestTraining(newTraining)
 	updateTotalDist(newTraining, t)
+
+	var td oapiGen.TrainingDetail
 	err := app.db.InTx(func(tx *sql.Tx) error {
-		var id *uuid.UUID
-		var err error
+		var (
+			id  *uuid.UUID
+			err error
+
+			day       = *newTraining.Day
+			startTime = *newTraining.StartTime
+			durMin    = *newTraining.DurationMin
+		)
 
 		if newTraining.SessionId == nil {
 			id, err = app.db.SaveTraining(t, tx)
@@ -31,15 +38,20 @@ func (app *swimLogsApp) CreateTraining(
 			var populatedT *data.Training
 			populatedT, err = app.db.SaveTrainingWithSesssionData(t, *newTraining.SessionId, tx)
 			id = &populatedT.Id
-			newTraining.Day = (*oapiGen.Day)(populatedT.Day)
-			newTraining.StartTime = populatedT.StartTime
-			newTraining.DurationMin = populatedT.DurationMin
+			day = oapiGen.Day(*populatedT.Day)
+			startTime = *populatedT.StartTime
+			durMin = *populatedT.DurationMin
 		}
-
 		if err != nil {
 			return err
 		}
-		newTraining.Id = *id
+
+		td.Id = *id
+		td.Date = newTraining.Date
+		td.Day = day
+		td.StartTime = startTime
+		td.DurationMin = durMin
+		td.TotalDist = t.TotalDistance
 
 		return nil
 	})
@@ -50,7 +62,7 @@ func (app *swimLogsApp) CreateTraining(
 		}, nil
 	}
 
-	return oapiGen.CreateTraining201JSONResponse(*newTraining), nil
+	return oapiGen.CreateTraining201JSONResponse(td), nil
 }
 
 func (app *swimLogsApp) GetTrainings(
@@ -105,9 +117,18 @@ func (app *swimLogsApp) GetTrainingById(
 }
 
 func (app *swimLogsApp) UpdateTraining(
-	ctx context.Context,
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
+	newTraining := request.Body
+	if invalid := validateTraining(*newTraining); len(invalid) != 0 {
+		return oapiGen.UpdateTraining400JSONResponse{
+			InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
+		}, nil
+	}
+
+	t := transformRestTraining(newTraining)
+	updateTotalDist(newTraining, t)
+
 	return nil, nil
 }
 

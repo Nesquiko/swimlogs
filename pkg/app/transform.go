@@ -48,6 +48,7 @@ func transformRestTraining(t *oapiGen.Training) data.Training {
 
 func transformRestBlock(b oapiGen.Block) data.Block {
 	block := data.Block{
+		Id:     b.Id,
 		Num:    b.Num,
 		Repeat: b.Repeat,
 		Name:   b.Name,
@@ -75,6 +76,7 @@ func transformRestSet(s oapiGen.Set) data.Set {
 	totDist := s.Distance * s.Repeat
 
 	return data.Set{
+		Id:            s.Id,
 		Num:           s.Num,
 		Repeat:        s.Repeat,
 		Distance:      s.Distance,
@@ -105,6 +107,7 @@ func transformDataTraining(t data.Training) oapiGen.Training {
 
 func transformDataBlock(b data.Block) oapiGen.Block {
 	block := oapiGen.Block{
+		Id:        b.Id,
 		Num:       b.Num,
 		Name:      b.Name,
 		Repeat:    b.Repeat,
@@ -136,6 +139,7 @@ func transformDataSet(s data.Set) oapiGen.Set {
 	}
 
 	return oapiGen.Set{
+		Id:           s.Id,
 		Num:          s.Num,
 		Distance:     s.Distance,
 		Repeat:       s.Repeat,

@@ -18,7 +18,7 @@ const (
 	returning id, day, starttime, duration`
 
 	SelectTrainings    = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
-	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
+	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
 
 	DeleteTraining = "delete from training where id = $1"
 )
@@ -48,6 +48,7 @@ func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 			&ct.bRepeat,
 			&ct.bName,
 			&ct.bTotDist,
+			&ct.sId,
 			&ct.sNum,
 			&ct.sRepeat,
 			&ct.sDist,
@@ -230,6 +231,7 @@ func createTraining(cts []completeTraining) Training {
 
 		b := blocks[ct.bId]
 		s := Set{
+			Id:            ct.sId,
 			Num:           ct.sNum,
 			Repeat:        ct.sRepeat,
 			Distance:      ct.sDist,

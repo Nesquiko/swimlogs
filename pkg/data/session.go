@@ -12,7 +12,7 @@ const (
 	InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
 	SelectSession = "select * from session"
 	DeleteSession = "delete from session where id = $1"
-	UpdateSession = "update session set modified_at = $2, day = $3, starttime = $4, duration = $5 where id = $1 returning id, day, starttime, duration"
+	UpdateSession = "update session set modified_at = now(), day = $2, starttime = $3, duration = $4 where id = $1 returning id, day, starttime, duration"
 )
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
@@ -98,7 +98,6 @@ func (psql *postgresDbConn) UpdateSession(
 	err := tx.QueryRow(
 		UpdateSession,
 		id,
-		time.Now(),
 		updated.Day,
 		updated.StartTime,
 		updated.DurationMin,
