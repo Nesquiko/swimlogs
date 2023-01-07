@@ -8,12 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
-	SelectSession = "select * from session"
-	DeleteSession = "delete from session where id = $1"
-	UpdateSession = "update session set modified_at = now(), day = $2, starttime = $3, duration = $4 where id = $1 returning id, day, starttime, duration"
-)
+var InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()
@@ -34,6 +29,8 @@ func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, 
 
 	return &session.Id, nil
 }
+
+var SelectSession = "select * from session"
 
 func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 	sessions := make([]Session, 0)
@@ -74,6 +71,8 @@ func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 	return sessions, nil
 }
 
+var DeleteSession = "delete from session where id = $1"
+
 func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
 	res, err := tx.Exec(DeleteSession, id)
 	if err != nil {
@@ -87,6 +86,8 @@ func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
 
 	return nil
 }
+
+var UpdateSession = "update session set modified_at = now(), day = $2, starttime = $3, duration = $4 where id = $1 returning id, day, starttime, duration"
 
 func (psql *postgresDbConn) UpdateSession(
 	id uuid.UUID,

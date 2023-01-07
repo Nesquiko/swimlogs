@@ -9,27 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO move each query to its corresponding method
-const (
-	InsertSet                 = "insert into set (id, num, repeat, distance, what, starting_rule, rule_seconds, total_dist, block_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-	InsertBlock               = "insert into block (id, num, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5, $6)"
-	InsertTraining            = "insert into training (id, created_at, modified_at, date, day, starttime, duration, total_dist) values ($1, $2, $3, $4, $5, $6, $7, $8)"
-	InsertTrainingFromSession = `insert into training (id, created_at, modified_at, date, total_dist, day, starttime, duration)
-	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s where s.id = $6
-	returning id, day, starttime, duration`
-
-	SelectTrainings       = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
-	SelectTrainingById    = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
-	SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
-
-	UpdateSet     = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8, where id = $1"
-	UpdateBlock   = "update block set num = $2, repeat = $3, name = $4, total_dist = $5 where id = $1"
-	UpdateTrainig = "update training set modified_at = now(), date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1"
-
-	DeleteTraining = "delete from training where id = $1"
-
-	TrainingCount = "select count(id) from training"
-)
+var SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
 
 func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Training, error) {
 	rows, err := psql.Query(SelectTrainingDetails, page, pageSize)
@@ -54,6 +34,8 @@ func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Trainin
 	return trainings, nil
 }
 
+var TrainingCount = "select count(id) from training"
+
 func (psql *postgresDbConn) GetTrainingCount() (int, error) {
 	var count int
 	err := psql.QueryRow(TrainingCount).Scan(&count)
@@ -62,6 +44,8 @@ func (psql *postgresDbConn) GetTrainingCount() (int, error) {
 	}
 	return count, nil
 }
+
+var UpdateTrainig = "update training set modified_at = now(), date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1"
 
 func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error {
 	res, err := tx.Exec(
@@ -92,6 +76,8 @@ func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql
 	return nil
 }
 
+var UpdateBlock = "update block set num = $2, repeat = $3, name = $4, total_dist = $5 where id = $1"
+
 func (psql *postgresDbConn) updateBlock(id uuid.UUID, b Block, tx *sql.Tx) error {
 	res, err := tx.Exec(UpdateBlock, id, b.Num, b.Repeat, b.Name, b.TotalDistance)
 	if err != nil {
@@ -111,6 +97,8 @@ func (psql *postgresDbConn) updateBlock(id uuid.UUID, b Block, tx *sql.Tx) error
 
 	return nil
 }
+
+var UpdateSet = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8, where id = $1"
 
 func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
 	res, err := tx.Exec(
@@ -134,6 +122,8 @@ func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
 
 	return nil
 }
+
+var SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
 
 func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 	var training Training
@@ -192,6 +182,8 @@ func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 	return createTraining(cts), nil
 }
 
+var DeleteTraining = "delete from training where id = $1"
+
 func (psql *postgresDbConn) DeleteTraining(id uuid.UUID, tx *sql.Tx) error {
 	res, err := tx.Exec(DeleteTraining, id)
 	if err != nil {
@@ -204,6 +196,8 @@ func (psql *postgresDbConn) DeleteTraining(id uuid.UUID, tx *sql.Tx) error {
 	}
 	return nil
 }
+
+var InsertTraining = "insert into training (id, created_at, modified_at, date, day, starttime, duration, total_dist) values ($1, $2, $3, $4, $5, $6, $7, $8)"
 
 func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()
@@ -233,6 +227,12 @@ func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, er
 
 	return &t.Id, nil
 }
+
+var InsertTrainingFromSession = `insert into training
+	(id, created_at, modified_at, date, total_dist, day, starttime, duration)
+	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s
+	where s.id = $6
+	returning id, day, starttime, duration`
 
 func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 	t Training,
@@ -273,6 +273,8 @@ func (psql *postgresDbConn) SaveTrainingWithSesssionData(
 	return &t, nil
 }
 
+var InsertBlock = "insert into block (id, num, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5, $6)"
+
 func (psql *postgresDbConn) saveBlock(b Block, trainingId uuid.UUID, tx *sql.Tx) error {
 	b.Id = uuid.New()
 
@@ -290,6 +292,8 @@ func (psql *postgresDbConn) saveBlock(b Block, trainingId uuid.UUID, tx *sql.Tx)
 
 	return nil
 }
+
+var InsertSet = "insert into set (id, num, repeat, distance, what, starting_rule, rule_seconds, total_dist, block_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
 func (psql *postgresDbConn) saveSet(s Set, blockId uuid.UUID, tx *sql.Tx) error {
 	s.Id = uuid.New()
@@ -311,10 +315,6 @@ func (psql *postgresDbConn) saveSet(s Set, blockId uuid.UUID, tx *sql.Tx) error 
 	}
 
 	return nil
-}
-
-func (psql *postgresDbConn) GetTrainings(page, pageSize int) ([]Training, error) {
-	return nil, errors.New("not implemented, not needed yet")
 }
 
 func createTraining(cts []completeTraining) Training {
@@ -360,4 +360,10 @@ func createTraining(cts []completeTraining) Training {
 	}
 
 	return t
+}
+
+var SelectTrainings = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
+
+func (psql *postgresDbConn) GetTrainings(page, pageSize int) ([]Training, error) {
+	return nil, errors.New("not implemented, not needed yet")
 }
