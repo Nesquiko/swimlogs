@@ -6,6 +6,18 @@ vars:
   TESTDB_PORT: 55555
 
 tasks:
+  test:coverage:
+    cmds:
+      - task: setup-test-db
+      - sleep 1 # let the docker initialize completely
+      - task: migrate-test
+      - defer: { task: teardown-test-db }
+      - go test -v -coverprofile=./doc/coverage.out -coverpkg=./... ./...
+      - go tool cover -html=./doc/coverage.out -o ./doc/coverage.html
+      - rm ./doc/coverage.out
+    env:
+      TESTDB_PORT: '{{.TESTDB_PORT}}'
+
   test:ut:
     cmds:
       - go test -v -short ./...

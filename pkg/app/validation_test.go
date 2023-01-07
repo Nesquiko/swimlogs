@@ -256,6 +256,16 @@ func Test_isTimeValid(t *testing.T) {
 			expected:  false,
 		},
 		{
+			desc:      "InvalidHours",
+			startTime: "AA:10",
+			expected:  false,
+		},
+		{
+			desc:      "InvalidMinutes",
+			startTime: "00:BB",
+			expected:  false,
+		},
+		{
 			desc:      "Midnight",
 			startTime: "0:0",
 			expected:  true,
