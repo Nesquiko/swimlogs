@@ -2,11 +2,23 @@ version: '3'
 
 vars:
   DB_DOCKER_NAME: dev-psql
+  TESTDB_DOCKER_NAME: testing-psql
+  TESTDB_PORT: 55555
 
 tasks:
-  test:unit:
+  test:ut:
     cmds:
-      - go test -v ./...
+      - go test -v -short ./...
+
+  test:it:
+    cmds:
+      - task: setup-test-db
+      - sleep 1 # let the docker initialize completely
+      - task: migrate-test
+      - defer: { task: teardown-test-db }
+      - go test -v ./integration
+    env:
+      TESTDB_PORT: '{{.TESTDB_PORT}}'
 
   openapi-gen:
     deps: [check:oapi-codegen]
@@ -46,6 +58,31 @@ tasks:
         -p 2345:5432 \
         -d \
         postgres
+
+  setup-test-db:
+    deps: [check:docker]
+    cmds:
+      - |
+        docker run --name {{.TESTDB_DOCKER_NAME}} \
+        -e POSTGRES_USER=swimlogs_test \
+        -e POSTGRES_PASSWORD=swimlogs_test \
+        -e POSTGRES_DB=swimlogs_test \
+        -p {{.TESTDB_PORT}}:5432 \
+        -d \
+        postgres
+
+  teardown-test-db:
+    deps: [check:docker]
+    cmds:
+      - docker stop {{.TESTDB_DOCKER_NAME}}
+      - docker rm {{.TESTDB_DOCKER_NAME}}
+
+  migrate-test:
+    deps: [check:migrate]
+    cmds:
+      - migrate -path=./migrations -database='{{.DSN}}' up
+    vars:
+      DSN: 'postgres://swimlogs_test:swimlogs_test@localhost:{{.TESTDB_PORT}}/swimlogs_test?sslmode=disable'
 
   check:migrate:
     preconditions:
