@@ -27,6 +27,7 @@ tasks:
       - mkdir -p oapiGen
       - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
       - oapi-codegen -config ./config/models.cfg.yaml ../doc/openapi/{{.SPEC}}
+      - sed -i '5s|^|//lint:file-ignore ST1005 generated code\n|' ./oapiGen/server.gen.go
     vars:
       SPEC:
         sh: ls -v ../doc/openapi | tail -n 1
