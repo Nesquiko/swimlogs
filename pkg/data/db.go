@@ -57,6 +57,10 @@ type DBConn interface {
 	// returns ErrRowNotFound.
 	GetTrainingById(id uuid.UUID) (Training, error)
 
+	// UpdateTrainingById updates training with matching id accordingly to t.
+	// MUST be executed in transaction (see DBConn.InTx)
+	UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error
+
 	// Closes the db connection
 	Close() error
 }

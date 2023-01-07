@@ -77,7 +77,7 @@ func (server *SwimLogsServer) UpdateTraining(
 	ctx context.Context,
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
-	return nil, nil
+	return server.swimLogs.UpdateTraining(request)
 }
 
 func (server *SwimLogsServer) GetTrainingsDetails(

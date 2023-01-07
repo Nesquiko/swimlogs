@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -129,7 +130,36 @@ func (app *swimLogsApp) UpdateTraining(
 	t := transformRestTraining(newTraining)
 	updateTotalDist(newTraining, t)
 
-	return nil, nil
+	err := app.db.InTx(func(tx *sql.Tx) error {
+		err := app.db.UpdateTrainingById(request.Id, t, tx)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if errors.Is(err, data.ErrRowNotFound) {
+		app.logger.Warn(err)
+		return oapiGen.UpdateTraining404JSONResponse{
+			TrainingNotFoundErrorResponseJSONResponse: trainingNotFound(request.Id),
+		}, nil
+	}
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.UpdateTraining500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	td := oapiGen.TrainingDetail{
+		Id:          request.Id,
+		Date:        newTraining.Date,
+		Day:         *newTraining.Day,
+		StartTime:   *newTraining.StartTime,
+		DurationMin: *newTraining.DurationMin,
+		TotalDist:   *newTraining.TotalDist,
+	}
+
+	return oapiGen.UpdateTraining200JSONResponse(td), nil
 }
 
 func updateTotalDist(t *oapiGen.Training, data data.Training) {

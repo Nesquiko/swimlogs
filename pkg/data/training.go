@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO move each query to its corresponding method
 const (
 	InsertSet                 = "insert into set (id, num, repeat, distance, what, starting_rule, rule_seconds, total_dist, block_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 	InsertBlock               = "insert into block (id, num, repeat, name, total_dist, training_id) values ($1, $2, $3, $4, $5, $6)"
@@ -20,8 +21,84 @@ const (
 	SelectTrainings    = "select t.*, b.*, s.* from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id group by t.id, b.id, s.id"
 	SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
 
+	UpdateSet     = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8, where id = $1"
+	UpdateBlock   = "update block set num = $2, repeat = $3, name = $4, total_dist = $5 where id = $1"
+	UpdateTrainig = "update training set modified_at = now(), date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1"
+
 	DeleteTraining = "delete from training where id = $1"
 )
+
+func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error {
+	res, err := tx.Exec(
+		UpdateTrainig,
+		id,
+		t.Date,
+		t.Day,
+		t.StartTime,
+		t.DurationMin,
+		t.TotalDistance,
+	)
+	if err != nil {
+		return fmt.Errorf("UpdateTrainingById id='%s': %w", id.String(), err)
+	}
+
+	// Err can be ignored, because Postgres supports rows affected
+	if res, _ := res.RowsAffected(); res == 0 {
+		return fmt.Errorf("UpdateTrainingById id='%s': %w", id.String(), ErrRowNotFound)
+	}
+
+	for _, b := range t.Blocks {
+		err := psql.updateBlock(b.Id, b, tx)
+		if err != nil {
+			return fmt.Errorf("UpdateTrainingById id='%s': %w", id.String(), err)
+		}
+	}
+
+	return nil
+}
+
+func (psql *postgresDbConn) updateBlock(id uuid.UUID, b Block, tx *sql.Tx) error {
+	res, err := tx.Exec(UpdateBlock, id, b.Num, b.Repeat, b.Name, b.TotalDistance)
+	if err != nil {
+		return fmt.Errorf("updateBlock id='%s': %w", id.String(), err)
+	}
+	// Err can be ignored, because Postgres supports rows affected
+	if res, _ := res.RowsAffected(); res == 0 {
+		return fmt.Errorf("updateBlock id='%s': %w", id.String(), ErrRowNotFound)
+	}
+
+	for _, s := range b.Sets {
+		err := psql.updateSet(s.Id, s, tx)
+		if err != nil {
+			return fmt.Errorf("updateBlock id='%s': %w", id.String(), err)
+		}
+	}
+
+	return nil
+}
+
+func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
+	res, err := tx.Exec(
+		UpdateSet,
+		id,
+		s.Num,
+		s.Repeat,
+		s.Distance,
+		s.What,
+		s.StartingRule,
+		s.RuleSeconds,
+		s.TotalDistance,
+	)
+	if err != nil {
+		return fmt.Errorf("updateSet id='%s': %w", id.String(), err)
+	}
+	// Err can be ignored, because Postgres supports rows affected
+	if res, _ := res.RowsAffected(); res == 0 {
+		return fmt.Errorf("updateSet id='%s': %w", id.String(), ErrRowNotFound)
+	}
+
+	return nil
+}
 
 func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 	var training Training
