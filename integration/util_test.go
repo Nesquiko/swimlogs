@@ -4,15 +4,20 @@ import (
 	"database/sql"
 	"log"
 	"reflect"
+	"testing"
+	"time"
 
+	"github.com/Nesquiko/swimlogs/generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/google/uuid"
 )
 
 var (
-	CleanSession = "truncate table session"
+	CleanSession  = "truncate table session"
+	CleanTraining = "delete from training"
 )
 
-// cleanDB clears all tables in database.
 func cleanDB(db data.DBConn) {
 	field := reflect.ValueOf(db).Elem().FieldByName("DB")
 
@@ -28,5 +33,93 @@ func cleanDB(db data.DBConn) {
 	_, err := sqlDB.Exec(CleanSession)
 	if err != nil {
 		log.Fatal(err)
+	}
+	_, err = sqlDB.Exec(CleanTraining)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+var (
+	validSession   = oapiGen.Session{Day: oapiGen.Saturday, DurationMin: 60, StartTime: "17:00"}
+	invalidSession = oapiGen.Session{
+		Day:         oapiGen.Day("INVALID-DAY"),
+		DurationMin: 60,
+		StartTime:   "17:00",
+	}
+)
+
+func saveSession(s oapiGen.Session, t *testing.T) *uuid.UUID {
+	req := oapiGen.CreateSessionRequestObject{
+		Body: &s,
+	}
+	res, err := SwimLogsApp.CreateSession(req)
+	if err != nil {
+		t.Fatalf("expected no error, but was %v", err)
+	}
+	session, ok := res.(oapiGen.CreateSession201JSONResponse)
+	if !ok {
+		t.Fatalf("expected successfull reponse, but response was %+v", session)
+	}
+
+	return &session.Id
+}
+
+func saveTraining(training oapiGen.Training, t *testing.T) *uuid.UUID {
+	req := oapiGen.CreateTrainingRequestObject{Body: &training}
+	res, err := SwimLogsApp.CreateTraining(req)
+	if err != nil {
+		t.Fatalf("expected no error, but was %v", err)
+	}
+
+	trainingDetail, ok := res.(oapiGen.CreateTraining201JSONResponse)
+	if !ok {
+		t.Fatalf("expected error details, but response was %+v", trainingDetail)
+	}
+	return &trainingDetail.Id
+}
+
+func createValidTraining(sessionId *uuid.UUID) oapiGen.Training {
+	totDist := 400
+	day := oapiGen.Monday
+	dur := 60
+	startTime := "16:00"
+	return oapiGen.Training{
+		Blocks: []oapiGen.Block{
+			{
+				Name:   "Warmp up",
+				Num:    0,
+				Repeat: 1,
+				Sets: []oapiGen.Set{
+					{
+						Distance:     400,
+						Num:          0,
+						Repeat:       1,
+						StartingRule: oapiGen.StartingRule{Rule: oapiGen.None},
+						TotalDist:    &totDist,
+					},
+				},
+				TotalDist: &totDist,
+			},
+		},
+		Date:        types.Date{Time: time.Now()},
+		Day:         &day,
+		DurationMin: &dur,
+		StartTime:   &startTime,
+		SessionId:   sessionId,
+	}
+}
+
+func createTrainingWithNoBlocks() oapiGen.Training {
+	day := oapiGen.Monday
+	dur := 60
+	startTime := "16:00"
+	return oapiGen.Training{
+		Blocks:      []oapiGen.Block{},
+		Date:        types.Date{Time: time.Now()},
+		Day:         &day,
+		DurationMin: &dur,
+		StartTime:   &startTime,
+		SessionId:   nil,
 	}
 }

@@ -155,7 +155,7 @@ func transormToDetails(ts []data.Training) []oapiGen.TrainingDetail {
 	for i, t := range ts {
 		details[i] = oapiGen.TrainingDetail{
 			Id:          t.Id,
-			Date:        types.Date{t.Date},
+			Date:        types.Date{Time: t.Date},
 			Day:         oapiGen.Day(*t.Day),
 			StartTime:   *t.StartTime,
 			DurationMin: *t.DurationMin,

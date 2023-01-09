@@ -12,7 +12,7 @@ import (
 var SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
 
 func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Training, error) {
-	rows, err := psql.Query(SelectTrainingDetails, page, pageSize)
+	rows, err := psql.Query(SelectTrainingDetails, page*pageSize, pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
 	}
@@ -98,7 +98,7 @@ func (psql *postgresDbConn) updateBlock(id uuid.UUID, b Block, tx *sql.Tx) error
 	return nil
 }
 
-var UpdateSet = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8, where id = $1"
+var UpdateSet = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8 where id = $1"
 
 func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
 	res, err := tx.Exec(

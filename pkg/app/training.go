@@ -48,7 +48,7 @@ func (app *swimLogsApp) GetTrainingsDetails(
 	pagination := oapiGen.Pagination{
 		Total:    totalTrainings,
 		Page:     page,
-		PageSize: pageSize,
+		PageSize: len(details),
 	}
 
 	return oapiGen.GetTrainingsDetails200JSONResponse{

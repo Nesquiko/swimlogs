@@ -9,16 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	validSession   = oapiGen.Session{Day: oapiGen.Saturday, DurationMin: 60, StartTime: "17:00"}
-	invalidSession = oapiGen.Session{
-		Day:         oapiGen.Day("INVALID-DAY"),
-		DurationMin: 60,
-		StartTime:   "17:00",
-	}
-)
-
-// succes
 func TestUpdateSession(t *testing.T) {
 	req := oapiGen.CreateSessionRequestObject{
 		Body: &validSession,
