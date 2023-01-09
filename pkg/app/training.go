@@ -214,9 +214,11 @@ func updateTotalDist(t *oapiGen.Training, data data.Training) {
 	t.TotalDist = &data.TotalDistance
 
 	for i, b := range data.Blocks {
-		t.Blocks[i].TotalDist = &b.TotalDistance
+		bTotDist := b.TotalDistance
+		t.Blocks[i].TotalDist = &bTotDist
 		for j, s := range b.Sets {
-			t.Blocks[i].Sets[j].TotalDist = &s.TotalDistance
+			sTotDist := s.TotalDistance
+			t.Blocks[i].Sets[j].TotalDist = &sTotDist
 		}
 	}
 }
