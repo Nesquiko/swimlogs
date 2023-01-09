@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/lib/pq v1.10.7
+	github.com/vugu/vugu v0.3.4
 	go.uber.org/zap v1.24.0
 )
 
@@ -18,6 +19,10 @@ require (
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/vugu/html v0.0.0-20190914200101-c62dc20b8289 // indirect
+	github.com/vugu/vgrouter v0.0.0-20200725205318-eeb478c42e5d // indirect
+	github.com/vugu/vjson v0.0.0-20200505061711-f9cbed27d3d9 // indirect
+	github.com/vugu/xxhash v0.0.0-20191111030615-ed24d0179019 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
