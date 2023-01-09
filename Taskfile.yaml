@@ -6,6 +6,13 @@ vars:
   TESTDB_PORT: 55555
 
 tasks:
+  
+  run:backend:
+    cmds:
+      - task: test:coverage
+      - go build -o server ./cmd/server/main.go
+      - ./server
+
   test:coverage:
     cmds:
       - task: setup-test-db
