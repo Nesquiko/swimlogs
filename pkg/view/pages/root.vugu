@@ -1,11 +1,21 @@
-<div>
-  <main role="main">
-    <h1>Welcome to Vugu</h1>
-	<p vg-content='time.Now()'></p>
-  </main>
-</div>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SwimLogs</title>
+  </head>
+  <body>
+    <div>
+      <main role="main">
+        <comps:Topbar></comps:Topbar>
+        <comps:TrainingDetailCard StartTime="17:00" :DurationMin="60" :Distance="2200"></comps:TrainingDetailCard>
+      </main>
+    </div>
+  </body>
+</html>
 
 <script type="application/x-go">
-import "time"
+
+import "github.com/Nesquiko/swimlogs/pkg/view/comps"
 
 </script>

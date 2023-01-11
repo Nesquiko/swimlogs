@@ -1,0 +1,23 @@
+<div class="card">
+	<strong>Start: <span vg-content='c.StartTime'></span> </strong>	
+	<strong>Duration: <span vg-content='c.DurationMin'></span>min </strong>	
+	<strong>Distance: <span vg-content='c.Distance'></span>m </strong>	
+</div>
+
+<style>
+.card {
+	display: flex;
+	background: lightblue;
+	gap: 10rem;
+}
+</style>
+
+<script type="application/x-go">
+
+// TODO style this
+type TrainingDetailCard struct {
+	StartTime string
+  	DurationMin int
+  	Distance int
+}
+</script>
