@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/google/uuid"
 	"go.uber.org/zap"

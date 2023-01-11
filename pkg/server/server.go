@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 

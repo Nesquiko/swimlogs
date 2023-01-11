@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/google/uuid"
 )
 

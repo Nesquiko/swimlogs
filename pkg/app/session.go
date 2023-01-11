@@ -3,7 +3,7 @@ package app
 import (
 	"database/sql"
 
-	"github.com/Nesquiko/swimlogs/generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/google/uuid"
 )
