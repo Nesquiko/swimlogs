@@ -1,20 +1,39 @@
 <div class="card">
-	<strong>Start: <span vg-content='c.StartTime'></span> </strong>	
-	<strong>Duration: <span vg-content='c.DurationMin'></span>min </strong>	
-	<strong>Distance: <span vg-content='c.Distance'></span>m </strong>	
+	<div class="card-body">
+		<div>
+			<strong>Start: <span vg-content='c.StartTime'></span> </strong>	
+		</div>
+		<div>
+			<strong>Duration: <span vg-content='c.DurationMin'></span>min </strong>		
+		</div>
+		<div>
+			<strong>Distance: <span vg-content='c.Distance'></span>m </strong>	
+		</div>
+	</div>
 </div>
 
 <style>
 .card {
-	display: flex;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	margin: auto;
+	text-align: center;
 	background: lightblue;
-	gap: 10rem;
+	border-radius: 5px;
+}
+
+.card .card-body {
+	padding: 10px 16px;
+	display: flex;
+	gap: 5rem;
+}
+
+.card-body div {
+	flex: 1;
 }
 </style>
 
 <script type="application/x-go">
 
-// TODO style this
 type TrainingDetailCard struct {
 	StartTime string
   	DurationMin int

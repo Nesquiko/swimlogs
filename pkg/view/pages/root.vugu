@@ -1,21 +1,17 @@
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SwimLogs</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <div>
-      <main role="main">
-        <comps:Topbar></comps:Topbar>
-        <comps:TrainingDetailCard StartTime="17:00" :DurationMin="60" :Distance="2200"></comps:TrainingDetailCard>
-      </main>
+    <div id="root">
+		<comps:Topbar></comps:Topbar>
+		<comps:TrainingDetailCard StartTime="17:00" :DurationMin="60" :Distance="2200"></comps:TrainingDetailCard>
     </div>
   </body>
 </html>
 
 <script type="application/x-go">
-
-import "github.com/Nesquiko/swimlogs/pkg/view/comps"
-
+	import "github.com/Nesquiko/swimlogs/pkg/view/comps"
 </script>

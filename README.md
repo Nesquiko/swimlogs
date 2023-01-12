@@ -4,8 +4,10 @@ A web application for creating and sharing swim trainings in a swimming team.
 
 ## TODO
 
-1. Frontend, will static html suffice? WASM? -> Go Vugu
+1. Frontend -> Go Vugu / Hugo
 2. Zitadel
+3. Caddy
+4. Docker-compose
 
 ## Known issues
 
