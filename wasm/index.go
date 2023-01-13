@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/Nesquiko/swimlogs/pkg/view/pages"
 	"github.com/vugu/vugu"
 	"github.com/vugu/vugu/domrender"
 )
@@ -31,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	rootBuilder := &pages.Root{}
+	rootBuilder := vuguSetup(buildEnv, renderer.EventEnv())
 
 	for ok := true; ok; ok = renderer.EventWait() {
 

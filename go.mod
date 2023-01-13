@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/lib/pq v1.10.7
+	github.com/vugu/vgrouter v0.0.0-20200725205318-eeb478c42e5d
 	github.com/vugu/vjson v0.0.0-20200505061711-f9cbed27d3d9
 	github.com/vugu/vugu v0.3.4
 	go.uber.org/zap v1.24.0

@@ -1,17 +1,21 @@
 <html>
   <head>
-    <title>SwimLogs</title>
+    <title>SwimLogs FROM ROOT</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <div id="root">
+	<div>
 		<comps:Topbar></comps:Topbar>
-		<comps:TrainingDetailCard StartTime="17:00" :DurationMin="60" :Distance="2200"></comps:TrainingDetailCard>
+		<vg-comp expr="c.Body"/>
     </div>
   </body>
 </html>
 
 <script type="application/x-go">
-	import "github.com/Nesquiko/swimlogs/pkg/view/comps"
+import "github.com/Nesquiko/swimlogs/pkg/view/comps"
+
+type Root struct {
+	Body vugu.Builder
+}
 </script>

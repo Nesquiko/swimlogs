@@ -1,35 +1,39 @@
 <div class="card">
 	<div class="card-body">
 		<div>
-			<strong>Start: <span vg-content='c.StartTime'></span> </strong>	
+			<p><b>Start:</b> <span vg-content='c.StartTime'></span> </p>	
 		</div>
 		<div>
-			<strong>Duration: <span vg-content='c.DurationMin'></span>min </strong>		
+			<p><b>Duration:</b> <span vg-content='c.DurationMin'></span>min </p>		
 		</div>
 		<div>
-			<strong>Distance: <span vg-content='c.Distance'></span>m </strong>	
+			<p><b>Distance:</b> <span vg-content='c.Distance'></span>m </p>	
 		</div>
 	</div>
 </div>
 
 <style>
 .card {
+	max-width: 95%;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	border: solid;
+	border-radius: 15px;
+	border-width: 1px;
+	border-color: darkgrey;
 	margin: auto;
-	text-align: center;
-	background: lightblue;
-	border-radius: 5px;
+	background: azure;
 }
 
 .card .card-body {
-	padding: 10px 16px;
+	padding: 5px 6px;
 	display: flex;
-	gap: 5rem;
+	justify-content: space-between;
 }
 
-.card-body div {
-	flex: 1;
+.card-body p {
+	font-size: 13px;
 }
+
 </style>
 
 <script type="application/x-go">

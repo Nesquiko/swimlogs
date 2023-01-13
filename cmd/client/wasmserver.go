@@ -3,6 +3,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -10,7 +12,10 @@ import (
 )
 
 func main() {
-	l := "127.0.0.1:8844"
+	ip := flag.String("ip", "127.0.0.1", "ip on what to serve")
+	flag.Parse()
+
+	l := fmt.Sprintf("%s:8844", *ip)
 	log.Printf("Serving WASM at %q", l)
 
 	wc := devutil.NewWasmCompiler().SetBuildDir("./wasm").SetGenerateDir("./pkg/view")

@@ -1,0 +1,13 @@
+<div>
+	TODO: call backend for workouts in this week (this enpoint is not implemented yet)
+</div>
+
+<script type="application/x-go">
+import (
+    "github.com/vugu/vgrouter"
+)
+
+type LandingPage struct {
+	vgrouter.NavigatorRef
+}
+</script>
