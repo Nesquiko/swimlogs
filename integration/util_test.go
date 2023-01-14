@@ -2,6 +2,7 @@ package integration
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"reflect"
 	"testing"
@@ -130,4 +131,30 @@ func createTrainingWithNoBlocks() oapiGen.Training {
 		StartTime:   &startTime,
 		SessionId:   nil,
 	}
+}
+
+func getNameOfDay(year, month, day int) oapiGen.Day {
+	str := fmt.Sprintf("%d-%02d-%02d", year, month, day)
+	dayTime, err := time.Parse("2006-01-02", str)
+	if err != nil {
+		panic(err)
+	}
+	switch dayTime.Weekday() {
+	case time.Monday:
+		return oapiGen.Monday
+	case time.Tuesday:
+		return oapiGen.Tuesday
+	case time.Wednesday:
+		return oapiGen.Wednesday
+	case time.Thursday:
+		return oapiGen.Thursday
+	case time.Friday:
+		return oapiGen.Friday
+	case time.Saturday:
+		return oapiGen.Saturday
+	case time.Sunday:
+		return oapiGen.Sunday
+	}
+
+	panic("why is ther week day: " + dayTime.Weekday().String())
 }

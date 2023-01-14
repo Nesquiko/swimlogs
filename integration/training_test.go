@@ -4,10 +4,53 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 )
+
+func TestGetTrainingsDetailsCurrentWeek(t *testing.T) {
+
+	year, month, day := time.Now().Year(), int(time.Now().Month()), time.Now().Day()
+	dates := []struct {
+		date string
+		day  oapiGen.Day
+	}{
+		{fmt.Sprintf("%d-%02d-%02d", year, month, day-7), getNameOfDay(year, month, day-7)},
+		{fmt.Sprintf("%d-%02d-%02d", year, month, day), getNameOfDay(year, month, day)},
+		{fmt.Sprintf("%d-%02d-%02d", year, month, day+7), getNameOfDay(year, month, day+7)},
+	}
+
+	for _, v := range dates {
+		training := createValidTraining(nil)
+		d, err := time.Parse("2006-01-02", v.date)
+		if err != nil {
+			t.Fatal(err)
+		}
+		training.Date = types.Date{Time: d}
+		training.Day = &v.day
+		saveTraining(training, t)
+	}
+
+	req := oapiGen.GetTrainingsDetailsCurrentWeekRequestObject{}
+	res, err := SwimLogsApp.GetTrainingsDetailsCurrentWeek(req)
+	if err != nil {
+		t.Fatalf("expected no error, but was %v", err)
+	}
+	trainings, ok := res.(oapiGen.GetTrainingsDetailsCurrentWeek200JSONResponse)
+	if !ok {
+		t.Fatalf("expected successfull response, but response was %+v", trainings)
+	}
+	details := *trainings.Details
+
+	if len(details) != 1 {
+		t.Fatalf("expected %d trainings, response was: %+v", 1, details)
+	}
+
+	cleanDB(DB)
+}
 
 func TestUpdateTraining(t *testing.T) {
 	id := saveTraining(createValidTraining(nil), t)
