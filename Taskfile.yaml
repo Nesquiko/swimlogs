@@ -41,7 +41,7 @@ tasks:
 
   openapi-gen:
     deps: [check:oapi-codegen]
-    dir: ./generator
+    dir: ./oapi-generator
     cmds:
       - mkdir -p oapiGen
       - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
