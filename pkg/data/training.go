@@ -9,6 +9,31 @@ import (
 	"github.com/google/uuid"
 )
 
+var SelectTrainingDetailsCurrentWeek = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t where date_trunc('week', t.date ) = date_trunc('week', current_date) order by t.modified_at"
+
+func (psql *postgresDbConn) GetDetailsOfTrainingsCurrentWeek() ([]Training, error) {
+	rows, err := psql.Query(SelectTrainingDetailsCurrentWeek)
+	if err != nil {
+		return nil, fmt.Errorf("GetDetailsOfTrainingsCurrentWeek: %w", err)
+	}
+	defer rows.Close()
+
+	trainings := make([]Training, 0)
+	for rows.Next() {
+		var t Training
+		err = rows.Scan(&t.Id, &t.Date, &t.Day, &t.StartTime, &t.DurationMin, &t.TotalDistance)
+		if err != nil {
+			return nil, fmt.Errorf("GetDetailsOfTrainingsCurrentWeek: %w", err)
+		}
+		trainings = append(trainings, t)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("GetDetailsOfTrainingsCurrentWeek: %w", err)
+	}
+
+	return trainings, nil
+}
+
 var SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
 
 func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Training, error) {

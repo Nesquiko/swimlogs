@@ -13,6 +13,9 @@ A web application for creating and sharing swim trainings in a swimming team.
 
 1. there is no locking mechanism on tables, so if two users update same row
    they will overwrite each other
+2. couldn't implement constraint into Postgres for checking if training.date is
+   actually the training.day day of the week. This was my attempt:
+   `constraint training_date_day_check check (lower(to_char(date::date, 'Day')) = day::text)`
 
 ## Useful links
 

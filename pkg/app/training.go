@@ -57,6 +57,23 @@ func (app *swimLogsApp) GetTrainingsDetails(
 	}, nil
 }
 
+func (app *swimLogsApp) GetTrainingsDetailsCurrentWeek(
+	request oapiGen.GetTrainingsDetailsCurrentWeekRequestObject,
+) (oapiGen.GetTrainingsDetailsCurrentWeekResponseObject, error) {
+	trainings, err := app.db.GetDetailsOfTrainingsCurrentWeek()
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.GetTrainingsDetailsCurrentWeek500JSONResponse{
+			InternalServerErrorResponseJSONResponse: internalServerError(),
+		}, nil
+	}
+
+	details := transormToDetails(trainings)
+	return oapiGen.GetTrainingsDetailsCurrentWeek200JSONResponse{
+		Details: &details,
+	}, nil
+}
+
 func (app *swimLogsApp) CreateTraining(
 	request oapiGen.CreateTrainingRequestObject,
 ) (oapiGen.CreateTrainingResponseObject, error) {

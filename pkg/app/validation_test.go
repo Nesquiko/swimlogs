@@ -1,21 +1,45 @@
 package app
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 )
 
 func Test_validateTraining(t *testing.T) {
 	id := uuid.New()
+
+	day := oapiGen.Monday
+	invalidDate, _ := time.Parse("02.01.2006", "17.01.2023")
+	validDate, _ := time.Parse("02.01.2006", "16.01.2023")
+
 	testCases := []struct {
 		desc     string
 		t        oapiGen.Training
 		expected map[string]string
 	}{
+		{
+			desc: "WrongDayForDate",
+			t: oapiGen.Training{
+				SessionId: &id,
+				Day:       &day,
+				Date:      types.Date{Time: invalidDate},
+				Blocks:    []oapiGen.Block{validBlock},
+			},
+			expected: map[string]string{
+				"day": fmt.Sprintf(
+					"Date '%s' isn't on '%s'",
+					invalidDate.Format("02.01.2006"),
+					string(day),
+				),
+			},
+		},
 		{
 			desc: "InvalidSessionData",
 			t: oapiGen.Training{
@@ -35,6 +59,8 @@ func Test_validateTraining(t *testing.T) {
 			desc: "NoBlocks",
 			t: oapiGen.Training{
 				SessionId: &id,
+				Day:       &day,
+				Date:      types.Date{Time: validDate},
 				Blocks:    []oapiGen.Block{},
 			},
 			expected: map[string]string{"blocks": "No blocks in training"},
@@ -44,6 +70,8 @@ func Test_validateTraining(t *testing.T) {
 			t: oapiGen.Training{
 				SessionId: &id,
 				Blocks:    []oapiGen.Block{invalidBlock},
+				Day:       &day,
+				Date:      types.Date{Time: validDate},
 			},
 			expected: map[string]string{
 				"block#0-name":           "Name must have less than 255 characters",

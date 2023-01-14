@@ -74,7 +74,7 @@ func saveTraining(training oapiGen.Training, t *testing.T) *uuid.UUID {
 
 	trainingDetail, ok := res.(oapiGen.CreateTraining201JSONResponse)
 	if !ok {
-		t.Fatalf("expected error details, but response was %+v", trainingDetail)
+		t.Fatalf("expected successfull response, but response was %+v", res)
 	}
 	return &trainingDetail.Id
 }
@@ -82,6 +82,10 @@ func saveTraining(training oapiGen.Training, t *testing.T) *uuid.UUID {
 func createValidTraining(sessionId *uuid.UUID) oapiGen.Training {
 	totDist := 400
 	day := oapiGen.Monday
+	date, err := time.Parse("02.01.2006", "16.01.2023")
+	if err != nil {
+		panic(err)
+	}
 	dur := 60
 	startTime := "16:00"
 	return oapiGen.Training{
@@ -102,7 +106,7 @@ func createValidTraining(sessionId *uuid.UUID) oapiGen.Training {
 				TotalDist: &totDist,
 			},
 		},
-		Date:        types.Date{Time: time.Now()},
+		Date:        types.Date{Time: date},
 		Day:         &day,
 		DurationMin: &dur,
 		StartTime:   &startTime,
@@ -112,11 +116,15 @@ func createValidTraining(sessionId *uuid.UUID) oapiGen.Training {
 
 func createTrainingWithNoBlocks() oapiGen.Training {
 	day := oapiGen.Monday
+	date, err := time.Parse("02.01.2006", "16.01.2023")
+	if err != nil {
+		panic(err)
+	}
 	dur := 60
 	startTime := "16:00"
 	return oapiGen.Training{
 		Blocks:      []oapiGen.Block{},
-		Date:        types.Date{Time: time.Now()},
+		Date:        types.Date{Time: date},
 		Day:         &day,
 		DurationMin: &dur,
 		StartTime:   &startTime,

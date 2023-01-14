@@ -65,6 +65,10 @@ type DBConn interface {
 	// needed in detail.
 	GetDetailsOfTrainings(page, pageSize int) ([]Training, error)
 
+	// GetDetailsOfTrainingsCurrentWeek returns list of Trainings, in current
+	// week, with only values needed in detail.
+	GetDetailsOfTrainingsCurrentWeek() ([]Training, error)
+
 	// GetTrainingCount return how many trainings are save in storage
 	GetTrainingCount() (int, error)
 
