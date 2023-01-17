@@ -1,13 +1,45 @@
 <div>
-	TODO: call backend for workouts in this week (this enpoint is not implemented yet)
+	<div vg-if='!c.IsLoaded'>Loading...</div>
+	<div class="details" vg-if='len(c.Details) > 0'>
+		<div vg-for='_, d := range c.Details'>
+			<comps:TrainingDetailCard :StartTime="d.StartTime" :DurationMin="d.DurationMin" :Distance="d.TotalDist"></comps:TrainingDetailCard>
+		</div>
+	</div>
 </div>
 
 <script type="application/x-go">
 import (
+	"errors"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
     "github.com/vugu/vgrouter"
 )
 
 type LandingPage struct {
 	vgrouter.NavigatorRef
+	Details []oapiGen.TrainingDetail `vugu:"data"`
+	IsLoaded bool `vugu:"data"`
 }
+
+func (c *LandingPage) Init(ctx vugu.InitCtx) {
+	go func() {
+		details, err := api.GetTrainingsInCurrentWeek()
+		switch {
+		case errors.Is(err, api.ErrInternalServerError):
+			// what to do here?
+		// other, inform developer, because if it isn't 500, then it is error from
+		// paring the json in response
+		}
+
+		ctx.EventEnv().Lock()
+		c.IsLoaded = true
+		c.Details = details
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+
 </script>
+
+<style>
+</style>
