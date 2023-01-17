@@ -31,7 +31,7 @@ func main() {
 	server := server.New(swimlogs)
 	handler := oapiGen.NewStrictHandler(server, nil)
 	e := echo.New()
-	e.Use(middleware.Logger())
+	e.Use(middleware.Logger(), middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 
 	oapiGen.RegisterHandlers(e, handler)
 	e.Logger.Fatal(e.Start(":42069"))
