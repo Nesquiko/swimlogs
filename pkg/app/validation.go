@@ -81,21 +81,20 @@ func validateTraining(t oapiGen.Training) map[string]string {
 	var invalid map[string]string
 	if t.SessionId == nil {
 		invalid = validateSessionData(string(*t.Day), *t.StartTime, *t.DurationMin)
+		if _, ok := invalid["day"]; !ok &&
+			strings.ToLower(t.Date.Weekday().String()) != string(*t.Day) {
+			invalid["day"] = fmt.Sprintf(
+				"Date '%s' isn't on '%s'",
+				t.Date.Format("02.01.2006"),
+				string(*t.Day),
+			)
+		}
 	} else {
 		invalid = make(map[string]string)
 	}
 
 	if len(t.Blocks) == 0 {
 		invalid["blocks"] = "No blocks in training"
-	}
-
-	if _, ok := invalid["day"]; !ok &&
-		strings.ToLower(t.Date.Weekday().String()) != string(*t.Day) {
-		invalid["day"] = fmt.Sprintf(
-			"Date '%s' isn't on '%s'",
-			t.Date.Format("02.01.2006"),
-			string(*t.Day),
-		)
 	}
 
 	for i, b := range t.Blocks {
