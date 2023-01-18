@@ -34,6 +34,10 @@ type DBConn interface {
 	// Also ModifiedAt is updated to current time of execution.
 	UpdateSession(id uuid.UUID, updated Session, tx *sql.Tx) (Session, error)
 
+	// GetSessionById returns a session with matching id, if it doesn't exist
+	// returns ErrRowNotFound
+	GetSessionById(id uuid.UUID) (Session, error)
+
 	// SaveTraining saves passed training into storage, MUST be executed in
 	// transaction (see DBConn.InTx)
 	SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error)

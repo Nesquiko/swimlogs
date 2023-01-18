@@ -4,8 +4,7 @@ A web application for creating and sharing swim trainings in a swimming team.
 
 ## To fix
 
-1. add date is on session day validateTraining
-2. Change CORS! main.go
+1. Change CORS! main.go
 
 ## TODO
 

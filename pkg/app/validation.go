@@ -106,6 +106,25 @@ func validateTraining(t oapiGen.Training) map[string]string {
 	return invalid
 }
 
+func (app *swimLogsApp) validateSessionInTraining(t oapiGen.Training) map[string]string {
+	s, err := app.db.GetSessionById(*t.SessionId)
+	if err != nil {
+		return map[string]string{"session": "Unknown session"}
+	}
+
+	if strings.ToLower(t.Date.Weekday().String()) != string(s.Day) {
+		return map[string]string{
+			"day": fmt.Sprintf(
+				"Date '%s' isn't on '%s'",
+				t.Date.Format("02.01.2006"),
+				string(*t.Day),
+			),
+		}
+	}
+
+	return map[string]string{}
+}
+
 func validateBlock(b oapiGen.Block) map[string]string {
 	invalid := make(map[string]string)
 	if len(b.Name) > MaxNameLen {

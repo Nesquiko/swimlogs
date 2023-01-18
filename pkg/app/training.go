@@ -83,6 +83,13 @@ func (app *swimLogsApp) CreateTraining(
 			InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
 		}, nil
 	}
+	if newTraining.SessionId != nil {
+		if invalid := app.validateSessionInTraining(*newTraining); len(invalid) != 0 {
+			return oapiGen.CreateTraining400JSONResponse{
+				InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
+			}, nil
+		}
+	}
 
 	t := transformRestTraining(newTraining)
 	updateTotalDist(newTraining, t)
@@ -190,6 +197,13 @@ func (app *swimLogsApp) UpdateTraining(
 		return oapiGen.UpdateTraining400JSONResponse{
 			InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
 		}, nil
+	}
+	if newTraining.SessionId != nil {
+		if invalid := app.validateSessionInTraining(*newTraining); len(invalid) != 0 {
+			return oapiGen.UpdateTraining400JSONResponse{
+				InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
+			}, nil
+		}
 	}
 
 	t := transformRestTraining(newTraining)

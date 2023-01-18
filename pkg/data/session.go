@@ -8,6 +8,20 @@ import (
 	"github.com/google/uuid"
 )
 
+var SelectSessionById = "select id, day, duration, starttime from session where id = $1"
+
+func (db *postgresDbConn) GetSessionById(id uuid.UUID) (Session, error) {
+	var s Session
+	err := db.QueryRow(SelectSessionById, id).Scan(&s.Id, &s.Day, &s.DurationMin, &s.StartTime)
+	if err == sql.ErrNoRows {
+		return Session{}, ErrRowNotFound
+	} else if err != nil {
+		return Session{}, err
+	}
+
+	return s, nil
+}
+
 var InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
