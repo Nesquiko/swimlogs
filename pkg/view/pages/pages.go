@@ -34,6 +34,12 @@ func splitIntoDays(
 		daysMap[td.Day] = append(daysMap[td.Day], td)
 	}
 
+	for d := range daysMap {
+		sort.Slice(daysMap[d], func(i, j int) bool {
+			return daysMap[d][i].StartTime < daysMap[d][j].StartTime
+		})
+	}
+
 	sort.Slice(days, func(i, j int) bool {
 		return DaysOrder[days[i]] < DaysOrder[days[j]]
 	})

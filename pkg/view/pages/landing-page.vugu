@@ -1,8 +1,11 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
-	<div class="details" vg-if='len(c.Details) > 0'>
-		<div vg-for='_, d := range c.Details'>
-			<comps:TrainingDetailCard :StartTime="d.StartTime" :DurationMin="d.DurationMin" :Distance="d.TotalDist"></comps:TrainingDetailCard>
+	<div class="details" vg-if='len(c.Days) > 0'>
+		<div vg-for='_, day := range c.Days'>
+			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
+			<div vg-for='_, d := range c.WeekMap[day]'>
+				<comps:TrainingDetailCard :StartTime="d.StartTime" :DurationMin="d.DurationMin" :Distance="d.TotalDist"></comps:TrainingDetailCard>
+			</div>
 		</div>
 	</div>
 </div>
@@ -10,6 +13,7 @@
 <script type="application/x-go">
 import (
 	"errors"
+	"strings"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
@@ -18,7 +22,10 @@ import (
 
 type LandingPage struct {
 	vgrouter.NavigatorRef
-	Details []oapiGen.TrainingDetail `vugu:"data"`
+
+	Days []oapiGen.Day `vugu:"data"`
+	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail `vugu:"data"`
+
 	IsLoaded bool `vugu:"data"`
 }
 
@@ -27,19 +34,19 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 		details, err := api.GetTrainingsInCurrentWeek()
 		switch {
 		case errors.Is(err, api.ErrInternalServerError):
-			// what to do here?
+		// what to do here?
 		// other, inform developer, because if it isn't 500, then it is error from
 		// paring the json in response
 		}
 
 		ctx.EventEnv().Lock()
 		c.IsLoaded = true
-		c.Details = details
+		c.Days, c.WeekMap = splitIntoDays(details)
 		ctx.EventEnv().UnlockRender()
 	}()
 }
-
 </script>
 
 <style>
 </style>
+
