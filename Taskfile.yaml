@@ -77,7 +77,7 @@ tasks:
     deps: [check:docker]
     cmds:
       - |
-        docker run --name {{.TESTDB_DOCKER_NAME}} \
+        docker run --rm --name {{.TESTDB_DOCKER_NAME}} \
         -e POSTGRES_USER=swimlogs_test \
         -e POSTGRES_PASSWORD=swimlogs_test \
         -e POSTGRES_DB=swimlogs_test \
