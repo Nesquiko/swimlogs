@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	log, err := zap.NewDevelopment()
+	log, err := zap.NewProduction()
 	if err != nil {
 		panic(err)
 	}

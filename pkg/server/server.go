@@ -93,3 +93,10 @@ func (server *SwimLogsServer) GetTrainingsDetailsCurrentWeek(
 ) (oapiGen.GetTrainingsDetailsCurrentWeekResponseObject, error) {
 	return server.swimLogs.GetTrainingsDetailsCurrentWeek(request)
 }
+
+func (server *SwimLogsServer) RecordError(
+	ctx context.Context,
+	request oapiGen.RecordErrorRequestObject,
+) (oapiGen.RecordErrorResponseObject, error) {
+	return server.swimLogs.RecordError(request)
+}

@@ -47,6 +47,10 @@ type SwimLogs interface {
 	GetTrainingsDetailsCurrentWeek(
 		request oapiGen.GetTrainingsDetailsCurrentWeekRequestObject,
 	) (oapiGen.GetTrainingsDetailsCurrentWeekResponseObject, error)
+
+	RecordError(
+		request oapiGen.RecordErrorRequestObject,
+	) (oapiGen.RecordErrorResponseObject, error)
 }
 
 func New(db data.DBConn, logger *zap.SugaredLogger) SwimLogs {
