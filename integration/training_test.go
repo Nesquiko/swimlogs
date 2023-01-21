@@ -402,7 +402,7 @@ func TestCreateTrainingFromSession(t *testing.T) {
 
 	trainingDetail, ok := res.(oapiGen.CreateTraining201JSONResponse)
 	if !ok {
-		t.Fatalf("expected error details, but response was %+v", trainingDetail)
+		t.Fatalf("expected no error, but response was %+v", res)
 	}
 
 	if trainingDetail.Day != validSession.Day {

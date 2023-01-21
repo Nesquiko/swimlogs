@@ -18,6 +18,8 @@ func Test_validateTraining(t *testing.T) {
 	day := oapiGen.Monday
 	invalidDate, _ := time.Parse("02.01.2006", "17.01.2023")
 	validDate, _ := time.Parse("02.01.2006", "16.01.2023")
+	startTime := "17:00"
+	dur := 60
 
 	testCases := []struct {
 		desc     string
@@ -27,10 +29,12 @@ func Test_validateTraining(t *testing.T) {
 		{
 			desc: "WrongDayForDate",
 			t: oapiGen.Training{
-				SessionId: &id,
-				Day:       &day,
-				Date:      types.Date{Time: invalidDate},
-				Blocks:    []oapiGen.Block{validBlock},
+				SessionId:   nil,
+				Day:         &day,
+				Date:        types.Date{Time: invalidDate},
+				StartTime:   &startTime,
+				DurationMin: &dur,
+				Blocks:      []oapiGen.Block{validBlock},
 			},
 			expected: map[string]string{
 				"day": fmt.Sprintf(

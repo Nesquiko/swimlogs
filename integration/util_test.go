@@ -42,7 +42,7 @@ func cleanDB(db data.DBConn) {
 }
 
 var (
-	validSession   = oapiGen.Session{Day: oapiGen.Saturday, DurationMin: 60, StartTime: "17:00"}
+	validSession   = oapiGen.Session{Day: oapiGen.Monday, DurationMin: 60, StartTime: "17:00"}
 	invalidSession = oapiGen.Session{
 		Day:         oapiGen.Day("INVALID-DAY"),
 		DurationMin: 60,
