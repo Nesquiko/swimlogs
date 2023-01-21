@@ -1,5 +1,8 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
+
+	<comps:BugDialog vg-if="c.ShowBug" @Close='c.ShowBug = false'></comps:BugDialog>
+
 	<div class="details" vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
 			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
@@ -8,6 +11,7 @@
 			</div>
 		</div>
 	</div>
+
 </div>
 
 <script type="application/x-go">
@@ -27,16 +31,23 @@ type LandingPage struct {
 	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail `vugu:"data"`
 
 	IsLoaded bool `vugu:"data"`
+
+	ShowBug bool `vugu:"data"`
+	ErrLog oapiGen.ErrorLog
 }
 
 func (c *LandingPage) Init(ctx vugu.InitCtx) {
 	go func() {
 		details, err := api.GetTrainingsInCurrentWeek()
-		switch {
-		case errors.Is(err, api.ErrInternalServerError):
-		// what to do here?
-		// other, inform developer, because if it isn't 500, then it is error from
-		// paring the json in response
+
+		if errors.Is(err, api.ErrInternalServerError) {
+			// TODO show that server isn't available
+			return
+		} else if err != nil {
+			ctx.EventEnv().Lock()
+			c.ShowBug = true	
+			ctx.EventEnv().UnlockRender()
+			return
 		}
 
 		ctx.EventEnv().Lock()

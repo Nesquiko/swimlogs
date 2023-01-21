@@ -21,7 +21,7 @@
 	border-width: 1px;
 	border-color: darkgrey;
 	margin: 10px;
-	background: azure;
+	background: white;
 }
 
 .card .card-body {

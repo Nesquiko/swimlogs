@@ -31,5 +31,5 @@ func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 		return nil, err
 	}
 
-	return *dest.Details, err
+	return *dest.Details, nil
 }

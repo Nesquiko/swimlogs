@@ -19,3 +19,9 @@ type Root struct {
 	Body vugu.Builder
 }
 </script>
+
+/* CSS HEX */
+/* jet: #353535ff; */
+/* dodger-blue: #2196f3ff; */
+/* white: #ffffffff; */
+
