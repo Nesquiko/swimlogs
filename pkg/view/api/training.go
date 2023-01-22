@@ -10,6 +10,7 @@ import (
 )
 
 var ErrInternalServerError = errors.New("internal server error")
+var ErrNotFound = errors.New("resource not found")
 
 func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 	res, err := http.Get(BaseUrl + "/trainings/details/current-week")
@@ -48,7 +49,7 @@ func FetchTraining(id uuid.UUID) (oapiGen.Training, error) {
 	case http.StatusOK:
 		dest = oapiGen.GetTrainingById200JSONResponse{}
 	case http.StatusNotFound:
-		// TODO what to do when not found, return som ErrNotFound
+		return oapiGen.Training{}, ErrNotFound
 	case http.StatusInternalServerError:
 		return oapiGen.Training{}, ErrInternalServerError
 	}

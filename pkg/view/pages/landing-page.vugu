@@ -1,15 +1,15 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
 
-	<div class="banner" vg-if='c.ServerUnavailable'>
-		<h1 class="banner-title">Couldn't load training details for this week</h1>
+	<div class="banner" vg-if='c.ShowBanner'>
+		<h1 class="banner-title" vg-content='c.BannerTitle'></h1>
 	</div>
 
-	<comps:BugDialog vg-if="c.ShowBug" @Close='c.ShowBug = false'></comps:BugDialog>
-
-	<div class="banner" vg-if='c.IsLoaded && len(c.Days) == 0'>
-		<h1 class="banner-title">No training in this week</h1>
-	</div>
+	<comps:BugDialog
+		vg-if="c.ShowBug"
+		@Close='c.ShowBug = false'
+		:ErrMsg='c.ErrMsg'>
+	</comps:BugDialog>
 
 	<div class="details" vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
@@ -25,6 +25,9 @@
 			</div>
 		</div>
 	</div>
+
+	<button @click='c.showSnackbar(event, "This is text")'>Click</button>
+	<div class="snackbar" id="snackbar">Not found</div>
 </div>
 
 <script type="application/x-go">
@@ -39,6 +42,9 @@ import (
 	"github.com/google/uuid"
 )
 
+var CouldntLoad = "Couldn't load training details for this week"
+var NoTrainings = "No trainings in this week"
+
 type LandingPage struct {
 	vgrouter.NavigatorRef
 
@@ -46,10 +52,11 @@ type LandingPage struct {
 	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail `vugu:"data"`
 
 	ShowBug bool `vugu:"data"`
-	ErrLog oapiGen.ErrorLog
+	ErrMsg string
 
 	IsLoaded bool `vugu:"data"`
-	ServerUnavailable bool `vugu:"data"`
+	ShowBanner bool `vugu:"data"`
+	BannerTitle string `vugu:"data"`
 
 	state.TrainingStateStorageRef
 }
@@ -64,10 +71,17 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 		}
 
 		t, err := api.FetchTraining(id)
-		if err != nil {
-			// TODO say the training wasn't found, or ErrInternalServerError, or client bug
+		if errors.Is(err, api.ErrInternalServerError) {
+			event.EventEnv().Lock()
+			// TODO show snackbar
+			event.EventEnv().UnlockRender()
+			return
+		} else if errors.Is(err, api.ErrNotFound) {
+			event.EventEnv().Lock()
+			// TODO show snackbar
+			event.EventEnv().UnlockRender()
+			return
 		}
-		c.InvalidateTrainingCache()
 		c.SaveTraining(t)
 		
 		event.EventEnv().Lock()
@@ -83,13 +97,17 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 		if errors.Is(err, api.ErrInternalServerError) {
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
-			c.ServerUnavailable = true
+			c.ShowBanner = true
+			c.BannerTitle = CouldntLoad
 			ctx.EventEnv().UnlockRender()
 			return
 		} else if err != nil {
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
-			c.ShowBug = true	
+			c.ErrMsg = err.Error()
+			c.ShowBug = true
+			c.ShowBanner = true
+			c.BannerTitle = CouldntLoad
 			ctx.EventEnv().UnlockRender()
 			return
 		}
@@ -97,9 +115,19 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 		ctx.EventEnv().Lock()
 		c.IsLoaded = true
 		c.Days, c.WeekMap = splitIntoDays(details)
+		if len(c.Days) == 0 {
+			c.ShowBanner = true
+			c.BannerTitle = NoTrainings
+		}
 		ctx.EventEnv().UnlockRender()
 	}()
 }
+
+func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
+	// look at https://www.vugu.org/doc/files/markup at Dynamic Attributes
+	// for the snackbar
+}
+
 </script>
 
 <style>
@@ -114,6 +142,47 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 .banner-title {
   color: #9f3a38;
   font-size: 1.2em;
+}
+.snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 15px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+}
+
+.snackbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 5s;
+    animation: fadein 0.5s, fadeout 0.5s 5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
 }
 </style>
 
