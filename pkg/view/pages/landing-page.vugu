@@ -7,6 +7,10 @@
 
 	<comps:BugDialog vg-if="c.ShowBug" @Close='c.ShowBug = false'></comps:BugDialog>
 
+	<div class="banner" vg-if='c.IsLoaded && len(c.Days) == 0'>
+		<h1 class="banner-title">No training in this week</h1>
+	</div>
+
 	<div class="details" vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
 			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
