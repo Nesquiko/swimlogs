@@ -22,7 +22,7 @@ import (
 
 type BugDialog struct {
 	Close CloseHandler
-	ErrLog oapiGen.ErrorLog 
+	ErrMsg, UserDesc string
 	IsLoading bool `vugu:"data"`
 }
 
@@ -35,7 +35,8 @@ func (c *BugDialog) HandleSumbit(event vugu.DOMEvent) {
 		event.EventEnv().Lock()
 		c.IsLoading = true
 		event.EventEnv().UnlockRender()
-		api.SendErrorLog(c.ErrLog)
+
+		api.SendErrorLog(oapiGen.ErrorLog{ErrMsg: c.ErrMsg, UserDesc: &c.UserDesc})
 
 		event.EventEnv().Lock()
 		c.IsLoading = false
@@ -45,8 +46,7 @@ func (c *BugDialog) HandleSumbit(event vugu.DOMEvent) {
 }
 
 func (c *BugDialog) ChangeUserDesc(event vugu.DOMEvent) {
-	userDesc := event.PropString("target", "value")
-	c.ErrLog.UserDesc = &userDesc
+	c.UserDesc = event.PropString("target", "value")
 }
 
 </script>
