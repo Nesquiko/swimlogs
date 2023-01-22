@@ -8,7 +8,13 @@ func (app *swimLogsApp) RecordError(
 	request oapiGen.RecordErrorRequestObject,
 ) (oapiGen.RecordErrorResponseObject, error) {
 	errLog := request.Body
-	app.logger.Warnf("error='%s' user description='%s'", errLog.ErrMsg, *errLog.UserDesc)
+	userDesc := ""
+
+	if errLog.UserDesc != nil {
+		userDesc = *errLog.UserDesc
+	}
+
+	app.logger.Warnf("error='%s' user description='%s'", errLog.ErrMsg, userDesc)
 
 	return oapiGen.RecordError200Response{}, nil
 }
