@@ -1,7 +1,13 @@
 <div>
   <div>
-    <strong>🏊 SwimLogs 🌊</strong>
+    <strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
   </div>
 </div>
 
-<script type="application/x-go"></script>
+<script type="application/x-go">
+import "github.com/vugu/vgrouter"
+
+type Topbar struct {
+	vgrouter.NavigatorRef
+}
+</script>
