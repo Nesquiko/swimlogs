@@ -1,0 +1,35 @@
+<div>
+	<p vg-content='c.t'></p>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+    "github.com/vugu/vgrouter"
+)
+
+type TrainingPage struct {
+	vgrouter.NavigatorRef
+
+	t oapiGen.Training `vugu:"data"`
+	state.TrainingStateStorageRef
+}
+
+func (c *TrainingPage) Init(ctx vugu.InitCtx) {
+	go func() {
+		t, err := c.GetTraining()
+		if err != nil {
+			// this shouldn't happen, buuuut if it does, report it back, navigate
+			// back to / and show some snackbar
+			ctx.EventEnv().Lock()
+			c.Navigate("/", nil)
+			ctx.EventEnv().UnlockRender()
+		}
+
+		ctx.EventEnv().Lock()
+		c.t = t
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+</script>

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/google/uuid"
 )
 
 var ErrInternalServerError = errors.New("internal server error")
@@ -32,4 +33,31 @@ func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 	}
 
 	return *dest.Details, nil
+}
+
+func FetchTraining(id uuid.UUID) (oapiGen.Training, error) {
+	url := BaseUrl + "/trainings/" + id.String()
+	res, err := http.Get(url)
+	if err != nil {
+		return oapiGen.Training{}, err
+	}
+	defer res.Body.Close()
+
+	var dest oapiGen.GetTrainingById200JSONResponse
+	switch res.StatusCode {
+	case http.StatusOK:
+		dest = oapiGen.GetTrainingById200JSONResponse{}
+	case http.StatusNotFound:
+		// TODO what to do when not found, return som ErrNotFound
+	case http.StatusInternalServerError:
+		return oapiGen.Training{}, ErrInternalServerError
+	}
+
+	dec := json.NewDecoder(res.Body)
+	err = dec.Decode(&dest)
+	if err != nil {
+		return oapiGen.Training{}, err
+	}
+
+	return oapiGen.Training(dest), nil
 }
