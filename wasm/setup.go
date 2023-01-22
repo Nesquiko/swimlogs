@@ -2,12 +2,15 @@ package main
 
 import (
 	"github.com/Nesquiko/swimlogs/pkg/view/pages"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
 	"github.com/vugu/vugu"
 )
 
 // OVERALL APPLICATION WIRING IN vuguSetup
 func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
+
+	tss := state.TrainingStateStorage{}
 
 	router := vgrouter.New(eventEnv)
 
@@ -16,26 +19,24 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 		if c, ok := b.(vgrouter.NavigatorSetter); ok {
 			c.NavigatorSet(router)
 		}
+		if c, ok := b.(state.TrainingStateStorageSetter); ok {
+			c.TrainingStateStorageSet(&tss)
+		}
 	})
 
 	// CREATE THE ROOT COMPONENT
 	root := &pages.Root{}
 	buildEnv.WireComponent(root) // WIRE IT
-	router.MustAddRouteExact("/",
-		vgrouter.RouteHandlerFunc(func(rm *vgrouter.RouteMatch) {
-			root.Body = &pages.LandingPage{}
-		}))
+	router.MustAddRouteExact(
+		"/",
+		vgrouter.RouteHandlerFunc(func(*vgrouter.RouteMatch) { root.Body = &pages.LandingPage{} }),
+	)
 
-	// router.MustAddRouteExact("/cart",
-	// 	vgrouter.RouteHandlerFunc(func(rm *vgrouter.RouteMatch) {
-	// 		root.Body = &pages.Cart{}
-	// 	}))
-	//
-	// router.MustAddRouteExact("/checkout",
-	// 	vgrouter.RouteHandlerFunc(func(rm *vgrouter.RouteMatch) {
-	// 		root.Body = &pages.Checkout{}
-	// 	}))
-	//
+	router.MustAddRouteExact(
+		"/training",
+		vgrouter.RouteHandlerFunc(func(*vgrouter.RouteMatch) { root.Body = &pages.TrainingPage{} }),
+	)
+
 	// router.SetNotFound(vgrouter.RouteHandlerFunc(
 	// 	func(rm *vgrouter.RouteMatch) {
 	// 		root.Body = &pages.PageNotFound{} // A PAGE FOR THE NOT-FOUND CASE
