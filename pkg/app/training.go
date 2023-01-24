@@ -92,6 +92,7 @@ func (app *swimLogsApp) CreateTraining(
 	}
 
 	t := transformRestTraining(newTraining)
+	calculateTotalDistance(&t)
 	updateTotalDist(newTraining, t)
 
 	var td oapiGen.TrainingDetail
@@ -252,4 +253,23 @@ func updateTotalDist(t *oapiGen.Training, data data.Training) {
 			t.Blocks[i].Sets[j].TotalDist = &sTotDist
 		}
 	}
+}
+
+// calculateTotalDistance calculates distances from sets and up
+func calculateTotalDistance(t *data.Training) {
+	tTotDist := 0
+	for i := range t.Blocks {
+		bTotDist := 0
+
+		for j := range t.Blocks[i].Sets {
+			sTotDist := t.Blocks[i].Sets[j].Repeat * t.Blocks[i].Sets[j].Distance
+			bTotDist += sTotDist
+
+			t.Blocks[i].Sets[j].TotalDistance = sTotDist
+		}
+
+		tTotDist += t.Blocks[i].Repeat * bTotDist
+		t.Blocks[i].TotalDistance = t.Blocks[i].Repeat * bTotDist
+	}
+	t.TotalDistance = tTotDist
 }
