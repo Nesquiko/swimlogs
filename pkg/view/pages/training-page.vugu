@@ -1,9 +1,18 @@
 <div>
-	<p vg-content='c.t'></p>
+	<h2 style="text-align: center;" vg-content='c.Title'></h2>
+	<div vg-for='_, b := range c.t.Blocks'>
+		<comps:BlockCard :Block='b'></comps:SetCard>
+	</div>
+	<div style="text-align:center;">
+		<h2>Total Distance <span vg-content='c.t.TotalDist'></span>m</h2>
+	</div>
 </div>
 
 <script type="application/x-go">
 import (
+	"sort"
+	"strings"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
     "github.com/vugu/vgrouter"
@@ -14,22 +23,31 @@ type TrainingPage struct {
 
 	t oapiGen.Training `vugu:"data"`
 	state.TrainingStateStorageRef
+
+	Title string
 }
 
 func (c *TrainingPage) Init(ctx vugu.InitCtx) {
 	go func() {
 		t, err := c.GetTraining()
 		if err != nil {
-			// this shouldn't happen, buuuut if it does, report it back, navigate
-			// back to / and show some snackbar
 			ctx.EventEnv().Lock()
 			c.Navigate("/", nil)
 			ctx.EventEnv().UnlockRender()
+			return
 		}
+
+		sort.Slice(c.t.Blocks, func(i, j int) bool {
+			return c.t.Blocks[i].Num < c.t.Blocks[j].Num
+		})
 
 		ctx.EventEnv().Lock()
 		c.t = t
 		ctx.EventEnv().UnlockRender()
+
+		day := strings.Title(string(*t.Day))
+		date := t.Date.Format("01.02.2006")
+		c.Title = fmt.Sprintf("%s %s", day, date)
 	}()
 }
 </script>
