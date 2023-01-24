@@ -26,14 +26,14 @@
 		</div>
 	</div>
 
-	<button @click='c.showSnackbar(event, "This is text")'>Click</button>
-	<div class="snackbar" id="snackbar">Not found</div>
+	<div :class='c.SnackbarClass' vg-content='c.SnackbarText'></div>
 </div>
 
 <script type="application/x-go">
 import (
 	"errors"
 	"strings"
+	"time"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
@@ -49,14 +49,18 @@ type LandingPage struct {
 	vgrouter.NavigatorRef
 
 	Days []oapiGen.Day `vugu:"data"`
-	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail `vugu:"data"`
+	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail
 
 	ShowBug bool `vugu:"data"`
 	ErrMsg string
 
 	IsLoaded bool `vugu:"data"`
+
 	ShowBanner bool `vugu:"data"`
-	BannerTitle string `vugu:"data"`
+	BannerTitle string
+
+	SnackbarText string
+	SnackbarClass string `vugu:"data"`
 
 	state.TrainingStateStorageRef
 }
@@ -72,16 +76,19 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 
 		t, err := api.FetchTraining(id)
 		if errors.Is(err, api.ErrInternalServerError) {
-			event.EventEnv().Lock()
-			// TODO show snackbar
-			event.EventEnv().UnlockRender()
+			c.showSnackbar(event, "Couldn't load training")
 			return
 		} else if errors.Is(err, api.ErrNotFound) {
+			c.showSnackbar(event, "Training wasn't found")
+			return
+		} else if err != nil {
 			event.EventEnv().Lock()
-			// TODO show snackbar
+			c.ErrMsg = err.Error()
+			c.ShowBug = true
 			event.EventEnv().UnlockRender()
 			return
 		}
+
 		c.SaveTraining(t)
 		
 		event.EventEnv().Lock()
@@ -91,6 +98,7 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 }
 
 func (c *LandingPage) Init(ctx vugu.InitCtx) {
+	c.SnackbarClass = "snackbar"
 	go func() {
 		details, err := api.GetTrainingsInCurrentWeek()
 
@@ -124,8 +132,18 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 }
 
 func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
-	// look at https://www.vugu.org/doc/files/markup at Dynamic Attributes
-	// for the snackbar
+	go func() {
+		event.EventEnv().Lock()
+		c.SnackbarText = text
+		c.SnackbarClass = "snackbar show"
+		event.EventEnv().UnlockRender()
+
+		time.Sleep(5*time.Second)
+
+		event.EventEnv().Lock()
+		c.SnackbarClass = "snackbar"
+		event.EventEnv().UnlockRender()
+	}()
 }
 
 </script>
@@ -162,7 +180,7 @@ func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
 .snackbar.show {
     visibility: visible;
     -webkit-animation: fadein 0.5s, fadeout 0.5s 5s;
-    animation: fadein 0.5s, fadeout 0.5s 5s;
+    animation: fadein 0.5s, fadeout 0.5s 4.8s;
 }
 
 @-webkit-keyframes fadein {
