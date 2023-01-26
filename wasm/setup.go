@@ -37,6 +37,11 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 		vgrouter.RouteHandlerFunc(func(*vgrouter.RouteMatch) { root.Body = &pages.TrainingPage{} }),
 	)
 
+	router.MustAddRouteExact(
+		"/add",
+		vgrouter.RouteHandlerFunc(func(*vgrouter.RouteMatch) { root.Body = &pages.AddPage{} }),
+	)
+
 	// router.SetNotFound(vgrouter.RouteHandlerFunc(
 	// 	func(rm *vgrouter.RouteMatch) {
 	// 		root.Body = &pages.PageNotFound{} // A PAGE FOR THE NOT-FOUND CASE

@@ -1,0 +1,35 @@
+<div class="buttons">
+	<button class="add-page-button" @click='c.Navigate("/add/training", nil)'>Create Training</button>
+	<button class="add-page-button" @click='c.Navigate("/add/session", nil)'>Create Session</button>
+</div>
+
+<script type="application/x-go">
+import (
+    "github.com/vugu/vgrouter"
+)
+
+type AddPage struct {
+	vgrouter.NavigatorRef
+}
+</script>
+
+<style>
+.buttons {
+	padding: 30px;	
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.add-page-button {
+	width: 100%;
+	margin: 10px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	border: solid;
+	border-radius: 15px;
+	border-width: 1px;
+	border-color: darkgrey;
+	background: white;
+	font-size: 30px;
+}
+</style>

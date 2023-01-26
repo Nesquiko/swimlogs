@@ -26,6 +26,7 @@
 		</div>
 	</div>
 
+	<comps:AddButton></comps:AddButton>
 	<div :class='c.SnackbarClass' vg-content='c.SnackbarText'></div>
 </div>
 
@@ -161,6 +162,7 @@ func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
   color: #9f3a38;
   font-size: 1.2em;
 }
+
 .snackbar {
     visibility: hidden;
     min-width: 250px;

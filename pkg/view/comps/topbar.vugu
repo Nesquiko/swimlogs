@@ -1,6 +1,7 @@
 <div>
-	<strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
-	<hr style="height:2px;border-width:0;color:black;background-color:black">
+	<div style="display:flex;justify-content:space-between;margin:0px 10px 0px;">
+		<strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
+	</div>
 </div>
 
 <script type="application/x-go">
