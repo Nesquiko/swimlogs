@@ -7,6 +7,12 @@ vars:
 
 tasks:
 
+  tailwindcss:
+    deps: [check:tailwindcss]
+    cmds:
+      - ./tailwindcss -i ./wasm/main.css -o ./wasm/out.css
+
+
   test:coverage:
     cmds:
       - task: setup-test-db
@@ -112,3 +118,8 @@ tasks:
     preconditions:
       - sh: command -v oapi-codegen
         msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
+
+  check:tailwindcss:
+    preconditions:
+      - sh: command -v ./tailwindcss
+        msg: Tailwind binary not installed! See https://tailwindcss.com/blog/standalone-cli
