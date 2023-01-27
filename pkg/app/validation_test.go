@@ -242,7 +242,7 @@ func Test_validateSession(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			invalidFields := validateSession(tC.s)
+			invalidFields := ValidateSession(tC.s)
 
 			if !reflect.DeepEqual(invalidFields, tC.expected) {
 				t.Errorf("Invalid fields, expected %v, but was %v", tC.expected, invalidFields)

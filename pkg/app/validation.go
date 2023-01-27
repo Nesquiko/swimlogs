@@ -28,9 +28,9 @@ var startingRules = map[string]bool{
 	string(oapiGen.Interval): true,
 }
 
-// validateSession returns a map with keys being names of session fields, which
+// ValidateSession returns a map with keys being names of session fields, which
 // aren't valid, and values being reasons why they aren't valid.
-func validateSession(s oapiGen.Session) map[string]string {
+func ValidateSession(s oapiGen.Session) map[string]string {
 	return validateSessionData(string(s.Day), s.StartTime, s.DurationMin)
 }
 

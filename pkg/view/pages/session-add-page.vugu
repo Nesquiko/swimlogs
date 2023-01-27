@@ -1,0 +1,15 @@
+<div>
+	<comps:SessionForm :Session='&c.Session'></comps:SessionForm>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+)
+
+type SessionAddPage struct {
+	Session oapiGen.Session
+}
+</script>
+

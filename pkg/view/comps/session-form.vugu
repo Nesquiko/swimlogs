@@ -1,0 +1,104 @@
+<div>
+	<h1 class="session-form-centered">Create new Session</h1>
+	<form class="session-form session-form-centered">
+		<div>
+			<label>Day of the week</label>
+			<select @change='c.ChangeDay(event)' name="day">
+				<option value="">---</option>
+				<option value="monday">Monday</option>
+				<option value="tuesday">Tuesday</option>
+				<option value="wednesday">Wednesday</option>
+				<option value="thursday">Thursday</option>
+				<option value="friday">Friday</option>
+				<option value="saturday">Saturday</option>
+				<option value="sunday">Sunday</option>
+			</select>
+		</div>
+		<div>
+			<label>Duration in minutes</label>
+			<input @change='c.ChangeDuration(event)' type="number" min="1" placeholder="60">
+		</div>
+		<div>
+			<label>Start time</label>
+			<input @change='c.ChangeStarttime(event)' type="time">
+		</div>
+	</form>
+	<button vg-if='!c.IsLoading' @click='c.CreateSession(event)'>Create</button>
+</div>
+
+<script type="application/x-go">
+import (
+	"strconv"
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/app"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+)
+
+type SessionForm struct {
+	Session *oapiGen.Session
+	IsLoading bool `vugu:"data"`
+}
+
+func (c *SessionForm) Init(ctx vugu.InitCtx) {
+}
+
+func (c *SessionForm) ChangeDay(event vugu.DOMEvent) {
+	c.Session.Day = oapiGen.Day(event.PropString("target", "value"))
+}
+
+func (c *SessionForm) ChangeDuration(event vugu.DOMEvent) {
+	dur, err := strconv.Atoi(event.PropString("target", "value"))
+	if err != nil {
+		// not a number??
+	}
+	c.Session.DurationMin = dur
+}
+
+func (c *SessionForm) ChangeStarttime(event vugu.DOMEvent) {
+	c.Session.StartTime = event.PropString("target", "value")
+}
+
+func (c *SessionForm) CreateSession(event vugu.DOMEvent) {
+	go func() {
+		event.EventEnv().Lock()
+		c.IsLoading = true
+		event.EventEnv().UnlockRender()
+
+		errs := app.ValidateSession(*c.Session)	
+
+		if len(errs) != 0 {
+			fmt.Println(errs)
+			// TODO handle invalid inputs, make snackbar a component and
+			// shot it here
+			return
+		}
+
+		err := api.CreateSession(*c.Session)
+		if err != nil {
+			fmt.Println(err)
+			// TODO show either some error message or bug report
+		}
+
+		event.EventEnv().Lock()
+		c.IsLoading = false
+		event.EventEnv().UnlockRender()
+	}()
+}
+</script>
+
+<style>
+.session-form-centered {
+	text-align: center;
+}
+
+.session-form {
+	max-width: 95%;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	border: solid;
+	border-radius: 15px;
+	border-width: 1px;
+	border-color: darkgrey;
+	margin: 10px;
+	background: white;
+}
+</style>
