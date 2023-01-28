@@ -1,8 +1,8 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
 
-	<div class="banner" vg-if='c.ShowBanner'>
-		<h1 class="banner-title" vg-content='c.BannerTitle'></h1>
+	<div class="text-center bg-slate-50 p-4 m-16 w-4/5" vg-if='c.ShowBanner'>
+		<h1 class="text-red-500 font-bold text-xl" vg-content='c.BannerTitle'></h1>
 	</div>
 
 	<comps:BugDialog
@@ -11,7 +11,7 @@
 		:ErrMsg='c.ErrMsg'>
 	</comps:BugDialog>
 
-	<div class="details" vg-if='len(c.Days) > 0'>
+	<div vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
 			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
 				<div vg-for='_, d := range c.WeekMap[day]'>
@@ -150,19 +150,6 @@ func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
 </script>
 
 <style>
-.banner {
-  text-align: center;
-  background-color: #f2dcdc;
-  padding: 20px;
-  margin: 50px auto;
-  width: 80%;
-}
-
-.banner-title {
-  color: #9f3a38;
-  font-size: 1.2em;
-}
-
 .snackbar {
     visibility: hidden;
     min-width: 250px;
