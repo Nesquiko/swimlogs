@@ -13,9 +13,11 @@
 
 	<div vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
-			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
-				<div vg-for='_, d := range c.WeekMap[day]'>
-					<div @click="c.FetchTraining(event, d.Id)">
+			<h3 class="text-xl m-3 font-bold">
+				<span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span>
+			</h3>
+			<div vg-for='_, d := range c.WeekMap[day]'>
+				<div @click="c.FetchTraining(event, d.Id)">
 					<comps:TrainingDetailCard
 						:StartTime="d.StartTime"
 						:DurationMin="d.DurationMin"
@@ -27,19 +29,20 @@
 	</div>
 
 	<comps:AddButton></comps:AddButton>
-	<vg-comp expr='c.Snackbar'></vg-comp>
+	<vg-comp expr='&c.Snackbar'></vg-comp>
 </div>
 
 <script type="application/x-go">
 import (
 	"errors"
 	"strings"
-	"github.com/Nesquiko/swimlogs/pkg/view/comps"
-	"github.com/Nesquiko/swimlogs/pkg/view/api"
-	"github.com/Nesquiko/swimlogs/pkg/view/state"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-    "github.com/vugu/vgrouter"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/google/uuid"
+	"github.com/vugu/vgrouter"
 )
 
 var CouldntLoad = "Couldn't load training details for this week"
@@ -48,18 +51,18 @@ var NoTrainings = "No trainings in this week"
 type LandingPage struct {
 	vgrouter.NavigatorRef
 
-	Days []oapiGen.Day `vugu:"data"`
+	Days    []oapiGen.Day
 	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail
 
-	ShowBug bool `vugu:"data"`
-	ErrMsg string
+	ShowBug bool
+	ErrMsg  string
 
-	IsLoaded bool `vugu:"data"`
+	IsLoaded bool
 
-	ShowBanner bool `vugu:"data"`
+	ShowBanner  bool
 	BannerTitle string
 
-	Snackbar *comps.Snackbar
+	Snackbar comps.Snackbar
 
 	state.TrainingStateStorageRef
 }
@@ -89,7 +92,6 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 		}
 
 		c.SaveTraining(t)
-		
 		event.EventEnv().Lock()
 		c.Navigate("/training", nil)
 		event.EventEnv().UnlockRender()
@@ -97,7 +99,6 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 }
 
 func (c *LandingPage) Init(ctx vugu.InitCtx) {
-	c.Snackbar = &comps.Snackbar{}
 	go func() {
 		details, err := api.GetTrainingsInCurrentWeek()
 

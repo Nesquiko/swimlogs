@@ -7,7 +7,6 @@ import (
 	"github.com/vugu/vugu"
 )
 
-// OVERALL APPLICATION WIRING IN vuguSetup
 func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 
 	tss := state.TrainingStateStorage{}

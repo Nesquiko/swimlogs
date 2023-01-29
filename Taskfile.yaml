@@ -10,7 +10,7 @@ tasks:
   tailwindcss:
     deps: [check:tailwindcss]
     cmds:
-      - ./tailwindcss -i ./wasm/main.css -o ./wasm/out.css
+      - ./tailwindcss -i ./wasm/main.css -o ./wasm/tailwind.css --watch
 
 
   test:coverage:

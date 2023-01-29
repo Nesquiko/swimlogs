@@ -21,8 +21,7 @@ type Root struct {
 }
 </script>
 
-/* CSS HEX */
-/* jet: #353535ff; */
-/* dodger-blue: #2196f3ff; */
-/* white: #ffffffff; */
+<!-- jet: #353535ff; -->
+<!-- dodger-blue: #2196f3ff; -->
+<!-- white: #ffffffff; -->
 
