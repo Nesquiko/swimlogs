@@ -1,13 +1,17 @@
-<div class="dialog-overlay">
-	<div class="dialog-popup">
-		<div class="dialog-header">An error occured</div>
-		<p class="dialog-paragraph">Submit a bug report, please include a description of what you did.</p>
-		<div class="input-container">
-			<textarea class="dialog-input" @change='c.ChangeUserDesc(event)'></textarea>
+<div class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-20 z-10 flex justify-center items-center">
+	<div class="w-3/5 h-1/2 bg-white z-20 rounded-lg relative">
+		<div class="w-full h-8 bg-slate-700 text-2xl text-center text-white rounded-t-lg">An error occured</div>
+		<p class="w-full p-4 text-center text-lg">Submit a bug report, please include a description of what you did.</p>
+		<div class="flex justify-center items-center">
+			<textarea
+				rows="6"
+				class="block p-2 w-11/12 text-sm text-gray-900 bg-gray-100 rounded-lg border border-gray-300 resize-none"
+				@change='c.ChangeUserDesc(event)'>
+			</textarea>
 		</div>
-		<div class="dialog-footer" v-if='!c.IsLoading'>
-			<button class="dialog-cancel-button secondary-button" @click='c.HandleClose()'>Cancel</button>
-			<button class="dialog-submit-button primary-button" @click='c.HandleSumbit(event)'>Submit</button>
+		<div class="absolute bottom-8 w-full h-8 flex justify-center items-center" v-if='!c.IsLoading'>
+			<button class="bg-slate-100 shadow w-16 mx-2 text-black text-lg rounded-lg" @click='c.HandleClose()'>Cancel</button>
+			<button class="bg-sky-500 shadow w-16 mx-2 text-white text-lg rounded-lg" @click='c.HandleSumbit(event)'>Submit</button>
 		</div>
 	</div>
 </div>
@@ -16,14 +20,14 @@
 //vugugen:event Close
 
 import (
-	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
 )
 
 type BugDialog struct {
-	Close CloseHandler
+	Close            CloseHandler
 	ErrMsg, UserDesc string
-	IsLoading bool `vugu:"data"`
+	IsLoading        bool
 }
 
 func (c *BugDialog) HandleClose() {
@@ -50,132 +54,3 @@ func (c *BugDialog) ChangeUserDesc(event vugu.DOMEvent) {
 }
 
 </script>
-
-<style>
-.dialog-overlay {
-    position: fixed; /* makes the overlay cover the entire page */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
-    z-index: 1; /* places the overlay on top of other elements */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dialog-popup {
-    width: 60%;
-    height: 50%;
-    background-color: white;
-    z-index: 2; /* places the popup on top of the overlay */
-	border-radius: 15px;
-}
-
-.dialog-header {
-    width: 100%;
-    height: 50px;
-    background-color: #353535ff;
-    font-size: 20px;
-    text-align: center;
-	color: white;
-    line-height: 50px;
-	border-radius: 15px 15px 0px 0px;
-}
-
-.dialog-paragraph {
-    width: 95%;
-    margin: 20px auto;
-    text-align: center;
-    font-size: 18px;
-}
-
-.input-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dialog-input {
-    height: 120px;
-    width: 80%;
-    padding: 10px;
-    font-size: 16px;
-    box-sizing: border-box;
-	resize: none;
-}
-
-.dialog-footer {
-    width: 100%;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dialog-cancel-button, .dialog-submit-button {
-    width: 80px;
-    height: 30px;
-    font-size: 16px;
-    margin: 0 10px;
-}
-
-.primary-button {
-  appearance: button;
-  backface-visibility: hidden;
-  background-color: #2196f3;
-  border-radius: 15px;
-  border-width: 0;
-  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset,rgba(50, 50, 93, .1) 0 2px 5px 0,rgba(0, 0, 0, .07) 0 1px 1px 0;
-  box-sizing: border-box;
-  color: #fff;
-  cursor: pointer;
-  font-size: 100%;
-  height: 44px;
-  line-height: 1.15;
-  outline: none;
-  overflow: hidden;
-  position: relative;
-  text-align: center;
-  text-transform: none;
-  transform: translateZ(0);
-  transition: all .2s,box-shadow .08s ease-in;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.secondary-button {
-  appearance: button;
-  backface-visibility: hidden;
-  background-color: white;
-  border-radius: 15px;
-  border-width: 0;
-  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset,rgba(50, 50, 93, .1) 0 2px 5px 0,rgba(0, 0, 0, .07) 0 1px 1px 0;
-  box-sizing: border-box;
-  color: #353535;
-  cursor: pointer;
-  font-size: 100%;
-  height: 44px;
-  line-height: 1.15;
-  outline: none;
-  overflow: hidden;
-  position: relative;
-  text-align: center;
-  text-transform: none;
-  transform: translateZ(0);
-  transition: all .2s,box-shadow .08s ease-in;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.primary-button:disabled {
-  cursor: default;
-}
-
-.primary-button:focus {
-  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset, rgba(50, 50, 93, .2) 0 6px 15px 0, rgba(0, 0, 0, .1) 0 2px 2px 0, rgba(50, 151, 211, .3) 0 0 0 4px;
-}
-</style>
