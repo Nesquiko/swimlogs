@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: "1.4.3"
+  version: "1.6.0"
   title: SwimLogs API
   license:
     name: MIT License
