@@ -4,8 +4,8 @@
 
 <script type="application/x-go">
 import (
-	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 )
 
 type SessionAddPage struct {
