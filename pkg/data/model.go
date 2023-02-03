@@ -30,6 +30,7 @@ type Base struct {
 	Id         uuid.UUID
 	CreatedAt  time.Time
 	ModifiedAt time.Time
+	Version    int
 }
 
 type Session struct {
@@ -41,19 +42,16 @@ type Session struct {
 
 type Training struct {
 	Base
-
 	Date          time.Time
 	Day           *string
 	DurationMin   *int
 	StartTime     *string
 	TotalDistance int
-
-	Blocks []Block
+	Blocks        []Block
 }
 
 type Block struct {
-	Id uuid.UUID
-
+	Id            uuid.UUID
 	Num           int
 	Repeat        int
 	Name          string
@@ -63,8 +61,7 @@ type Block struct {
 }
 
 type Set struct {
-	Id uuid.UUID
-
+	Id            uuid.UUID
 	Num           int
 	Repeat        int
 	Distance      int
@@ -76,6 +73,7 @@ type Set struct {
 
 type completeTraining struct {
 	tId      uuid.UUID
+	tVersion int
 	tDate    time.Time
 	tDay     string
 	tStartT  string
@@ -103,5 +101,6 @@ func createBase() Base {
 		Id:         uuid.New(),
 		CreatedAt:  time.Now(),
 		ModifiedAt: time.Now(),
+		Version:    0,
 	}
 }

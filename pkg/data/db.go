@@ -34,6 +34,9 @@ type DBConn interface {
 	// Also ModifiedAt is updated to current time of execution.
 	UpdateSession(id uuid.UUID, updated Session, tx *sql.Tx) (Session, error)
 
+	// SessionExists returns true if session with matching id exists
+	SessionExists(id uuid.UUID) (bool, error)
+
 	// GetSessionById returns a session with matching id, if it doesn't exist
 	// returns ErrRowNotFound
 	GetSessionById(id uuid.UUID) (Session, error)
@@ -64,6 +67,9 @@ type DBConn interface {
 	// UpdateTrainingById updates training with matching id accordingly to t.
 	// MUST be executed in transaction (see DBConn.InTx)
 	UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error
+
+	// TrainingExists returns true if training with matching id exists
+	TrainingExists(id uuid.UUID) (bool, error)
 
 	// GetDetailsOfTrainings returns paginated list of Training with only values
 	// needed in detail.
