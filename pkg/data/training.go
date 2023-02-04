@@ -80,7 +80,18 @@ func (psql *postgresDbConn) GetTrainingCount() (int, error) {
 	return count, nil
 }
 
-var UpdateTrainig = "update training set modified_at = now(), date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1"
+var TrainingExists = "select count(1) from training where id = $1"
+
+func (psql *postgresDbConn) TrainingExists(id uuid.UUID) (bool, error) {
+	var exists int
+	err := psql.QueryRow(TrainingExists, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}
+
+var UpdateTrainig = "update training set modified_at = now(), version = $7 + 1, date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1 and version = $7 + 1"
 
 func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error {
 	res, err := tx.Exec(
@@ -91,6 +102,7 @@ func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql
 		t.StartTime,
 		t.DurationMin,
 		t.TotalDistance,
+		t.Version,
 	)
 	if err != nil {
 		return fmt.Errorf("UpdateTrainingById id='%s': %w", id.String(), err)
@@ -133,7 +145,7 @@ func (psql *postgresDbConn) updateBlock(id uuid.UUID, b Block, tx *sql.Tx) error
 	return nil
 }
 
-var UpdateSet = " update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8 where id = $1"
+var UpdateSet = "update set set num = $2, repeat = $3, distance = $4, what = $5, starting_rule = $6, rule_seconds = $7, total_dist = $8 where id = $1"
 
 func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
 	res, err := tx.Exec(
@@ -158,7 +170,7 @@ func (psql *postgresDbConn) updateSet(id uuid.UUID, s Set, tx *sql.Tx) error {
 	return nil
 }
 
-var SelectTrainingById = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
+var SelectTrainingById = "select t.id, t.version, t.date, t.day, t.starttime, t.duration, t.total_dist, b.id, b.num, b.repeat, b.name, b.total_dist, s.id, s.num, s.repeat , s.distance , s.what , s.starting_rule , s.rule_seconds , s.total_dist from training t left join block b on t.id = b.training_id left join set s on b.id = s.block_id where t.id = $1"
 
 func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 	var training Training
@@ -175,6 +187,7 @@ func (psql *postgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 		var startTime string
 		err := rows.Scan(
 			&ct.tId,
+			&ct.tVersion,
 			&ct.tDate,
 			&ct.tDay,
 			&startTime,
@@ -232,7 +245,7 @@ func (psql *postgresDbConn) DeleteTraining(id uuid.UUID, tx *sql.Tx) error {
 	return nil
 }
 
-var InsertTraining = "insert into training (id, created_at, modified_at, date, day, starttime, duration, total_dist) values ($1, $2, $3, $4, $5, $6, $7, $8)"
+var InsertTraining = "insert into training (id, created_at, modified_at, version, date, day, starttime, duration, total_dist) values ($1, $2, $3, 0, $4, $5, $6, $7, $8)"
 
 func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()
@@ -264,8 +277,8 @@ func (psql *postgresDbConn) SaveTraining(t Training, tx *sql.Tx) (*uuid.UUID, er
 }
 
 var InsertTrainingFromSession = `insert into training
-	(id, created_at, modified_at, date, total_dist, day, starttime, duration)
-	select $1, $2, $3, $4, $5, s.day ,s.starttime ,s.duration from session as s
+	(id, created_at, modified_at, version, date, total_dist, day, starttime, duration)
+	select $1, $2, $3, 0, $4, $5, s.day ,s.starttime ,s.duration from session as s
 	where s.id = $6
 	returning id, day, starttime, duration`
 

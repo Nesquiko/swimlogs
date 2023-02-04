@@ -1,8 +1,8 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
 
-	<div class="banner" vg-if='c.ShowBanner'>
-		<h1 class="banner-title" vg-content='c.BannerTitle'></h1>
+	<div class="text-center bg-slate-50 p-4 m-16 w-4/5" vg-if='c.ShowBanner'>
+		<h1 class="text-red-500 font-bold text-xl" vg-content='c.BannerTitle'></h1>
 	</div>
 
 	<comps:BugDialog
@@ -11,11 +11,13 @@
 		:ErrMsg='c.ErrMsg'>
 	</comps:BugDialog>
 
-	<div class="details" vg-if='len(c.Days) > 0'>
+	<div vg-if='len(c.Days) > 0'>
 		<div vg-for='_, day := range c.Days'>
-			<h3><span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span></h3>
-				<div vg-for='_, d := range c.WeekMap[day]'>
-					<div @click="c.FetchTraining(event, d.Id)">
+			<h3 class="text-xl m-3 font-bold">
+				<span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span>
+			</h3>
+			<div vg-for='_, d := range c.WeekMap[day]'>
+				<div @click="c.FetchTraining(event, d.Id)">
 					<comps:TrainingDetailCard
 						:StartTime="d.StartTime"
 						:DurationMin="d.DurationMin"
@@ -27,20 +29,20 @@
 	</div>
 
 	<comps:AddButton></comps:AddButton>
-	<div :class='c.SnackbarClass' vg-content='c.SnackbarText'></div>
+	<vg-comp expr='&c.Snackbar'></vg-comp>
 </div>
 
 <script type="application/x-go">
 import (
 	"errors"
 	"strings"
-	"time"
-	"github.com/Nesquiko/swimlogs/pkg/view/comps"
-	"github.com/Nesquiko/swimlogs/pkg/view/api"
-	"github.com/Nesquiko/swimlogs/pkg/view/state"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-    "github.com/vugu/vgrouter"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/google/uuid"
+	"github.com/vugu/vgrouter"
 )
 
 var CouldntLoad = "Couldn't load training details for this week"
@@ -49,19 +51,18 @@ var NoTrainings = "No trainings in this week"
 type LandingPage struct {
 	vgrouter.NavigatorRef
 
-	Days []oapiGen.Day `vugu:"data"`
+	Days    []oapiGen.Day
 	WeekMap map[oapiGen.Day][]oapiGen.TrainingDetail
 
-	ShowBug bool `vugu:"data"`
-	ErrMsg string
+	ShowBug bool
+	ErrMsg  string
 
-	IsLoaded bool `vugu:"data"`
+	IsLoaded bool
 
-	ShowBanner bool `vugu:"data"`
+	ShowBanner  bool
 	BannerTitle string
 
-	SnackbarText string
-	SnackbarClass string `vugu:"data"`
+	Snackbar comps.Snackbar
 
 	state.TrainingStateStorageRef
 }
@@ -76,13 +77,14 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 		}
 
 		t, err := api.FetchTraining(id)
-		if errors.Is(err, api.ErrInternalServerError) {
-			c.showSnackbar(event, "Couldn't load training")
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			c.Snackbar.Show(event.EventEnv(), "Couldn't load training")
 			return
-		} else if errors.Is(err, api.ErrNotFound) {
-			c.showSnackbar(event, "Training wasn't found")
+		case errors.Is(err, api.ErrNotFound):
+			c.Snackbar.Show(event.EventEnv(), "Training wasn't found")
 			return
-		} else if err != nil {
+		case err != nil:
 			event.EventEnv().Lock()
 			c.ErrMsg = err.Error()
 			c.ShowBug = true
@@ -91,7 +93,6 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 		}
 
 		c.SaveTraining(t)
-		
 		event.EventEnv().Lock()
 		c.Navigate("/training", nil)
 		event.EventEnv().UnlockRender()
@@ -99,18 +100,18 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 }
 
 func (c *LandingPage) Init(ctx vugu.InitCtx) {
-	c.SnackbarClass = "snackbar"
 	go func() {
 		details, err := api.GetTrainingsInCurrentWeek()
 
-		if errors.Is(err, api.ErrInternalServerError) {
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
 			c.ShowBanner = true
 			c.BannerTitle = CouldntLoad
 			ctx.EventEnv().UnlockRender()
 			return
-		} else if err != nil {
+		case err != nil:
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
 			c.ErrMsg = err.Error()
@@ -131,78 +132,4 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 		ctx.EventEnv().UnlockRender()
 	}()
 }
-
-func (c *LandingPage) showSnackbar(event vugu.DOMEvent, text string) {
-	go func() {
-		event.EventEnv().Lock()
-		c.SnackbarText = text
-		c.SnackbarClass = "snackbar show"
-		event.EventEnv().UnlockRender()
-
-		time.Sleep(5*time.Second)
-
-		event.EventEnv().Lock()
-		c.SnackbarClass = "snackbar"
-		event.EventEnv().UnlockRender()
-	}()
-}
-
 </script>
-
-<style>
-.banner {
-  text-align: center;
-  background-color: #f2dcdc;
-  padding: 20px;
-  margin: 50px auto;
-  width: 80%;
-}
-
-.banner-title {
-  color: #9f3a38;
-  font-size: 1.2em;
-}
-
-.snackbar {
-    visibility: hidden;
-    min-width: 250px;
-    margin-left: -125px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 15px;
-    padding: 16px;
-    position: fixed;
-    z-index: 1;
-    left: 50%;
-    bottom: 30px;
-    font-size: 17px;
-}
-
-.snackbar.show {
-    visibility: visible;
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 5s;
-    animation: fadein 0.5s, fadeout 0.5s 4.8s;
-}
-
-@-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;} 
-    to {bottom: 30px; opacity: 1;}
-}
-
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
-}
-
-@-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;} 
-    to {bottom: 0; opacity: 0;}
-}
-
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
-}
-</style>
-

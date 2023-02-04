@@ -1,0 +1,15 @@
+<div>
+	<vg-template vg-if='c.Text != nil && *c.Text != ""'>
+		<div class="text-center bg-slate-50 p-4 m-16 w-4/5">
+			<h1 class="text-red-500 font-bold text-xl" vg-content='c.Text'></h1>
+		</div>
+	</vg-template>
+</div>
+
+<script type="application/x-go">
+
+type Banner struct {
+	Text *string `vugu:"data"`
+}
+
+</script>

@@ -11,6 +11,7 @@ import (
 
 func transformRestSession(session oapiGen.Session) data.Session {
 	return data.Session{
+		Base:        data.Base{Version: session.Version},
 		Day:         strings.ToLower(string(session.Day)),
 		StartTime:   session.StartTime,
 		DurationMin: session.DurationMin,
@@ -23,11 +24,13 @@ func transformDataSession(session data.Session) oapiGen.Session {
 		Day:         oapiGen.Day(session.Day),
 		StartTime:   session.StartTime,
 		DurationMin: session.DurationMin,
+		Version:     session.Version,
 	}
 }
 
-func transformRestTraining(t *oapiGen.Training) data.Training {
+func transformRestTraining(t oapiGen.Training) data.Training {
 	training := data.Training{
+		Base:        data.Base{Version: t.Version},
 		Date:        t.Date.Time,
 		Day:         (*string)(t.Day),
 		DurationMin: t.DurationMin,
@@ -90,6 +93,7 @@ func transformRestSet(s oapiGen.Set) data.Set {
 func transformDataTraining(t data.Training) oapiGen.Training {
 	training := oapiGen.Training{
 		Id:          t.Id,
+		Version:     t.Version,
 		Date:        types.Date{Time: t.Date},
 		Day:         (*oapiGen.Day)(t.Day),
 		DurationMin: t.DurationMin,

@@ -1,9 +1,9 @@
 <div>
-	<h2 style="text-align: center;" vg-content='c.Title'></h2>
+	<h2 class="m-4 text-center text-xl font-bold" vg-content='c.Title'></h2>
 	<div vg-for='_, b := range c.t.Blocks'>
-		<comps:BlockCard :Block='b'></comps:SetCard>
+		<comps:BlockCard :Block='b'></comps:BlockCard>
 	</div>
-	<div style="text-align:center;">
+	<div class="text-center text-base">
 		<h2>Total Distance <span vg-content='c.t.TotalDist'></span>m</h2>
 	</div>
 </div>
@@ -12,16 +12,17 @@
 import (
 	"sort"
 	"strings"
+
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
-	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-    "github.com/vugu/vgrouter"
+	"github.com/vugu/vgrouter"
 )
 
 type TrainingPage struct {
 	vgrouter.NavigatorRef
 
-	t oapiGen.Training `vugu:"data"`
+	t oapiGen.Training
 	state.TrainingStateStorageRef
 
 	Title string

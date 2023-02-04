@@ -6,12 +6,10 @@ vars:
   TESTDB_PORT: 55555
 
 tasks:
-
   tailwindcss:
     deps: [check:tailwindcss]
     cmds:
-      - ./tailwindcss -i ./wasm/main.css -o ./wasm/out.css
-
+      - ./tailwindcss -i ./wasm/main.css -o ./wasm/tailwind.css --watch
 
   test:coverage:
     cmds:
@@ -21,7 +19,6 @@ tasks:
       - defer: { task: teardown-test-db }
       - go test -v -coverprofile=./doc/coverage.out -coverpkg=./... ./...
       - go tool cover -html=./doc/coverage.out -o ./doc/coverage.html
-      - rm ./doc/coverage.out
     env:
       TESTDB_PORT: '{{.TESTDB_PORT}}'
 
@@ -95,7 +92,6 @@ tasks:
     deps: [check:docker]
     cmds:
       - docker stop {{.TESTDB_DOCKER_NAME}}
-      - docker rm {{.TESTDB_DOCKER_NAME}}
 
   migrate-test:
     deps: [check:migrate]

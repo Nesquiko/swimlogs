@@ -2,6 +2,7 @@ create table if not exists training(
 	id uuid primary key,
 	created_at timestamp not null,
 	modified_at timestamp not null,
+	version integer not null,
 
 	date date not null,
 	day day not null,

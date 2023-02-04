@@ -8,21 +8,22 @@ import (
 	"github.com/google/uuid"
 )
 
-var SelectSessionById = "select id, day, duration, starttime from session where id = $1"
+var SelectSessionById = "select id, created_at, modified_at, version, day, duration, starttime from session where id = $1"
 
 func (db *postgresDbConn) GetSessionById(id uuid.UUID) (Session, error) {
 	var s Session
-	err := db.QueryRow(SelectSessionById, id).Scan(&s.Id, &s.Day, &s.DurationMin, &s.StartTime)
+	err := db.QueryRow(SelectSessionById, id).
+		Scan(&s.Id, &s.CreatedAt, &s.ModifiedAt, &s.Version, &s.Day, &s.DurationMin, &s.StartTime)
 	if err == sql.ErrNoRows {
 		return Session{}, ErrRowNotFound
 	} else if err != nil {
-		return Session{}, err
+		return Session{}, fmt.Errorf("GetSessionById: %w", err)
 	}
 
 	return s, nil
 }
 
-var InsertSession = "insert into session (id, created_at, modified_at, day, starttime, duration) values ($1, $2, $3, $4, $5, $6)"
+var InsertSession = "insert into session (id, created_at, modified_at, version, day, starttime, duration) values ($1, $2, $3, $4, $5, $6, $7)"
 
 func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, error) {
 	base := createBase()
@@ -33,6 +34,7 @@ func (db *postgresDbConn) SaveSession(session Session, tx *sql.Tx) (*uuid.UUID, 
 		session.Id,
 		session.CreatedAt,
 		session.ModifiedAt,
+		session.Version,
 		session.Day,
 		session.StartTime,
 		session.DurationMin,
@@ -62,6 +64,7 @@ func (db *postgresDbConn) GetAllSessions() ([]Session, error) {
 			&session.Id,
 			&session.CreatedAt,
 			&session.ModifiedAt,
+			&session.Version,
 			&session.Day,
 			&startTime,
 			&session.DurationMin,
@@ -101,7 +104,18 @@ func (psql *postgresDbConn) DeleteSession(id uuid.UUID, tx *sql.Tx) error {
 	return nil
 }
 
-var UpdateSession = "update session set modified_at = now(), day = $2, starttime = $3, duration = $4 where id = $1 returning id, day, starttime, duration"
+var SessionExists = "select count(1) from session where id = $1"
+
+func (psql *postgresDbConn) SessionExists(id uuid.UUID) (bool, error) {
+	var exists int
+	err := psql.QueryRow(SessionExists, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}
+
+var UpdateSession = "update session set modified_at = now(), version = $5 + 1, day = $2, starttime = $3, duration = $4 where id = $1 and version = $5 + 1 returning id, day, starttime, duration, version"
 
 func (psql *postgresDbConn) UpdateSession(
 	id uuid.UUID,
@@ -116,11 +130,13 @@ func (psql *postgresDbConn) UpdateSession(
 		updated.Day,
 		updated.StartTime,
 		updated.DurationMin,
+		updated.Version,
 	).Scan(
 		&session.Id,
 		&session.Day,
 		&startTime,
 		&session.DurationMin,
+		&session.Version,
 	)
 	if err == sql.ErrNoRows {
 		return session, ErrRowNotFound

@@ -2,9 +2,11 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/google/uuid"
 )
 
@@ -12,9 +14,7 @@ func (app *swimLogsApp) GetAllSessions() (oapiGen.GetAllSessionsResponseObject, 
 	sessions, err := app.db.GetAllSessions()
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.GetAllSessions500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.GetAllSessions500Response{}, nil
 	}
 
 	ret := make([]oapiGen.Session, len(sessions))
@@ -29,14 +29,18 @@ func (app *swimLogsApp) CreateSession(
 	request oapiGen.CreateSessionRequestObject,
 ) (oapiGen.CreateSessionResponseObject, error) {
 	newSession := request.Body
-	if invalid := ValidateSession(*newSession); len(invalid) != 0 {
+
+	invalid := validation.ValidateSession(*newSession)
+	if invalid != nil {
+		app.logger.Warnf("invalid session: %v", invalid)
 		return oapiGen.CreateSession400JSONResponse{
-			InvalidSessionErrorResponseJSONResponse: invalidSessionError(invalid),
+			InvalidSessionErrorResponseJSONResponse: oapiGen.InvalidSessionErrorResponseJSONResponse(
+				*invalid,
+			),
 		}, nil
 	}
 
 	session := transformRestSession(*newSession)
-
 	err := app.db.InTx(func(tx *sql.Tx) error {
 		uuid, err := app.db.SaveSession(session, tx)
 		if err != nil {
@@ -47,9 +51,7 @@ func (app *swimLogsApp) CreateSession(
 	})
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.CreateSession500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.CreateSession500Response{}, nil
 	}
 
 	return oapiGen.CreateSession201JSONResponse(*newSession), nil
@@ -68,9 +70,7 @@ func (app *swimLogsApp) DeleteSession(id uuid.UUID) (oapiGen.DeleteSessionRespon
 
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.DeleteSession500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.DeleteSession500Response{}, nil
 	}
 
 	return oapiGen.DeleteSession200Response{}, nil
@@ -79,15 +79,29 @@ func (app *swimLogsApp) DeleteSession(id uuid.UUID) (oapiGen.DeleteSessionRespon
 func (app *swimLogsApp) UpdateSession(
 	request oapiGen.UpdateSessionRequestObject,
 ) (oapiGen.UpdateSessionResponseObject, error) {
-	if invalid := ValidateSession(*request.Body); len(invalid) != 0 {
-		return oapiGen.UpdateSession400JSONResponse{
-			InvalidSessionErrorResponseJSONResponse: invalidSessionError(invalid),
+
+	exists, err := app.db.SessionExists(request.Id)
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.UpdateSession500Response{}, nil
+	}
+
+	if !exists {
+		return oapiGen.UpdateSession404JSONResponse{
+			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(request.Id),
 		}, nil
 	}
-	updated := transformRestSession(*request.Body)
 
+	invalid := validation.ValidateSession(*request.Body)
+	if invalid != nil {
+		return oapiGen.UpdateSession400JSONResponse{
+			oapiGen.InvalidSessionErrorResponseJSONResponse(*invalid),
+		}, nil
+	}
+
+	updated := transformRestSession(*request.Body)
 	var session oapiGen.Session
-	err := app.db.InTx(func(tx *sql.Tx) error {
+	err = app.db.InTx(func(tx *sql.Tx) error {
 		sess, err := app.db.UpdateSession(request.Id, updated, tx)
 		if err != nil {
 			return err
@@ -96,15 +110,18 @@ func (app *swimLogsApp) UpdateSession(
 		return nil
 	})
 	if err == data.ErrRowNotFound {
-		return oapiGen.UpdateSession404JSONResponse{
-			SessionNotFoundErrorResponseJSONResponse: sessionNotFound(request.Id),
-		}, nil
+		return oapiGen.UpdateSession409Response{}, nil
 	} else if err != nil {
 		app.logger.Error(err)
-		return oapiGen.UpdateSession500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.UpdateSession500Response{}, nil
 	}
 
 	return oapiGen.UpdateSession200JSONResponse(session), nil
+}
+
+func sessionNotFound(id uuid.UUID) oapiGen.SessionNotFoundErrorResponseJSONResponse {
+	return oapiGen.SessionNotFoundErrorResponseJSONResponse{
+		Title:  "Session wasn't found",
+		Detail: fmt.Sprintf("Session with Id '%s' wasn't found", id.String()),
+	}
 }

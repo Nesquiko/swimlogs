@@ -1,5 +1,5 @@
 <div>
-	<div style="display:flex;justify-content:space-between;margin:0px 10px 0px;">
+	<div class="flex justify-between mx-4">
 		<strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
 	</div>
 </div>

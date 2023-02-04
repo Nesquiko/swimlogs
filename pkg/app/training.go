@@ -7,6 +7,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/data"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/google/uuid"
 )
 
@@ -32,16 +33,12 @@ func (app *swimLogsApp) GetTrainingsDetails(
 	trainings, err := app.db.GetDetailsOfTrainings(page, pageSize)
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.GetTrainingsDetails500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.GetTrainingsDetails500Response{}, nil
 	}
 	totalTrainings, err := app.db.GetTrainingCount()
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.GetTrainingsDetails500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.GetTrainingsDetails500Response{}, nil
 	}
 
 	details := transormToDetails(trainings)
@@ -63,9 +60,7 @@ func (app *swimLogsApp) GetTrainingsDetailsCurrentWeek(
 	trainings, err := app.db.GetDetailsOfTrainingsCurrentWeek()
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.GetTrainingsDetailsCurrentWeek500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.GetTrainingsDetailsCurrentWeek500Response{}, nil
 	}
 
 	details := transormToDetails(trainings)
@@ -78,20 +73,17 @@ func (app *swimLogsApp) CreateTraining(
 	request oapiGen.CreateTrainingRequestObject,
 ) (oapiGen.CreateTrainingResponseObject, error) {
 	newTraining := request.Body
-	if invalid := validateTraining(*newTraining); len(invalid) != 0 {
+
+	invalid := app.validateTraining(*newTraining)
+	if invalid != nil {
 		return oapiGen.CreateTraining400JSONResponse{
-			InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
+			InvalidTrainingErrorResponseJSONResponse: oapiGen.InvalidTrainingErrorResponseJSONResponse(
+				*invalid,
+			),
 		}, nil
 	}
-	if newTraining.SessionId != nil {
-		if invalid := app.validateSessionInTraining(*newTraining); len(invalid) != 0 {
-			return oapiGen.CreateTraining400JSONResponse{
-				InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
-			}, nil
-		}
-	}
 
-	t := transformRestTraining(newTraining)
+	t := transformRestTraining(*newTraining)
 	calculateTotalDistance(&t)
 	updateTotalDist(newTraining, t)
 
@@ -131,12 +123,21 @@ func (app *swimLogsApp) CreateTraining(
 	})
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.CreateTraining500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.CreateTraining500Response{}, nil
 	}
 
 	return oapiGen.CreateTraining201JSONResponse(td), nil
+}
+
+func (app *swimLogsApp) validateTraining(t oapiGen.Training) *oapiGen.InvalidTraining {
+	if t.SessionId == nil {
+		return validation.ValidateTraining(t)
+	}
+	s, err := app.db.GetSessionById(*t.SessionId)
+	if err != nil {
+		app.logger.Errorf("received unknown session: %v", err)
+	}
+	return validation.ValidateTrainingWithSession(t, transformDataSession(s))
 }
 
 func (app *swimLogsApp) GetTrainings(
@@ -161,9 +162,7 @@ func (app *swimLogsApp) DeleteTraining(
 
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.DeleteTraining500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.DeleteTraining500Response{}, nil
 	}
 
 	return oapiGen.DeleteTraining200Response{}, nil
@@ -181,9 +180,7 @@ func (app *swimLogsApp) GetTrainingById(
 
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.GetTrainingById500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.GetTrainingById500Response{}, nil
 	}
 
 	training := transformDataTraining(t)
@@ -193,24 +190,33 @@ func (app *swimLogsApp) GetTrainingById(
 func (app *swimLogsApp) UpdateTraining(
 	request oapiGen.UpdateTrainingRequestObject,
 ) (oapiGen.UpdateTrainingResponseObject, error) {
-	newTraining := request.Body
-	if invalid := validateTraining(*newTraining); len(invalid) != 0 {
-		return oapiGen.UpdateTraining400JSONResponse{
-			InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
+
+	exists, err := app.db.TrainingExists(request.Id)
+	if err != nil {
+		app.logger.Error(err)
+		return oapiGen.UpdateTraining500Response{}, nil
+	}
+
+	if !exists {
+		return oapiGen.UpdateTraining404JSONResponse{
+			TrainingNotFoundErrorResponseJSONResponse: trainingNotFound(request.Id),
 		}, nil
 	}
-	if newTraining.SessionId != nil {
-		if invalid := app.validateSessionInTraining(*newTraining); len(invalid) != 0 {
-			return oapiGen.UpdateTraining400JSONResponse{
-				InvalidTrainingErrorResponseJSONResponse: invalidTrainingError(invalid),
-			}, nil
-		}
+
+	newTraining := request.Body
+	invalid := app.validateTraining(*newTraining)
+	if invalid != nil {
+		return oapiGen.UpdateTraining400JSONResponse{
+			InvalidTrainingErrorResponseJSONResponse: oapiGen.InvalidTrainingErrorResponseJSONResponse(
+				*invalid,
+			),
+		}, nil
 	}
 
-	t := transformRestTraining(newTraining)
+	t := transformRestTraining(*newTraining)
 	updateTotalDist(newTraining, t)
 
-	err := app.db.InTx(func(tx *sql.Tx) error {
+	err = app.db.InTx(func(tx *sql.Tx) error {
 		err := app.db.UpdateTrainingById(request.Id, t, tx)
 		if err != nil {
 			return err
@@ -219,15 +225,11 @@ func (app *swimLogsApp) UpdateTraining(
 	})
 	if errors.Is(err, data.ErrRowNotFound) {
 		app.logger.Warn(err)
-		return oapiGen.UpdateTraining404JSONResponse{
-			TrainingNotFoundErrorResponseJSONResponse: trainingNotFound(request.Id),
-		}, nil
+		return oapiGen.UpdateSession409Response{}, nil
 	}
 	if err != nil {
 		app.logger.Error(err)
-		return oapiGen.UpdateTraining500JSONResponse{
-			InternalServerErrorResponseJSONResponse: internalServerError(),
-		}, nil
+		return oapiGen.UpdateTraining500Response{}, nil
 	}
 
 	td := oapiGen.TrainingDetail{
@@ -272,4 +274,11 @@ func calculateTotalDistance(t *data.Training) {
 		t.Blocks[i].TotalDistance = t.Blocks[i].Repeat * bTotDist
 	}
 	t.TotalDistance = tTotDist
+}
+
+func trainingNotFound(id uuid.UUID) oapiGen.TrainingNotFoundErrorResponseJSONResponse {
+	return oapiGen.TrainingNotFoundErrorResponseJSONResponse{
+		Title:  "Training wasn't found",
+		Detail: fmt.Sprintf("Training with Id '%s' wasn't found", id.String()),
+	}
 }

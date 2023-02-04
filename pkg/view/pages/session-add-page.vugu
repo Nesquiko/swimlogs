@@ -1,15 +1,90 @@
-<div>
-	<comps:SessionForm :Session='&c.Session'></comps:SessionForm>
+<div class="text-center">
+	<comps:Banner :Text='&c.BannerText'></comps:Banner> 
+	<comps:BugDialog
+		vg-if="c.ShowBug"
+		@Close='c.ShowBug = false'
+		:ErrMsg='c.BugErrMsg'>
+	</comps:BugDialog>
+
+	<vg-template vg-if='c.BannerText == ""'>
+		<h1 class="text-center text-3xl m-4">Create new Session</h1>
+		<comps:SessionForm
+			:Session='&c.Session'
+			:InvalidSession='&c.InvalidSession'>
+		</comps:SessionForm>
+
+		<button
+			vg-if='!c.IsLoading'
+			@click='c.CreateSession(event)'
+			class="bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:outline-none
+				focus:ring-sky-300 font-medium rounded-lg text-sm w-11/12
+				sm:w-auto px-5 py-2 text-center"
+			>Submit
+		</button>
+	</vg-template>
+
+	<vg-comp expr='&c.Snackbar'></vg-comp>
 </div>
 
 <script type="application/x-go">
 import (
-	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 )
 
 type SessionAddPage struct {
-	Session oapiGen.Session
+	vgrouter.NavigatorRef
+
+	Session        oapiGen.Session
+	InvalidSession oapiGen.InvalidSession
+
+	IsLoading bool
+
+	ShowBug   bool
+	BugErrMsg string
+
+	BannerText string
+	Snackbar   comps.Snackbar
+}
+
+func (c *SessionAddPage) CreateSession(event vugu.DOMEvent) {
+	c.IsLoading = true
+
+	invalid := validation.ValidateSession(c.Session)
+	if invalid != nil {
+		c.InvalidSession = *invalid
+		c.IsLoading = false
+		return
+	}
+
+	go func() {
+		err := api.CreateSession(c.Session)
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			event.EventEnv().Lock()
+			c.BannerText = "Server isn't available"
+			event.EventEnv().UnlockRender()
+			return
+		case errors.Is(err, &api.BadRequestSession{}):
+			badRequest, _ := err.(*api.BadRequestSession)
+			event.EventEnv().Lock()
+			c.InvalidSession = badRequest.InvalidSession
+			event.EventEnv().UnlockRender()
+			return
+		case err != nil:
+			event.EventEnv().Lock()
+			c.BugErrMsg = err.Error()
+			c.ShowBug = true
+			c.BannerText = "Application doens't work correctly. Contact developer"
+			event.EventEnv().UnlockRender()
+			return
+		}
+
+		event.EventEnv().Lock()
+		c.Navigate("/", nil)
+		event.EventEnv().UnlockRender()
+	}()
 }
 </script>
 

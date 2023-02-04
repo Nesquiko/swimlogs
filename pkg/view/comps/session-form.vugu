@@ -1,9 +1,12 @@
 <div>
-	<h1 class="session-form-centered">Create new Session</h1>
-	<form class="session-form session-form-centered">
-		<div>
-			<label>Day of the week</label>
-			<select @change='c.ChangeDay(event)' name="day">
+	<div class="w-11/12 m-4 text-center bg-white">
+		<div class="mb-6">
+			<label for="days" class="block text-base font-medium text-gray-900">Select day</label>
+			<select
+				id="days"
+				:class='c.DaySelectClass'
+				@change='c.changeDay(event)'
+				name="day">
 				<option value="">---</option>
 				<option value="monday">Monday</option>
 				<option value="tuesday">Tuesday</option>
@@ -13,92 +16,148 @@
 				<option value="saturday">Saturday</option>
 				<option value="sunday">Sunday</option>
 			</select>
+			<p vg-if='c.DayError != ""' vg-content='c.DayError' class="text-red-500"></p>
 		</div>
-		<div>
-			<label>Duration in minutes</label>
-			<input @change='c.ChangeDuration(event)' type="number" min="1" placeholder="60">
+
+		<div class="mb-6">
+			<label
+				for="duration"
+				class="block text-base font-medium text-gray-900"
+				>Duration in minutes
+			</label>
+			<input @change='c.changeDuration(event)'
+				type="number"
+				id="duration"
+				placeholder="60"
+				:class='c.DurationInputClass'>
+			<p vg-if='c.DurationError != ""' vg-content='c.DurationError' class="text-red-500"></p>
 		</div>
-		<div>
-			<label>Start time</label>
-			<input @change='c.ChangeStarttime(event)' type="time">
+
+		<div class="mb-6">
+			<label class="block text-base font-medium text-gray-900">Start time</label>
+			<input
+				@change='c.changeStartTime(event)'
+				type="time"
+				:class="c.StartTimeInputClass">
+			<p vg-if='c.StartTimeErr != ""' vg-content='c.StartTimeErr' class="text-red-500"></p>
 		</div>
-	</form>
-	<button vg-if='!c.IsLoading' @click='c.CreateSession(event)'>Create</button>
+	</div>
 </div>
 
 <script type="application/x-go">
+
 import (
 	"strconv"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-	"github.com/Nesquiko/swimlogs/pkg/app"
-	"github.com/Nesquiko/swimlogs/pkg/view/api"
 )
 
 type SessionForm struct {
-	Session *oapiGen.Session
-	IsLoading bool `vugu:"data"`
+	Session        *oapiGen.Session        `vugu:"data"`
+	InvalidSession *oapiGen.InvalidSession `vugu:"data"`
+
+	DaySelectClass string
+	DayError       string
+
+	DurationInputClass string
+	DurationError      string
+
+	StartTimeInputClass string
+	StartTimeErr        string
 }
 
 func (c *SessionForm) Init(ctx vugu.InitCtx) {
+	c.Session.Day = oapiGen.Day("---")
+	c.DaySelectClass = daySelectClassNormal
+	c.DurationInputClass = durationClassNormal
+	c.StartTimeInputClass = startTimeClassNormal
 }
 
-func (c *SessionForm) ChangeDay(event vugu.DOMEvent) {
-	c.Session.Day = oapiGen.Day(event.PropString("target", "value"))
+func (c *SessionForm) Compute(ctx vugu.ComputeCtx) {
+	if c.InvalidSession.Day == nil &&
+		c.InvalidSession.DurationMin == nil &&
+		c.InvalidSession.StartTime == nil {
+		return
+	}
+	c.showErrors()
 }
 
-func (c *SessionForm) ChangeDuration(event vugu.DOMEvent) {
+func (c *SessionForm) showErrors() {
+	s := *c.InvalidSession
+	if s.Day != nil {
+		c.DaySelectClass = daySelectClassError
+		c.DayError = *s.Day
+	}
+
+	if s.DurationMin != nil {
+		c.DurationInputClass = durationClassError
+		c.DurationError = *s.DurationMin
+	}
+
+	if s.StartTime != nil {
+		c.StartTimeInputClass = startTimeClassError
+		c.StartTimeErr = "Start time must be from 00:00 to 23:59"
+	}
+}
+
+var daySelectClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
+							text-sm rounded-lg focus:ring-blue-500
+							focus:border-blue-500 block w-full p-2`
+var daySelectClassError = `bg-red-100 border border-red-300 text-red-900
+							text-sm rounded-lg focus:ring-red-600
+							focus:border-red-600 block w-full p-2`
+
+func (c *SessionForm) changeDay(event vugu.DOMEvent) {
+	c.InvalidSession.Day = nil
+	input := event.PropString("target", "value")
+	if input == "" {
+		c.DaySelectClass = daySelectClassError
+		c.DayError = "Day not selected"
+		return
+	}
+	c.DaySelectClass = daySelectClassNormal
+	c.DayError = ""
+	c.Session.Day = oapiGen.Day(input)
+}
+
+var durationClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
+							text-sm rounded-lg focus:ring-blue-500
+							focus:border-blue-500 block w-full p-2`
+var durationClassError = `bg-red-100 border border-red-300 text-gray-900
+							text-sm rounded-lg focus:ring-red-600
+							focus:border-red-600 block w-full p-2`
+
+func (c *SessionForm) changeDuration(event vugu.DOMEvent) {
+	c.InvalidSession.DurationMin = nil
 	dur, err := strconv.Atoi(event.PropString("target", "value"))
 	if err != nil {
-		// not a number??
+		c.DurationInputClass = durationClassError
+		c.DurationError = "Must be a number"
+		return
 	}
+
+	if dur <= 0 {
+		c.DurationInputClass = durationClassError
+		c.DurationError = "Must be bigger than 0"
+		return
+	}
+
+	c.DurationInputClass = durationClassNormal
+	c.DurationError = ""
 	c.Session.DurationMin = dur
 }
 
-func (c *SessionForm) ChangeStarttime(event vugu.DOMEvent) {
+var startTimeClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
+						text-sm rounded-lg focus:ring-blue-500
+						focus:border-blue-500 block w-full p-2`
+var startTimeClassError = `bg-red-100 border border-red-300 text-gray-900
+						text-sm rounded-lg focus:ring-red-600
+						focus:border-red-600 block w-full p-2`
+
+func (c *SessionForm) changeStartTime(event vugu.DOMEvent) {
+	c.InvalidSession.StartTime = nil
+	c.StartTimeInputClass = startTimeClassNormal
 	c.Session.StartTime = event.PropString("target", "value")
-}
-
-func (c *SessionForm) CreateSession(event vugu.DOMEvent) {
-	go func() {
-		event.EventEnv().Lock()
-		c.IsLoading = true
-		event.EventEnv().UnlockRender()
-
-		errs := app.ValidateSession(*c.Session)	
-
-		if len(errs) != 0 {
-			fmt.Println(errs)
-			// TODO handle invalid inputs, make snackbar a component and
-			// shot it here
-			return
-		}
-
-		err := api.CreateSession(*c.Session)
-		if err != nil {
-			fmt.Println(err)
-			// TODO show either some error message or bug report
-		}
-
-		event.EventEnv().Lock()
-		c.IsLoading = false
-		event.EventEnv().UnlockRender()
-	}()
+	c.StartTimeErr = ""
 }
 </script>
-
-<style>
-.session-form-centered {
-	text-align: center;
-}
-
-.session-form {
-	max-width: 95%;
-	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-	border: solid;
-	border-radius: 15px;
-	border-width: 1px;
-	border-color: darkgrey;
-	margin: 10px;
-	background: white;
-}
-</style>

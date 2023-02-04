@@ -1,46 +1,16 @@
-<div class="card">
-	<div class="card-body">
-		<div>
-			<p><b>Start:</b> <span vg-content='c.StartTime'></span> </p>	
-		</div>
-		<div>
-			<p><b>Duration:</b> <span vg-content='c.DurationMin'></span>min </p>		
-		</div>
-		<div>
-			<p><b>Distance:</b> <span vg-content='c.Distance'></span>m </p>	
-		</div>
+<div class="w-11/12 shadow border  border-solid rounded-lg border-slate-100 m-3 bg-white">
+	<div class="p-2 flex justify-between">
+		<p class="text-base"><b>Start:</b> <span vg-content='c.StartTime'></span></p>	
+		<p class="text-base"><b>Duration:</b> <span vg-content='c.DurationMin'></span>min</p>		
+		<p class="text-base"><b>Distance:</b> <span vg-content='c.Distance'></span>m</p>	
 	</div>
 </div>
-
-<style>
-.card {
-	max-width: 95%;
-	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-	border: solid;
-	border-radius: 15px;
-	border-width: 1px;
-	border-color: darkgrey;
-	margin: 10px;
-	background: white;
-}
-
-.card .card-body {
-	padding: 5px 6px;
-	display: flex;
-	justify-content: space-between;
-}
-
-.card-body p {
-	font-size: 13px;
-}
-
-</style>
 
 <script type="application/x-go">
 
 type TrainingDetailCard struct {
-	StartTime string
-  	DurationMin int
-  	Distance int
+	StartTime   string
+	DurationMin int
+	Distance    int
 }
 </script>

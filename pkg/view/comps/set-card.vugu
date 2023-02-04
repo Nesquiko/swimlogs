@@ -1,14 +1,14 @@
 <div>
-	<div class="set-card">
-		<div class="set-card-body">
-			<div class="set-section">
+	<div class="w-11/12 m-4 bg-white">
+		<div class="flex justify-between">
+			<div class="m-4">
 				<b><span vg-content='c.Set.Repeat'></span>x<span vg-content='c.Set.Distance'></span></b>
 			</div>
-			<div class="set-multiline set-section">
+			<div class="text-left w-4/5 m-4">
 				<span vg-content='c.Set.What'></span>
 			</div>
 			<vg-template vg-if='c.Set.StartingRule.Rule != oapiGen.None'>
-				<div class="set-section">
+				<div class="m-4">
 					<b><span vg-content='c.Set.StartingRule.Rule'></span>:</b><span vg-content='c.Set.StartingRule.Seconds'></span>s
 				</div>
 			</vg-template>
@@ -25,26 +25,3 @@ type SetCard struct {
 	Set oapiGen.Set `vugu:"data"`
 }
 </script>
-
-<style>
-.set-card {
-	max-width: 95%;
-	margin: 10px;
-	background: white;
-}
-
-.set-card .set-card-body {
-	padding: 5px 6px;
-	display: flex;
-	justify-content: space-between;
-}
-
-.set-section {
-	margin: 10px;
-}
-
-.set-multiline {
-	text-align: left;
-	width: 80%;
-}
-</style>

@@ -1,0 +1,22 @@
+<div class="p-8 flex flex-col items-center">
+	<button
+		class="w-full m-2 shadow rounded-lg border border-solid border-slate-500 bg-white text-xl"
+		@click='c.Navigate("/add/training", nil)'
+		>Create Training
+	</button>
+	<button 
+		class="w-full m-2 shadow rounded-lg border border-solid border-slate-500 bg-white text-xl"
+		@click='c.Navigate("/add/session", nil)'
+		>Create Session
+	</button>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/vugu/vgrouter"
+)
+
+type ActionsPage struct {
+	vgrouter.NavigatorRef
+}
+</script>
