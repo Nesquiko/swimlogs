@@ -39,6 +39,10 @@ func ValidateSession(s oapiGen.Session) *oapiGen.InvalidSession {
 		invalid.DurationMin = &errMsg
 	}
 
+	if invalid.Day == nil && invalid.StartTime == nil && invalid.DurationMin == nil {
+		return nil
+	}
+
 	return invalid
 }
 

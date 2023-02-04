@@ -12,24 +12,21 @@ import (
 func CreateSession(s oapiGen.Session) error {
 	sessionJSON, err := json.Marshal(s)
 	if err != nil {
-		return err
+		return fmt.Errorf("CreateSession: %w", err)
 	}
 
 	res, err := Client.Post(BaseUrl+"/sessions", AppJsonType, bytes.NewBuffer(sessionJSON))
 	if err != nil {
-		return err
+		return fmt.Errorf("CreateSession: %w", ErrServerUnreachable)
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode == http.StatusOK {
-		return nil
-	}
-
 	var dest oapiGen.CreateSession400JSONResponse
 	switch res.StatusCode {
+	case http.StatusCreated:
+		return nil
 	case http.StatusInternalServerError:
-		return ErrInternalServerError
-
+		return fmt.Errorf("CreateSession: %w", ErrInternalServerError)
 	case http.StatusBadRequest:
 		dest = oapiGen.CreateSession400JSONResponse{}
 	}
@@ -37,18 +34,18 @@ func CreateSession(s oapiGen.Session) error {
 	dec := json.NewDecoder(res.Body)
 	err = dec.Decode(&dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("CreateSession: %w", err)
 	}
 
-	return &BadRequestSession{Errs: dest.AdditionalProperties}
+	return &BadRequestSession{oapiGen.InvalidSession(dest.InvalidSessionErrorResponseJSONResponse)}
 }
 
 type BadRequestSession struct {
-	Errs map[string]string
+	oapiGen.InvalidSession
 }
 
 func (r *BadRequestSession) Error() string {
-	return fmt.Sprintf("invalid session, %v", r.Errs)
+	return fmt.Sprintf("invalid session, %v", r.InvalidSession)
 }
 
 func (r *BadRequestSession) Is(tgt error) bool {

@@ -32,8 +32,11 @@ func (app *swimLogsApp) CreateSession(
 
 	invalid := validation.ValidateSession(*newSession)
 	if invalid != nil {
+		app.logger.Warnf("invalid session: %v", invalid)
 		return oapiGen.CreateSession400JSONResponse{
-			oapiGen.InvalidSessionErrorResponseJSONResponse(*invalid),
+			InvalidSessionErrorResponseJSONResponse: oapiGen.InvalidSessionErrorResponseJSONResponse(
+				*invalid,
+			),
 		}, nil
 	}
 

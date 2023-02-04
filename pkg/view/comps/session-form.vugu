@@ -76,7 +76,7 @@ import (
 	"strconv"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-	"github.com/Nesquiko/swimlogs/pkg/app"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/vugu/vgrouter"
 )
@@ -168,28 +168,26 @@ func (c *SessionForm) CreateSession(event vugu.DOMEvent) {
 		c.IsLoading = true
 		event.EventEnv().UnlockRender()
 
-		app.ValidateSession(*c.Session)
-
-		//errs := app.ValidateSession(*c.Session)
-		//if len(errs) != 0 {
-		//	event.EventEnv().Lock()
-		//	c.showErrors(errs)
-		//	c.IsLoading = false
-		//	event.EventEnv().UnlockRender()
-		//	return
-		//}
+		invalid := validation.ValidateSession(*c.Session)
+		if invalid != nil {
+			event.EventEnv().Lock()
+			c.showErrors(*invalid)
+			c.IsLoading = false
+			event.EventEnv().UnlockRender()
+			return
+		}
 
 		err := api.CreateSession(*c.Session)
 		switch {
-		case errors.Is(err, api.ErrInternalServerError):
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
 			c.ShowBanner = true
 			c.BannerTitle = "Server isn't available"
 			return
 		case errors.Is(err, &api.BadRequestSession{}):
-			// TODO show validation errors, showErrors(err.invalid)...
-			fmt.Printf("got BadRequestSession: %v\n", err)
+			badRequest, _ := err.(*api.BadRequestSession)
+			c.showErrors(badRequest.InvalidSession)
 			return
-		default:
+		case err != nil:
 			c.ErrMsg = err.Error()
 			c.ShowBug = true
 			c.ShowBanner = true
@@ -203,18 +201,18 @@ func (c *SessionForm) CreateSession(event vugu.DOMEvent) {
 	}()
 }
 
-func (c *SessionForm) showErrors(errs map[string]string) {
-	if dayErr, ok := errs["day"]; ok {
+func (c *SessionForm) showErrors(s oapiGen.InvalidSession) {
+	if s.Day != nil {
 		c.DaySelectClass = daySelectClassError
-		c.DayError = dayErr
+		c.DayError = *s.Day
 	}
 
-	if durErr, ok := errs["durationMin"]; ok {
+	if s.DurationMin != nil {
 		c.DurationInputClass = durationClassError
-		c.DurationError = durErr
+		c.DurationError = *s.DurationMin
 	}
 
-	if _, ok := errs["startTime"]; ok {
+	if s.StartTime != nil {
 		c.StartTimeErr = "Start time must be from 00:00 to 23:59"
 	}
 }

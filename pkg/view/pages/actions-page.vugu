@@ -16,7 +16,7 @@ import (
 	"github.com/vugu/vgrouter"
 )
 
-type AddPage struct {
+type ActionsPage struct {
 	vgrouter.NavigatorRef
 }
 </script>

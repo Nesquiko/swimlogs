@@ -77,13 +77,14 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 		}
 
 		t, err := api.FetchTraining(id)
-		if errors.Is(err, api.ErrInternalServerError) {
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
 			c.Snackbar.Show(event.EventEnv(), "Couldn't load training")
 			return
-		} else if errors.Is(err, api.ErrNotFound) {
+		case errors.Is(err, api.ErrNotFound):
 			c.Snackbar.Show(event.EventEnv(), "Training wasn't found")
 			return
-		} else if err != nil {
+		case err != nil:
 			event.EventEnv().Lock()
 			c.ErrMsg = err.Error()
 			c.ShowBug = true
@@ -102,14 +103,15 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 	go func() {
 		details, err := api.GetTrainingsInCurrentWeek()
 
-		if errors.Is(err, api.ErrInternalServerError) {
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
 			c.ShowBanner = true
 			c.BannerTitle = CouldntLoad
 			ctx.EventEnv().UnlockRender()
 			return
-		} else if err != nil {
+		case err != nil:
 			ctx.EventEnv().Lock()
 			c.IsLoaded = true
 			c.ErrMsg = err.Error()

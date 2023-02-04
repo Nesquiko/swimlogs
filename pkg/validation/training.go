@@ -28,7 +28,15 @@ func ValidateTraining(t oapiGen.Training) *oapiGen.InvalidTraining {
 	invalid.Day = invalidSessionData.Day
 	invalid.StartTime = invalidSessionData.StartTime
 	invalid.DurationMin = invalidSessionData.DurationMin
-	*invalid.Blocks = validateBlocks(t.Blocks)
+	invalid.Blocks = validateBlocks(t.Blocks)
+
+	if invalid.Date == nil &&
+		invalid.Day == nil &&
+		invalid.StartTime == nil &&
+		invalid.DurationMin == nil &&
+		invalid.Blocks == nil {
+		return nil
+	}
 	return invalid
 }
 
@@ -38,11 +46,20 @@ func ValidateTrainingWithSession(t oapiGen.Training, s oapiGen.Session) *oapiGen
 		errMsg := fmt.Sprintf("Date '%s' isn't on '%s'", t.Date.Format("02.01.2006"), s.Day)
 		invalid.Date = &errMsg
 	}
-	*invalid.Blocks = validateBlocks(t.Blocks)
+	invalid.Blocks = validateBlocks(t.Blocks)
+
+	if invalid.Date == nil && invalid.Blocks == nil {
+		return nil
+	}
+
 	return invalid
 }
 
-func validateBlocks(blocks []oapiGen.Block) []oapiGen.InvalidBlock {
+func isDayOnDate(day oapiGen.Day, date time.Time) bool {
+	return strings.ToLower(date.Weekday().String()) == string(day)
+}
+
+func validateBlocks(blocks []oapiGen.Block) *[]oapiGen.InvalidBlock {
 	invalid := make([]oapiGen.InvalidBlock, 0)
 	for _, b := range blocks {
 		invalidBlock := validateBlock(b)
@@ -51,11 +68,10 @@ func validateBlocks(blocks []oapiGen.Block) []oapiGen.InvalidBlock {
 		}
 		invalid = append(invalid, *invalidBlock)
 	}
-	return invalid
-}
-
-func isDayOnDate(day oapiGen.Day, date time.Time) bool {
-	return strings.ToLower(date.Weekday().String()) != string(day)
+	if len(invalid) == 0 {
+		return nil
+	}
+	return &invalid
 }
 
 func validateBlock(b oapiGen.Block) *oapiGen.InvalidBlock {
@@ -70,11 +86,14 @@ func validateBlock(b oapiGen.Block) *oapiGen.InvalidBlock {
 		invalid.Repeat = &errMsg
 	}
 
-	*invalid.Sets = validateSets(b.Sets)
+	invalid.Sets = validateSets(b.Sets)
+	if invalid.Name == nil && invalid.Repeat == nil && invalid.Sets == nil {
+		return nil
+	}
 	return invalid
 }
 
-func validateSets(sets []oapiGen.Set) []oapiGen.InvalidSet {
+func validateSets(sets []oapiGen.Set) *[]oapiGen.InvalidSet {
 	invalid := make([]oapiGen.InvalidSet, 0)
 	for _, s := range sets {
 		invalidSet := validateSet(s)
@@ -83,7 +102,10 @@ func validateSets(sets []oapiGen.Set) []oapiGen.InvalidSet {
 		}
 		invalid = append(invalid, *invalidSet)
 	}
-	return invalid
+	if len(invalid) == 0 {
+		return nil
+	}
+	return &invalid
 }
 
 func validateSet(s oapiGen.Set) *oapiGen.InvalidSet {
@@ -109,6 +131,10 @@ func validateSet(s oapiGen.Set) *oapiGen.InvalidSet {
 	if s.Repeat <= 0 {
 		errMsg := "Repeat must be greater than 0"
 		invalid.Distance = &errMsg
+	}
+
+	if invalid.StartingRule == nil && invalid.Distance == nil && invalid.Repeat == nil {
+		return nil
 	}
 
 	return invalid
