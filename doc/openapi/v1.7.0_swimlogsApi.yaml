@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  version: "1.7.0"
+  version: '1.7.0'
   title: SwimLogs API
   license:
     name: MIT License
-    url: "https://opensource.org/licenses/MIT"
+    url: 'https://opensource.org/licenses/MIT'
   description: Openapi specification for SwimLogs API.
 
 servers:
@@ -34,7 +34,9 @@ paths:
                   sessions:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Session"
+                      $ref: '#/components/schemas/Session'
+                required:
+                  - sessions
         500:
           description: Something is really wrong
     post:
@@ -43,7 +45,7 @@ paths:
         - Session
       operationId: createSession
       requestBody:
-        $ref: "#/components/requestBodies/CreateSessionRequest"
+        $ref: '#/components/requestBodies/CreateSessionRequest'
       responses:
         201:
           description: A new session was successfully created and
@@ -51,9 +53,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: '#/components/schemas/Session'
         400:
-          $ref: "#/components/responses/InvalidSessionErrorResponse"
+          $ref: '#/components/responses/InvalidSessionErrorResponse'
         500:
           description: Something is really wrong
 
@@ -78,7 +80,7 @@ paths:
         200:
           description: Session deleted
         404:
-          $ref: "#/components/responses/SessionNotFoundErrorResponse"
+          $ref: '#/components/responses/SessionNotFoundErrorResponse'
         500:
           description: Something is really wrong
     put:
@@ -87,20 +89,20 @@ paths:
         - Session
       operationId: updateSession
       requestBody:
-        $ref: "#/components/requestBodies/UpdateSessionRequest"
+        $ref: '#/components/requestBodies/UpdateSessionRequest'
       responses:
         200:
           description: Returns the updated Session
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: '#/components/schemas/Session'
         400:
-          $ref: "#/components/responses/InvalidSessionErrorResponse"
+          $ref: '#/components/responses/InvalidSessionErrorResponse'
         404:
-          $ref: "#/components/responses/SessionNotFoundErrorResponse"
+          $ref: '#/components/responses/SessionNotFoundErrorResponse'
         409:
-          $ref: "#/components/responses/EditConflictResponse"
+          $ref: '#/components/responses/EditConflictResponse'
         500:
           description: Something is really wrong
 
@@ -127,7 +129,7 @@ paths:
             example: 10
       responses:
         200:
-          $ref: "#/components/responses/GetTrainingsResponse"
+          $ref: '#/components/responses/GetTrainingsResponse'
         500:
           description: Something is really wrong
     post:
@@ -136,7 +138,7 @@ paths:
         - Training
       operationId: createTraining
       requestBody:
-        $ref: "#/components/requestBodies/CreateTrainingRequest"
+        $ref: '#/components/requestBodies/CreateTrainingRequest'
       responses:
         201:
           description: New training was successfully created and detail about
@@ -144,9 +146,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TrainingDetail"
+                $ref: '#/components/schemas/TrainingDetail'
         400:
-          $ref: "#/components/responses/InvalidTrainingErrorResponse"
+          $ref: '#/components/responses/InvalidTrainingErrorResponse'
         500:
           description: Something is really wrong
   /trainings/{id}:
@@ -172,9 +174,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Training"
+                $ref: '#/components/schemas/Training'
         404:
-          $ref: "#/components/responses/TrainingNotFoundErrorResponse"
+          $ref: '#/components/responses/TrainingNotFoundErrorResponse'
         500:
           description: Something is really wrong
     put:
@@ -185,20 +187,20 @@ paths:
         - Training
       operationId: updateTraining
       requestBody:
-        $ref: "#/components/requestBodies/UpdateTrainingRequest"
+        $ref: '#/components/requestBodies/UpdateTrainingRequest'
       responses:
         200:
           description: Returns detail of the updated training
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TrainingDetail"
+                $ref: '#/components/schemas/TrainingDetail'
         400:
-          $ref: "#/components/responses/InvalidTrainingErrorResponse"
+          $ref: '#/components/responses/InvalidTrainingErrorResponse'
         404:
-          $ref: "#/components/responses/TrainingNotFoundErrorResponse"
+          $ref: '#/components/responses/TrainingNotFoundErrorResponse'
         409:
-          $ref: "#/components/responses/EditConflictResponse"
+          $ref: '#/components/responses/EditConflictResponse'
         500:
           description: Something is really wrong
     delete:
@@ -210,7 +212,7 @@ paths:
         200:
           description: Training was deleted
         404:
-          $ref: "#/components/responses/TrainingNotFoundErrorResponse"
+          $ref: '#/components/responses/TrainingNotFoundErrorResponse'
         500:
           description: Something is really wrong
 
@@ -248,15 +250,15 @@ paths:
                   details:
                     type: array
                     items:
-                      $ref: "#/components/schemas/TrainingDetail"
+                      $ref: '#/components/schemas/TrainingDetail'
                   pagination:
-                    $ref: "#/components/schemas/Pagination"
+                    $ref: '#/components/schemas/Pagination'
         400:
           description: Page or pageSize is invalid
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorDetail"
+                $ref: '#/components/schemas/ErrorDetail'
               example:
                 title: Page can't be less than 0
                 detail: Page can't be less than 0, was '-1'.
@@ -280,10 +282,10 @@ paths:
                   details:
                     type: array
                     items:
-                      $ref: "#/components/schemas/TrainingDetail"
+                      $ref: '#/components/schemas/TrainingDetail'
         500:
           description: Something is really wrong
-  
+
   /logs:
     post:
       description: Sends a report about an error that occurred
@@ -305,15 +307,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Session"
-    
+            $ref: '#/components/schemas/Session'
+
     ErrorLogRequest:
       description: Request informing server about a error that occurred.
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorLog"
+            $ref: '#/components/schemas/ErrorLog'
 
     UpdateSessionRequest:
       description: Request for updating an existing session according to sent
@@ -322,7 +324,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Session"
+            $ref: '#/components/schemas/Session'
 
     CreateTrainingRequest:
       description: Request for creating a training. Id on this object is ignored
@@ -332,7 +334,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Training"
+            $ref: '#/components/schemas/Training'
 
     UpdateTrainingRequest:
       description: Request for updating an existing training according to this
@@ -341,7 +343,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Training"
+            $ref: '#/components/schemas/Training'
 
   responses:
     GetTrainingsResponse:
@@ -354,16 +356,16 @@ components:
               trainings:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Training"
+                  $ref: '#/components/schemas/Training'
               pagination:
-                $ref: "#/components/schemas/Pagination"
+                $ref: '#/components/schemas/Pagination'
 
     TrainingNotFoundErrorResponse:
       description: Training with specified id wasn't found
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorDetail"
+            $ref: '#/components/schemas/ErrorDetail'
           example:
             title: Training wasn't found
             detail: Training with Id 'XYZ' wasn't found.
@@ -374,8 +376,8 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/InvalidTraining"
-    
+            $ref: '#/components/schemas/InvalidTraining'
+
     EditConflictResponse:
       description: The resource was edited to new version
 
@@ -385,7 +387,7 @@ components:
         application/json:
           schema:
             type: object
-            $ref: "#/components/schemas/ErrorDetail"
+            $ref: '#/components/schemas/ErrorDetail'
           example:
             title: Session wasn't found
             details: Session with Id 'XYZ' wasn't found
@@ -419,7 +421,7 @@ components:
           x-go-type-import:
             path: github.com/google/uuid
         day:
-          $ref: "#/components/schemas/Day"
+          $ref: '#/components/schemas/Day'
           description: On which day does the session occur
         startTime:
           type: string
@@ -439,7 +441,7 @@ components:
         - startTime
         - durationMin
         - version
-    
+
     InvalidSession:
       type: object
       properties:
@@ -497,7 +499,7 @@ components:
           description: Description of what to swim
           example: Freestyle
         startingRule:
-          $ref: "#/components/schemas/StartingRule"
+          $ref: '#/components/schemas/StartingRule'
         totalDist:
           type: integer
           description: Total distance in this set. Computed on server, ignored
@@ -536,7 +538,7 @@ components:
         sets:
           type: array
           items:
-            $ref: "#/components/schemas/Set"
+            $ref: '#/components/schemas/Set'
         totalDist:
           type: integer
           description: Total distance in this block. Computed on server, ignored
@@ -571,7 +573,7 @@ components:
           description: A session from which to copy day, start time and
             duration to this training.
         day:
-          $ref: "#/components/schemas/Day"
+          $ref: '#/components/schemas/Day'
           description: If sessionId isn't set, then this field is required!
             On which day does the training occur
         startTime:
@@ -587,7 +589,7 @@ components:
         blocks:
           type: array
           items:
-            $ref: "#/components/schemas/Block"
+            $ref: '#/components/schemas/Block'
         totalDist:
           type: integer
           description:
@@ -625,7 +627,7 @@ components:
             seconds:
               type: string
               example: "Rule 'Interval' requires non 0 seconds"
-    
+
     InvalidBlock:
       type: object
       properties:
@@ -642,7 +644,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InvalidSet'
-    
+
     InvalidTraining:
       type: object
       properties:
@@ -662,7 +664,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InvalidBlock'
-        
+
     TrainingDetail:
       type: object
       properties:
@@ -677,7 +679,7 @@ components:
           format: date
           description: On what date does the training occur.
         day:
-          $ref: "#/components/schemas/Day"
+          $ref: '#/components/schemas/Day'
           description: If sessionId isn't set, then this field is required!
             On which day does the training occur
         startTime:
@@ -729,7 +731,7 @@ components:
         title:
           type: string
           description: Short human-readable summary of the error
-          example: "Session not found"
+          example: 'Session not found'
         detail:
           type: string
           description: A human-readable explanation of the error
@@ -737,17 +739,17 @@ components:
       required:
         - title
         - detail
-    
+
     ErrorLog:
       type: object
       properties:
-          errMsg:
-            type: string
-            description: Error message of what went wrong
-            example: internal server error
-          userDesc:
-            type: string
-            description: Optional description from user
-            example: I tried to create training
+        errMsg:
+          type: string
+          description: Error message of what went wrong
+          example: internal server error
+        userDesc:
+          type: string
+          description: Optional description from user
+          example: I tried to create training
       required:
         - errMsg

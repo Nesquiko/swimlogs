@@ -16,6 +16,17 @@ var DaysOrder = map[oapiGen.Day]int{
 	oapiGen.Sunday:    6,
 }
 
+func orderByDays(sessions *[]oapiGen.Session) {
+	if sessions == nil {
+		return
+	}
+
+	s := *sessions
+	sort.Slice(s, func(i, j int) bool {
+		return DaysOrder[s[i].Day] < DaysOrder[s[j].Day]
+	})
+}
+
 // splitIntoDays splits passed details in to a map, in which keys are days of
 // the week, and values are TrainingDetails which are in that day. Also returns
 // sorted slice of days which are in map.

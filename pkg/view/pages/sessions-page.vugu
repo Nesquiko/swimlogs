@@ -1,0 +1,62 @@
+<div>
+	<comps:Banner :Text='&c.BannerText'></comps:Banner> 
+
+	<comps:BugDialog
+		vg-if="c.ShowBug"
+		@Close='c.ShowBug = false'
+		:ErrMsg='c.BugErrMsg'>
+	</comps:BugDialog>
+
+	<vg-template vg-for='_, s := range c.sessions'>
+		<div @click='c.editSession(event, s)'>
+			<comps:SessionCard :Session='s'></comps:SessionCard>
+		</div>
+	</vg-template>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+)
+
+type SessionsPage struct {
+	sessions []oapiGen.Session
+
+	BannerText string
+
+	ShowBug   bool
+	BugErrMsg string
+}
+
+func (c *SessionsPage) Init(ctx vugu.InitCtx) {
+	go func() {
+		sessions, err := api.GetSessions()
+
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			ctx.EventEnv().Lock()
+			c.BannerText = "Couldn't load sessions, server isn't available"
+			ctx.EventEnv().UnlockRender()
+			return
+		case err != nil:
+			ctx.EventEnv().Lock()
+			c.BugErrMsg = err.Error()
+			c.ShowBug = true
+			c.BannerText = "Application doens't work correctly. Contact developer"
+			ctx.EventEnv().UnlockRender()
+			return
+		}
+
+		ctx.EventEnv().Lock()
+		orderByDays(&sessions)
+		c.sessions = sessions
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+
+func (c *SessionsPage) editSession(event vugu.DOMEvent, s oapiGen.Session) {
+	fmt.Println(s)
+}
+</script>

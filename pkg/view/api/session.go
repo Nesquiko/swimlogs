@@ -9,6 +9,27 @@ import (
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 )
 
+func GetSessions() ([]oapiGen.Session, error) {
+	res, err := http.Get(BaseUrl + "/sessions")
+	if err != nil {
+		return nil, fmt.Errorf("GetSessions: %w", ErrServerUnreachable)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusInternalServerError {
+		return nil, fmt.Errorf("GetSessions: %w", ErrInternalServerError)
+	}
+
+	var dest oapiGen.GetAllSessions200JSONResponse
+	dec := json.NewDecoder(res.Body)
+	err = dec.Decode(&dest)
+	if err != nil {
+		return nil, fmt.Errorf("GetSessions: %w", err)
+	}
+
+	return dest.Sessions, nil
+}
+
 func CreateSession(s oapiGen.Session) error {
 	sessionJSON, err := json.Marshal(s)
 	if err != nil {

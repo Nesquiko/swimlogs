@@ -1,0 +1,19 @@
+<div class="w-11/12 shadow border  border-solid rounded-lg border-slate-100 m-3 bg-white">
+	<div class="p-2 flex justify-between">
+		<b vg-content='strings.Title(string(c.Session.Day))'></b>
+		<p><b>Start: </b><span vg-content='c.Session.StartTime'></span></p>
+		<p><b>Duration: </b><span vg-content='c.Session.DurationMin'></span>min</p>
+	</div>
+</div>
+
+<script type="application/x-go">
+import (
+	"strings"
+
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+)
+
+type SessionCard struct {
+	Session oapiGen.Session
+}
+</script>

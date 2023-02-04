@@ -22,7 +22,7 @@ func (app *swimLogsApp) GetAllSessions() (oapiGen.GetAllSessionsResponseObject, 
 		ret[i] = transformDataSession(s)
 	}
 
-	return oapiGen.GetAllSessions200JSONResponse{Sessions: &ret}, nil
+	return oapiGen.GetAllSessions200JSONResponse{Sessions: ret}, nil
 }
 
 func (app *swimLogsApp) CreateSession(
