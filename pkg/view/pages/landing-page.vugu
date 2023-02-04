@@ -28,7 +28,7 @@
 		</div>
 	</div>
 
-	<comps:AddButton></comps:AddButton>
+	<comps:ActionsButton></comps:ActionsButton>
 	<vg-comp expr='&c.Snackbar'></vg-comp>
 </div>
 

@@ -1,8 +1,8 @@
-<div class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-sky-500 flex
+<div class="absolute bottom-4 right-4 w-16 h-12 rounded-lg bg-sky-500 flex
 		   items-center justify-center shadow"
 	@click='c.Navigate("/add", nil)'>
-	<div class="text-white text-3xl">
-		<div>+</div>
+	<div class="text-white text-xl">
+		<div>Edit</div>
 	</div>
 </div>
 
@@ -12,7 +12,7 @@ import (
 	"github.com/vugu/vgrouter"
 )
 
-type AddButton struct {
+type ActionsButton struct {
 	vgrouter.NavigatorRef
 }
 </script>
