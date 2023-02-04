@@ -4,10 +4,11 @@
 		<p class="w-full p-4 text-center text-lg">Submit a bug report, please include a description of what you did.</p>
 		<div class="flex justify-center items-center">
 			<textarea
-				rows="6"
+				rows="8"
+				placeholder="I clicked the blue button..."
 				class="block p-2 w-11/12 text-sm text-gray-900 bg-gray-100 rounded-lg border border-gray-300 resize-none"
-				@change='c.ChangeUserDesc(event)'>
-			</textarea>
+				@change='c.ChangeUserDesc(event)'
+			></textarea>
 		</div>
 		<div class="absolute bottom-8 w-full h-8 flex justify-center items-center" v-if='!c.IsLoading'>
 			<button class="bg-slate-100 shadow w-16 mx-2 text-black text-lg rounded-lg" @click='c.HandleClose()'>Cancel</button>
