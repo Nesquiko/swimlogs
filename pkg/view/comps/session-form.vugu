@@ -7,14 +7,14 @@
 				:class='c.DaySelectClass'
 				@change='c.changeDay(event)'
 				name="day">
-				<option value="">---</option>
-				<option value="monday">Monday</option>
-				<option value="tuesday">Tuesday</option>
-				<option value="wednesday">Wednesday</option>
-				<option value="thursday">Thursday</option>
-				<option value="friday">Friday</option>
-				<option value="saturday">Saturday</option>
-				<option value="sunday">Sunday</option>
+				<option value="" :selected='c.isSelectedDay("")'>Choose day</option>
+				<option value="monday" :selected='c.isSelectedDay("monday")'>Monday</option>
+				<option value="tuesday" :selected='c.isSelectedDay("tuesday")'>Tuesday</option>
+				<option value="wednesday" :selected='c.isSelectedDay("wednesday")'>Wednesday</option>
+				<option value="thursday" :selected='c.isSelectedDay("thursday")'>Thursday</option>
+				<option value="friday" :selected='c.isSelectedDay("friday")'>Friday</option>
+				<option value="saturday" :selected='c.isSelectedDay("saturday")'>Saturday</option>
+				<option value="sunday" :selected='c.isSelectedDay("sunday")'>Sunday</option>
 			</select>
 			<p vg-if='c.DayError != ""' vg-content='c.DayError' class="text-red-500"></p>
 		</div>
@@ -29,6 +29,7 @@
 				type="number"
 				id="duration"
 				placeholder="60"
+				:value='c.defaultDuration()'
 				:class='c.DurationInputClass'>
 			<p vg-if='c.DurationError != ""' vg-content='c.DurationError' class="text-red-500"></p>
 		</div>
@@ -38,6 +39,7 @@
 			<input
 				@change='c.changeStartTime(event)'
 				type="time"
+				:value='c.Session.StartTime'
 				:class="c.StartTimeInputClass">
 			<p vg-if='c.StartTimeErr != ""' vg-content='c.StartTimeErr' class="text-red-500"></p>
 		</div>
@@ -67,7 +69,6 @@ type SessionForm struct {
 }
 
 func (c *SessionForm) Init(ctx vugu.InitCtx) {
-	c.Session.Day = oapiGen.Day("---")
 	c.DaySelectClass = daySelectClassNormal
 	c.DurationInputClass = durationClassNormal
 	c.StartTimeInputClass = startTimeClassNormal
@@ -159,5 +160,17 @@ func (c *SessionForm) changeStartTime(event vugu.DOMEvent) {
 	c.StartTimeInputClass = startTimeClassNormal
 	c.Session.StartTime = event.PropString("target", "value")
 	c.StartTimeErr = ""
+}
+
+func (c *SessionForm) isSelectedDay(val string) bool {
+	return string(c.Session.Day) == val
+}
+
+func (c *SessionForm) defaultDuration() string {
+	if c.Session.DurationMin == 0 {
+		return ""
+	}
+
+	return strconv.Itoa(c.Session.DurationMin)
 }
 </script>

@@ -19,9 +19,13 @@ import (
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/vugu/vgrouter"
 )
 
 type SessionsPage struct {
+	vgrouter.NavigatorRef
+	state.SessionStateStorageRef
+
 	sessions []oapiGen.Session
 
 	BannerText string
@@ -57,6 +61,11 @@ func (c *SessionsPage) Init(ctx vugu.InitCtx) {
 }
 
 func (c *SessionsPage) editSession(event vugu.DOMEvent, s oapiGen.Session) {
-	fmt.Println(s)
+	go func() {
+		c.SaveSession(s)
+		event.EventEnv().Lock()
+		c.Navigate("/edit/session", nil)
+		event.EventEnv().UnlockRender()
+	}()
 }
 </script>

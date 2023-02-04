@@ -1,0 +1,38 @@
+<div>
+	<comps:SessionForm
+		:Session='&c.S'
+		:InvalidSession='&c.InvalidSession'>
+	</comps:SessionForm>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/vugu/vgrouter"
+)
+
+type SessionEditPage struct {
+	vgrouter.NavigatorRef
+	state.SessionStateStorageRef
+
+	S              oapiGen.Session
+	InvalidSession oapiGen.InvalidSession
+}
+
+func (c *SessionEditPage) Init(ctx vugu.InitCtx) {
+	go func() {
+		s, err := c.GetSession()
+		if err != nil {
+			ctx.EventEnv().Lock()
+			c.Navigate("/sessions", nil)
+			ctx.EventEnv().UnlockRender()
+		}
+
+		ctx.EventEnv().Lock()
+		c.S = s
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+</script>

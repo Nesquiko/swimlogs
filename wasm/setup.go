@@ -10,6 +10,7 @@ import (
 func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 
 	tss := state.TrainingStateStorage{}
+	sss := state.SessionStateStorage{}
 
 	router := vgrouter.New(eventEnv)
 
@@ -20,6 +21,9 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 		}
 		if c, ok := b.(state.TrainingStateStorageSetter); ok {
 			c.TrainingStateStorageSet(&tss)
+		}
+		if c, ok := b.(state.SessionStateStorageSetter); ok {
+			c.SessionStateStorageSet(&sss)
 		}
 	})
 
@@ -52,6 +56,13 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 		"/sessions",
 		vgrouter.RouteHandlerFunc(
 			func(*vgrouter.RouteMatch) { root.Body = &pages.SessionsPage{} },
+		),
+	)
+
+	router.MustAddRouteExact(
+		"/edit/session",
+		vgrouter.RouteHandlerFunc(
+			func(*vgrouter.RouteMatch) { root.Body = &pages.SessionEditPage{} },
 		),
 	)
 
