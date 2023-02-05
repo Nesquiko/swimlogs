@@ -1,8 +1,27 @@
-<div>
-	<comps:SessionForm
-		:Session='&c.S'
-		:InvalidSession='&c.InvalidSession'>
-	</comps:SessionForm>
+<div class="text-center">
+	<comps:Banner :Text='&c.bannerText'></comps:Banner> 
+	<comps:BugDialog
+		vg-if="c.showBug"
+		@Close='c.showBug = false'
+		:ErrMsg='c.bugErrMsg'>
+	</comps:BugDialog>
+
+	<vg-template vg-if='c.bannerText == ""'>
+		<h1 class="text-center text-3xl m-4">Edit this session</h1>
+		<comps:SessionForm
+			:Session='&c.s'
+			:InvalidSession='&c.invalidSession'>
+		</comps:SessionForm>
+
+		<button
+			vg-if='!c.isLoading'
+			@click='c.sumbitUpdate(event)'
+			class="bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:outline-none
+				focus:ring-sky-300 font-medium rounded-lg text-sm w-11/12
+				sm:w-auto px-5 py-2 text-center"
+			>Edit
+		</button>
+	</vg-template>
 </div>
 
 <script type="application/x-go">
@@ -17,13 +36,66 @@ type SessionEditPage struct {
 	vgrouter.NavigatorRef
 	state.SessionStateStorageRef
 
-	S              oapiGen.Session
-	InvalidSession oapiGen.InvalidSession
+	s              oapiGen.Session
+	invalidSession oapiGen.InvalidSession
+
+	isLoading bool
+
+	bannerText string
+
+	showBug   bool
+	bugErrMsg string
+}
+
+func (c *SessionEditPage) sumbitUpdate(event vugu.DOMEvent) {
+	c.isLoading = true
+
+	invalid := validation.ValidateSession(c.s)
+	if invalid != nil {
+		c.invalidSession = *invalid
+		c.isLoading = false
+		return
+	}
+
+	go func() {
+		s, err := api.UpdateSession(c.s)
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			event.EventEnv().Lock()
+			c.bannerText = "Server isn't available"
+			event.EventEnv().UnlockRender()
+			return
+		case errors.Is(err, api.ErrEditConflict):
+			event.EventEnv().Lock()
+			c.bannerText = "Someone edited this session, reload to see the changes"
+			event.EventEnv().UnlockRender()
+			return
+		case errors.Is(err, &api.BadRequestSession{}):
+			badRequest, _ := err.(*api.BadRequestSession)
+			event.EventEnv().Lock()
+			c.invalidSession = badRequest.InvalidSession
+			event.EventEnv().UnlockRender()
+			return
+		case err != nil:
+			event.EventEnv().Lock()
+			c.bugErrMsg = err.Error()
+			c.showBug = true
+			c.bannerText = "Application doens't work correctly. Contact developer"
+			event.EventEnv().UnlockRender()
+			return
+		}
+
+		c.UpdateSessionInStorage(s)
+
+		event.EventEnv().Lock()
+		c.Navigate("/sessions", nil)
+		event.EventEnv().UnlockRender()
+	}()
 }
 
 func (c *SessionEditPage) Init(ctx vugu.InitCtx) {
 	go func() {
-		s, err := c.GetSession()
+		s, err := c.GetEditSession()
 		if err != nil {
 			ctx.EventEnv().Lock()
 			c.Navigate("/sessions", nil)
@@ -31,7 +103,7 @@ func (c *SessionEditPage) Init(ctx vugu.InitCtx) {
 		}
 
 		ctx.EventEnv().Lock()
-		c.S = s
+		c.s = s
 		ctx.EventEnv().UnlockRender()
 	}()
 }

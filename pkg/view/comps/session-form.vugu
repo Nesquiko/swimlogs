@@ -114,6 +114,7 @@ func (c *SessionForm) changeDay(event vugu.DOMEvent) {
 	if input == "" {
 		c.DaySelectClass = daySelectClassError
 		c.DayError = "Day not selected"
+		c.Session.Day = oapiGen.Day("")
 		return
 	}
 	c.DaySelectClass = daySelectClassNormal
@@ -134,12 +135,14 @@ func (c *SessionForm) changeDuration(event vugu.DOMEvent) {
 	if err != nil {
 		c.DurationInputClass = durationClassError
 		c.DurationError = "Must be a number"
+		c.Session.DurationMin = 0
 		return
 	}
 
 	if dur <= 0 {
 		c.DurationInputClass = durationClassError
 		c.DurationError = "Must be bigger than 0"
+		c.Session.DurationMin = 0
 		return
 	}
 

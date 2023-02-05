@@ -2,17 +2,12 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/google/uuid"
 )
-
-var ErrInternalServerError = errors.New("internal server error")
-var ErrServerUnreachable = errors.New("server isn't reachable")
-var ErrNotFound = errors.New("resource not found")
 
 func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 	res, err := http.Get(BaseUrl + "/trainings/details/current-week")

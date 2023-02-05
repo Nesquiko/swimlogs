@@ -36,8 +36,15 @@ type SessionsPage struct {
 
 func (c *SessionsPage) Init(ctx vugu.InitCtx) {
 	go func() {
-		sessions, err := api.GetSessions()
+		storedSess, err := c.GetSessions()
+		if nil == err {
+			ctx.EventEnv().Lock()
+			c.sessions = storedSess
+			ctx.EventEnv().UnlockRender()
+			return
+		}
 
+		sessions, err := api.GetSessions()
 		switch {
 		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
 			ctx.EventEnv().Lock()
@@ -55,6 +62,7 @@ func (c *SessionsPage) Init(ctx vugu.InitCtx) {
 
 		ctx.EventEnv().Lock()
 		orderByDays(&sessions)
+		c.SaveSessions(sessions)
 		c.sessions = sessions
 		ctx.EventEnv().UnlockRender()
 	}()
@@ -62,7 +70,7 @@ func (c *SessionsPage) Init(ctx vugu.InitCtx) {
 
 func (c *SessionsPage) editSession(event vugu.DOMEvent, s oapiGen.Session) {
 	go func() {
-		c.SaveSession(s)
+		c.SaveEditSession(s)
 		event.EventEnv().Lock()
 		c.Navigate("/edit/session", nil)
 		event.EventEnv().UnlockRender()

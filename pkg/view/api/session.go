@@ -9,6 +9,57 @@ import (
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 )
 
+func UpdateSession(s oapiGen.Session) (oapiGen.Session, error) {
+	reqJson, err := json.Marshal(s)
+	if err != nil {
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPut,
+		BaseUrl+"/sessions/"+s.Id.String(),
+		bytes.NewBuffer(reqJson),
+	)
+	if err != nil {
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", err)
+	}
+	req.Header.Add(ContentType, AppJsonType)
+
+	res, err := Client.Do(req)
+	if err != nil {
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", ErrServerUnreachable)
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusNotFound:
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", ErrNotFound)
+	case http.StatusConflict:
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", ErrEditConflict)
+	case http.StatusInternalServerError:
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", ErrInternalServerError)
+	}
+
+	dec := json.NewDecoder(res.Body)
+	if res.StatusCode == http.StatusBadRequest {
+		dest := oapiGen.InvalidSession{}
+		err = dec.Decode(&dest)
+		if err != nil {
+			return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", err)
+		}
+
+		return oapiGen.Session{}, &BadRequestSession{dest}
+	}
+
+	dest := oapiGen.Session{}
+	err = dec.Decode(&dest)
+	if err != nil {
+		return oapiGen.Session{}, fmt.Errorf("UpdateSession: %w", err)
+	}
+
+	return dest, nil
+}
+
 func GetSessions() ([]oapiGen.Session, error) {
 	res, err := http.Get(BaseUrl + "/sessions")
 	if err != nil {
