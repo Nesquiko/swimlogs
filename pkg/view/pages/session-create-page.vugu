@@ -33,7 +33,7 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 )
 
-type SessionAddPage struct {
+type SessionCreatePage struct {
 	vgrouter.NavigatorRef
 
 	Session        oapiGen.Session
@@ -48,7 +48,7 @@ type SessionAddPage struct {
 	Snackbar   comps.Snackbar
 }
 
-func (c *SessionAddPage) CreateSession(event vugu.DOMEvent) {
+func (c *SessionCreatePage) CreateSession(event vugu.DOMEvent) {
 	c.IsLoading = true
 
 	invalid := validation.ValidateSession(c.Session)
