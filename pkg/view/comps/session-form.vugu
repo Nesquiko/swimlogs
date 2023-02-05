@@ -101,13 +101,6 @@ func (c *SessionForm) showErrors() {
 	}
 }
 
-var daySelectClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
-							text-sm rounded-lg focus:ring-blue-500
-							focus:border-blue-500 block w-full p-2`
-var daySelectClassError = `bg-red-100 border border-red-300 text-red-900
-							text-sm rounded-lg focus:ring-red-600
-							focus:border-red-600 block w-full p-2`
-
 func (c *SessionForm) changeDay(event vugu.DOMEvent) {
 	c.InvalidSession.Day = nil
 	input := event.PropString("target", "value")
@@ -121,13 +114,6 @@ func (c *SessionForm) changeDay(event vugu.DOMEvent) {
 	c.DayError = ""
 	c.Session.Day = oapiGen.Day(input)
 }
-
-var durationClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
-							text-sm rounded-lg focus:ring-blue-500
-							focus:border-blue-500 block w-full p-2`
-var durationClassError = `bg-red-100 border border-red-300 text-gray-900
-							text-sm rounded-lg focus:ring-red-600
-							focus:border-red-600 block w-full p-2`
 
 func (c *SessionForm) changeDuration(event vugu.DOMEvent) {
 	c.InvalidSession.DurationMin = nil
@@ -151,13 +137,6 @@ func (c *SessionForm) changeDuration(event vugu.DOMEvent) {
 	c.Session.DurationMin = dur
 }
 
-var startTimeClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
-						text-sm rounded-lg focus:ring-blue-500
-						focus:border-blue-500 block w-full p-2`
-var startTimeClassError = `bg-red-100 border border-red-300 text-gray-900
-						text-sm rounded-lg focus:ring-red-600
-						focus:border-red-600 block w-full p-2`
-
 func (c *SessionForm) changeStartTime(event vugu.DOMEvent) {
 	c.InvalidSession.StartTime = nil
 	c.StartTimeInputClass = startTimeClassNormal
@@ -176,4 +155,6 @@ func (c *SessionForm) defaultDuration() string {
 
 	return strconv.Itoa(c.Session.DurationMin)
 }
+
+//TODO complete the manual setting of training attributes or from session. Disable the selects when the other is chosen??
 </script>
