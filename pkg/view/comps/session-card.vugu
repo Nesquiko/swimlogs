@@ -1,5 +1,5 @@
-<div class="w-11/12 shadow border  border-solid rounded-lg border-slate-100 m-3 bg-white">
-	<div class="p-2 flex justify-between">
+<div class="w-11/12 shadow border border-solid rounded-lg border-slate-100 mx-auto my-2 p-2 bg-white">
+	<div class="flex justify-between">
 		<b vg-content='strings.Title(string(c.Session.Day))'></b>
 		<p><b>Start: </b><span vg-content='c.Session.StartTime'></span></p>
 		<p><b>Duration: </b><span vg-content='c.Session.DurationMin'></span>min</p>
