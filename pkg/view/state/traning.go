@@ -8,7 +8,19 @@ import (
 )
 
 type TrainingStateStorage struct {
-	t *oapiGen.Training
+	t       *oapiGen.Training
+	details []oapiGen.TrainingDetail
+}
+
+func (tss *TrainingStateStorage) GetDetails() ([]oapiGen.TrainingDetail, error) {
+	if tss.details == nil || len(tss.details) == 0 {
+		return nil, errors.New("no details stored")
+	}
+	return tss.details, nil
+}
+
+func (tss *TrainingStateStorage) SaveDetails(details []oapiGen.TrainingDetail) {
+	tss.details = details
 }
 
 func (tss *TrainingStateStorage) IsInCache(id uuid.UUID) bool {
@@ -27,10 +39,6 @@ func (tss *TrainingStateStorage) GetTraining() (oapiGen.Training, error) {
 		return oapiGen.Training{}, errors.New("no training stored")
 	}
 	return *tss.t, nil
-}
-
-func (tss *TrainingStateStorage) InvalidateTrainingCache() {
-	tss.t = nil
 }
 
 type TrainingStateStorageSetter interface {

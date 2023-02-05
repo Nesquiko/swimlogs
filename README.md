@@ -4,9 +4,7 @@ A web application for creating and sharing swim trainings in a swimming team.
 
 ## To fix
 
-1. In client, create a layer in between a views and api, which caches results
-   for later user, for example on landing page, caches training details
-2. Change CORS! main.go
+1. Change CORS! main.go
 
 ## TODO
 

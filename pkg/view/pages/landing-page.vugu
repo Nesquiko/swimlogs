@@ -101,6 +101,19 @@ func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 
 func (c *LandingPage) Init(ctx vugu.InitCtx) {
 	go func() {
+		storedDetails, err := c.GetDetails()
+		if nil == err {
+			ctx.EventEnv().Lock()
+			c.IsLoaded = true
+			c.Days, c.WeekMap = splitIntoDays(storedDetails)
+			if len(c.Days) == 0 {
+				c.ShowBanner = true
+				c.BannerTitle = NoTrainings
+			}
+			ctx.EventEnv().UnlockRender()
+			return
+		}
+
 		details, err := api.GetTrainingsInCurrentWeek()
 
 		switch {
@@ -129,6 +142,7 @@ func (c *LandingPage) Init(ctx vugu.InitCtx) {
 			c.ShowBanner = true
 			c.BannerTitle = NoTrainings
 		}
+		c.SaveDetails(details)
 		ctx.EventEnv().UnlockRender()
 	}()
 }
