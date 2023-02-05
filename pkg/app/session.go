@@ -95,7 +95,9 @@ func (app *swimLogsApp) UpdateSession(
 	invalid := validation.ValidateSession(*request.Body)
 	if invalid != nil {
 		return oapiGen.UpdateSession400JSONResponse{
-			oapiGen.InvalidSessionErrorResponseJSONResponse(*invalid),
+			InvalidSessionErrorResponseJSONResponse: oapiGen.InvalidSessionErrorResponseJSONResponse(
+				*invalid,
+			),
 		}, nil
 	}
 

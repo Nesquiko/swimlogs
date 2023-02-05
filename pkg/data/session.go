@@ -115,7 +115,7 @@ func (psql *postgresDbConn) SessionExists(id uuid.UUID) (bool, error) {
 	return exists == 1, nil
 }
 
-var UpdateSession = "update session set modified_at = now(), version = $5 + 1, day = $2, starttime = $3, duration = $4 where id = $1 and version = $5 + 1 returning id, day, starttime, duration, version"
+var UpdateSession = "update session set modified_at = now(), version = version + 1, day = $2, starttime = $3, duration = $4 where id = $1 and version = $5 returning id, day, starttime, duration, version"
 
 func (psql *postgresDbConn) UpdateSession(
 	id uuid.UUID,

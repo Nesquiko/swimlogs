@@ -91,7 +91,7 @@ func (psql *postgresDbConn) TrainingExists(id uuid.UUID) (bool, error) {
 	return exists == 1, nil
 }
 
-var UpdateTrainig = "update training set modified_at = now(), version = $7 + 1, date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1 and version = $7 + 1"
+var UpdateTrainig = "update training set modified_at = now(), version = version + 1, date = $2, day = $3, starttime = $4, duration = $5, total_dist = $6 where id = $1 and version = $7"
 
 func (psql *postgresDbConn) UpdateTrainingById(id uuid.UUID, t Training, tx *sql.Tx) error {
 	res, err := tx.Exec(
