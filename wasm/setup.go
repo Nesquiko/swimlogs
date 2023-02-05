@@ -46,9 +46,16 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 	)
 
 	router.MustAddRouteExact(
-		"/add/session",
+		"/create/session",
 		vgrouter.RouteHandlerFunc(
 			func(*vgrouter.RouteMatch) { root.Body = &pages.SessionCreatePage{} },
+		),
+	)
+
+	router.MustAddRouteExact(
+		"/create/training",
+		vgrouter.RouteHandlerFunc(
+			func(*vgrouter.RouteMatch) { root.Body = &pages.TrainingCreatePage{} },
 		),
 	)
 

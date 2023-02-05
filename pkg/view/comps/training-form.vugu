@@ -1,0 +1,89 @@
+<div>
+	<div class="w-11/12 m-4 text-center bg-white">
+		<div class="mb-6">
+			<label for="session" class="block text-base font-medium text-gray-900">Assign session to training</label>
+		    <vgform:Select
+				 id="session"
+				 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm
+						rounded-lg focus:ring-blue-500 focus:border-blue-500
+						block w-full p-2" 
+				 :Value='vgform.StringPtr{&c.TextValue}'
+				:Options='vgform.SliceOptions(c.options).Title()'>
+			</vgform:Select>
+		</div>
+		<label class="block text-base font-medium text-gray-900 m-3">Or set manually</label>
+		<div class="mb-6">
+			<label for="session" class="block text-base font-medium text-gray-900">Day</label>
+			<select
+				id="days"
+				:class='c.daySelectClass'
+				@change='c.changeDay(event)'
+				name="day">
+				<option value="" :selected='c.isSelectedDay("")'>Choose day</option>
+				<option value="monday" :selected='c.isSelectedDay("monday")'>Monday</option>
+				<option value="tuesday" :selected='c.isSelectedDay("tuesday")'>Tuesday</option>
+				<option value="wednesday" :selected='c.isSelectedDay("wednesday")'>Wednesday</option>
+				<option value="thursday" :selected='c.isSelectedDay("thursday")'>Thursday</option>
+				<option value="friday" :selected='c.isSelectedDay("friday")'>Friday</option>
+				<option value="saturday" :selected='c.isSelectedDay("saturday")'>Saturday</option>
+				<option value="sunday" :selected='c.isSelectedDay("sunday")'>Sunday</option>
+			</select>
+		</div>
+	</div>
+</div>
+<script type="application/x-go">
+import (
+	"fmt"
+	"strings"
+
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/vugu/vugu/vgform"
+)
+
+type TrainingForm struct {
+	Training *oapiGen.Training `vugu:"data"`
+	Sessions []oapiGen.Session `vugu:"data"`
+
+	options         []string
+	optionToSession map[string]*oapiGen.Session
+
+	TextValue string
+
+	daySelectClass string
+	dayError       string
+}
+
+func (c *TrainingForm) Init(ctx vugu.InitCtx) {
+	c.daySelectClass = daySelectClassNormal
+	c.optionToSession = make(map[string]*oapiGen.Session)
+}
+func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
+	if len(c.options) != 0 {
+		return
+	}
+	for i := range c.Sessions {
+		s := &c.Sessions[i]
+		optName := fmt.Sprintf("%s %s %dmin", strings.Title(string(s.Day)), s.StartTime, s.DurationMin)
+		c.optionToSession[optName] = s
+		c.options = append(c.options, optName)
+	}
+}
+
+func (c *TrainingForm) changeDay(event vugu.DOMEvent) {
+	input := event.PropString("target", "value")
+	if input == "" {
+		c.daySelectClass = daySelectClassError
+		c.dayError = "Day not selected"
+		return
+	}
+	c.daySelectClass = daySelectClassNormal
+	c.dayError = ""
+}
+
+func (c *TrainingForm) isSelectedDay(val string) bool {
+	if c.Training.Day == nil {
+		return val == ""
+	}
+	return string(*c.Training.Day) == val
+}
+</script>

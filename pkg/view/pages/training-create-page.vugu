@@ -1,0 +1,68 @@
+<div>
+	<comps:Banner :Text='&c.bannerText'></comps:Banner> 
+
+	<comps:BugDialog
+		vg-if="c.showBug"
+		@Close='c.showBug = false'
+		:ErrMsg='c.bugErrMsg'>
+	</comps:BugDialog>
+
+	<comps:TrainingForm :Training='&c.t' :Sessions='c.sessions'></comps:TrainingForm>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
+	"github.com/vugu/vgrouter"
+)
+
+type TrainingCreatePage struct {
+	vgrouter.NavigatorRef
+	state.SessionStateStorageRef
+
+	t        oapiGen.Training
+	sessions []oapiGen.Session
+
+	bannerText string
+	showBug    bool
+	bugErrMsg  string
+}
+
+func (c *TrainingCreatePage) Init(ctx vugu.InitCtx) {
+	c.t = oapiGen.Training{}
+	go func() {
+		storedSess, err := c.GetSessions()
+		if nil == err {
+			ctx.EventEnv().Lock()
+			c.sessions = storedSess
+			ctx.EventEnv().UnlockRender()
+			return
+		}
+
+		sessions, err := api.GetSessions()
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			ctx.EventEnv().Lock()
+			c.bannerText = "Couldn't load sessions, server isn't available"
+			ctx.EventEnv().UnlockRender()
+			return
+		case err != nil:
+			ctx.EventEnv().Lock()
+			c.bugErrMsg = err.Error()
+			c.showBug = true
+			c.bannerText = "Application doens't work correctly. Contact developer"
+			ctx.EventEnv().UnlockRender()
+			return
+		}
+
+		ctx.EventEnv().Lock()
+		orderByDays(&sessions)
+		c.SaveSessions(sessions)
+		c.sessions = sessions
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+</script>
