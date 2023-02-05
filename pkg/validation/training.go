@@ -25,9 +25,11 @@ func ValidateTraining(t oapiGen.Training) *oapiGen.InvalidTraining {
 	invalidSessionData := ValidateSession(
 		oapiGen.Session{Day: *t.Day, DurationMin: *t.DurationMin, StartTime: *t.StartTime},
 	)
-	invalid.Day = invalidSessionData.Day
-	invalid.StartTime = invalidSessionData.StartTime
-	invalid.DurationMin = invalidSessionData.DurationMin
+	if invalidSessionData != nil {
+		invalid.Day = invalidSessionData.Day
+		invalid.StartTime = invalidSessionData.StartTime
+		invalid.DurationMin = invalidSessionData.DurationMin
+	}
 	invalid.Blocks = validateBlocks(t.Blocks)
 
 	if invalid.Date == nil &&
