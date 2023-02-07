@@ -70,7 +70,7 @@ type SessionForm struct {
 
 func (c *SessionForm) Init(ctx vugu.InitCtx) {
 	c.DaySelectClass = daySelectClassNormal
-	c.DurationInputClass = durationClassNormal
+	c.DurationInputClass = inputClassNormal
 	c.StartTimeInputClass = startTimeClassNormal
 }
 
@@ -91,7 +91,7 @@ func (c *SessionForm) showErrors() {
 	}
 
 	if s.DurationMin != nil {
-		c.DurationInputClass = durationClassError
+		c.DurationInputClass = inputClassError
 		c.DurationError = *s.DurationMin
 	}
 
@@ -119,20 +119,20 @@ func (c *SessionForm) changeDuration(event vugu.DOMEvent) {
 	c.InvalidSession.DurationMin = nil
 	dur, err := strconv.Atoi(event.PropString("target", "value"))
 	if err != nil {
-		c.DurationInputClass = durationClassError
+		c.DurationInputClass = inputClassError
 		c.DurationError = "Must be a number"
 		c.Session.DurationMin = 0
 		return
 	}
 
 	if dur <= 0 {
-		c.DurationInputClass = durationClassError
+		c.DurationInputClass = inputClassError
 		c.DurationError = "Must be bigger than 0"
 		c.Session.DurationMin = 0
 		return
 	}
 
-	c.DurationInputClass = durationClassNormal
+	c.DurationInputClass = inputClassNormal
 	c.DurationError = ""
 	c.Session.DurationMin = dur
 }

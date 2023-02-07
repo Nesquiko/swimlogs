@@ -1,0 +1,49 @@
+<div class="w-full shadow border border-solid rounded-lg border-slate-500 mx-auto">
+	<div class="flex justify-between mx-4">
+		<input
+			@change=''
+			id="name"
+			placeholder="Warm up"
+			value=''
+			:class='smallInputClassNormal'>
+		<h3>Total <span vg-content='c.Block.TotalDist'></span>m</h3>
+	</div>
+
+	<hr class="h-px border-0 bg-slate-500">
+
+	<vg-template vg-for='i, _ := range c.Block.Sets'>
+		<comps:SetForm :Set='&c.Block.Sets[i]'></comps:SetForm>
+	</vg-template>
+
+	<div class="m-2 h-5 border border-slate-500 rounded-full flex items-center justify-center shadow"
+		@click='c.addSet()'>
+		<div class="text-black text-base">
+			<div>Add set</div>
+		</div>
+	</div>
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+)
+
+type BlockForm struct {
+	Block *oapiGen.Block `vugu:"data"`
+}
+
+func (c *BlockForm) Init(ctx vugu.InitCtx) {
+	zero := 0
+	c.Block.Sets = make([]oapiGen.Set, 1)
+	c.Block.TotalDist = &zero
+	sort.Slice(c.Block.Sets, func(i, j int) bool {
+		return c.Block.Sets[i].Num < c.Block.Sets[j].Num
+	})
+}
+
+func (c *BlockForm) addSet() {
+	c.Block.Sets = append(c.Block.Sets, oapiGen.Set{})
+}
+
+// TODO inputs for set
+</script>

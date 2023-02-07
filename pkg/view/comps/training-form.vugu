@@ -1,7 +1,18 @@
-<div>
-	<div class="w-11/12 m-4 text-center bg-white">
+<div class="w-11/12 mx-auto text-center bg-white">
+		<vg-template vg-for='i, _ := range c.Training.Blocks'>
+			<comps:BlockForm :Block='&c.Training.Blocks[i]'></comps:BlockForm>
+		</vg-template>
 
-		<div class="inline-flex text-center">
+		<div class="m-4 h-8 rounded-full bg-sky-500 flex items-center justify-center shadow"
+			@click='c.addBlock()'>
+			<div class="text-white text-xl">
+				<div>Add block</div>
+			</div>
+		</div>
+
+		<hr class="h-px border-0 bg-slate-500">
+
+		<div class="pt-4 inline-flex text-center">
 			<button
 				class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l"
 				@click='c.setManually = false'>
@@ -15,13 +26,13 @@
 		</div>
 
 		<vg-template vg-if='!c.setManually' >
-			<label for="session" class="block text-base font-medium text-gray-900">Assign session to training</label>
+			<label for="session" class="block mt-4 text-base font-medium text-gray-900">Assign session to training</label>
 		    <vgform:Select
 				 id="session"
 				 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm
 						rounded-lg focus:ring-blue-500 focus:border-blue-500
 						block w-full p-2" 
-				 :Value='vgform.StringPtr{&c.TextValue}'
+				 :Value='vgform.StringPtr{&c.sessionOpt}'
 				:Options='vgform.SliceOptions(c.options).Title()'>
 			</vgform:Select>
 		</vg-template>
@@ -32,7 +43,6 @@
 				:InvalidSession='&c.invalidSession'>
 			</comps:SessionForm>
 		</vg-template>
-	</div>
 </div>
 <script type="application/x-go">
 import (
@@ -50,17 +60,18 @@ type TrainingForm struct {
 	session        oapiGen.Session
 	invalidSession oapiGen.InvalidSession
 
+	sessionOpt      string
 	options         []string
 	optionToSession map[string]*oapiGen.Session
-
-	TextValue string
 
 	setManually bool
 }
 
 func (c *TrainingForm) Init(ctx vugu.InitCtx) {
 	c.optionToSession = make(map[string]*oapiGen.Session)
+	c.Training.Blocks = make([]oapiGen.Block, 1)
 }
+
 func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
 	if len(c.options) != 0 {
 		return
@@ -71,5 +82,12 @@ func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
 		c.optionToSession[optName] = s
 		c.options = append(c.options, optName)
 	}
+}
+
+func (c *TrainingForm) addBlock() {
+	c.Training.Blocks = append(c.Training.Blocks, oapiGen.Block{})
+	sort.Slice(c.Training.Blocks, func(i, j int) bool {
+		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
+	})
 }
 </script>

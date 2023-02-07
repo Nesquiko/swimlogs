@@ -28,7 +28,13 @@
 		</div>
 	</div>
 
-	<comps:ActionsButton></comps:ActionsButton>
+	<div class="absolute bottom-4 right-4 w-16 h-12 rounded-lg bg-sky-500 flex
+			   items-center justify-center shadow"
+		@click='c.Navigate("/add", nil)'>
+		<div class="text-white text-3xl">
+			<div>+</div>
+		</div>
+	</div>
 	<vg-comp expr='&c.Snackbar'></vg-comp>
 </div>
 

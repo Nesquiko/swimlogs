@@ -1,0 +1,12 @@
+<div>
+	<p vg-content='c.Set'></p>	
+</div>
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+)
+
+type SetForm struct {
+	Set *oapiGen.Set `vugu:"data"`
+}
+</script>
