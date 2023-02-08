@@ -1,5 +1,5 @@
 <div class="w-full shadow border border-solid rounded-lg border-slate-500 mx-auto">
-	<div class="flex justify-between mx-4">
+	<div class="flex justify-between mx-4 my-2 items-center">
 		<input
 			@change=''
 			id="name"
@@ -9,12 +9,13 @@
 		<h3>Total <span vg-content='c.Block.TotalDist'></span>m</h3>
 	</div>
 
-	<hr class="h-px border-0 bg-slate-500">
 
 	<vg-template vg-for='i, _ := range c.Block.Sets'>
+		<hr class="h-px border-0 bg-slate-500">
 		<comps:SetForm :Set='&c.Block.Sets[i]'></comps:SetForm>
 	</vg-template>
 
+	<hr class="h-px border-0 bg-slate-500">
 	<div class="m-2 h-5 border border-slate-500 rounded-full flex items-center justify-center shadow"
 		@click='c.addSet()'>
 		<div class="text-black text-base">
@@ -41,9 +42,19 @@ func (c *BlockForm) Init(ctx vugu.InitCtx) {
 	})
 }
 
+func (c *BlockForm) Compute(ctx vugu.ComputeCtx) {
+	totDist := 0
+	for _, s := range c.Block.Sets {
+		if s.TotalDist == nil {
+			continue
+		}
+		totDist += *s.TotalDist
+	}
+	c.Block.TotalDist = &totDist
+}
+
 func (c *BlockForm) addSet() {
 	c.Block.Sets = append(c.Block.Sets, oapiGen.Set{})
 }
 
-// TODO inputs for set
 </script>

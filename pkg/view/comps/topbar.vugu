@@ -1,7 +1,5 @@
-<div>
-	<div class="flex justify-between mx-4">
-		<strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
-	</div>
+<div class="flex justify-between mx-4 mb-4">
+	<strong @click='c.Navigate("/", nil)'>🏊 SwimLogs 🌊</strong>
 </div>
 
 <script type="application/x-go">

@@ -69,7 +69,7 @@ type SessionForm struct {
 }
 
 func (c *SessionForm) Init(ctx vugu.InitCtx) {
-	c.DaySelectClass = daySelectClassNormal
+	c.DaySelectClass = selectClassNormal
 	c.DurationInputClass = inputClassNormal
 	c.StartTimeInputClass = startTimeClassNormal
 }
@@ -86,7 +86,7 @@ func (c *SessionForm) Compute(ctx vugu.ComputeCtx) {
 func (c *SessionForm) showErrors() {
 	s := *c.InvalidSession
 	if s.Day != nil {
-		c.DaySelectClass = daySelectClassError
+		c.DaySelectClass = selectClassError
 		c.DayError = *s.Day
 	}
 
@@ -105,12 +105,12 @@ func (c *SessionForm) changeDay(event vugu.DOMEvent) {
 	c.InvalidSession.Day = nil
 	input := event.PropString("target", "value")
 	if input == "" {
-		c.DaySelectClass = daySelectClassError
+		c.DaySelectClass = selectClassError
 		c.DayError = "Day not selected"
 		c.Session.Day = oapiGen.Day("")
 		return
 	}
-	c.DaySelectClass = daySelectClassNormal
+	c.DaySelectClass = selectClassNormal
 	c.DayError = ""
 	c.Session.Day = oapiGen.Day(input)
 }
@@ -155,6 +155,4 @@ func (c *SessionForm) defaultDuration() string {
 
 	return strconv.Itoa(c.Session.DurationMin)
 }
-
-//TODO complete the manual setting of training attributes or from session. Disable the selects when the other is chosen??
 </script>

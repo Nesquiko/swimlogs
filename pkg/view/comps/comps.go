@@ -16,11 +16,11 @@ var inputClassError = `bg-red-100 border border-red-300 text-gray-900
 
 var smallInputClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
 							text-sm rounded-lg focus:ring-blue-500
-							focus:border-blue-500 block `
+							focus:border-blue-500 block p-2`
 
-var daySelectClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
+var selectClassNormal = `bg-gray-50 border border-gray-300 text-gray-900
 							text-sm rounded-lg focus:ring-blue-500
 							focus:border-blue-500 block w-full p-2`
-var daySelectClassError = `bg-red-100 border border-red-300 text-red-900
+var selectClassError = `bg-red-100 border border-red-300 text-red-900
 							text-sm rounded-lg focus:ring-red-600
 							focus:border-red-600 block w-full p-2`

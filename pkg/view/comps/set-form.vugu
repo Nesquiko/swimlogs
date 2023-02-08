@@ -1,12 +1,167 @@
-<div>
-	<p vg-content='c.Set'></p>	
+<div class="w-11/12 mx-auto my-2">
+	<div class="flex flex-row w-full items-center">
+		<div class="w-full">
+			<input
+				type="number"
+				:class='c.repeatInputClass'
+				name="repetitions"
+				placeholder="2"
+				@change='c.changeRepeat(event)'
+				:value='c.defaultRepeat()'>
+			</input>
+		</div>
+		<b class="mx-2">x</b>
+		<div class="w-full">
+			<div class="w-full ml-2 flex flex-row items-end">
+				<input
+					type="number"
+					:class='c.distInputClass'
+					placeholder="400"
+					name="distance"
+					@change='c.changeDistance(event)'
+					:value='c.defaultDist()'>
+				</input>
+				<span class='mx-2'>m</span>
+			</div>
+		</div>
+	</div>
+	<textarea
+		rows="1"
+		placeholder="freestyle 50 fast 50 slow"
+		class="mx-auto p-2 my-2 block w-full text-sm text-black bg-gray-50 rounded-lg border border-gray-300 resize-none"
+		@change='c.changeWhat(event)'
+		:value='c.Set.What'
+	></textarea>
+	<div class="flex flex-row w-full items-center">
+		<select
+			:class='c.ruleSelectClass'
+			@change='c.changeRule(event)'
+			name="rule">
+			<option value="" :selected='c.isSelectedRule("")'>Choose start</option>
+			<option value="none" :selected='c.isSelectedRule("none")'>None</option>
+			<option value="interval" :selected='c.isSelectedRule("interval")'>Interval</option>
+			<option value="pause" :selected='c.isSelectedRule("pause")'>Pause</option>
+		</select>
+		<vg-template vg-if='c.Set.StartingRule.Rule != oapiGen.None && c.Set.StartingRule.Rule != ""'>
+			<div class="w-full ml-2 flex flex-row items-end">
+				<input
+					type="number"
+					:class='c.secondsInputClass'
+					name="distance"
+					placeholder="45"
+					@change='c.changeSeconds(event)'
+					:value='c.Set.StartingRule.Seconds'>
+				</input>
+				<span class='mx-2'>seconds</span>
+			</div>
+		</vg-template>
+	</div>
 </div>
+
 <script type="application/x-go">
 import (
+	"strconv"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 )
 
 type SetForm struct {
-	Set *oapiGen.Set `vugu:"data"`
+	Set               *oapiGen.Set `vugu:"data"`
+	repeatInputClass  string
+	distInputClass    string
+	ruleSelectClass   string
+	secondsInputClass string
+}
+
+func (c *SetForm) Init(ctx vugu.InitCtx) {
+	c.repeatInputClass = inputClassNormal
+	c.distInputClass = inputClassNormal
+	c.ruleSelectClass = selectClassNormal
+	c.secondsInputClass = inputClassNormal
+}
+
+func (c *SetForm) defaultRepeat() string {
+	if c.Set.Repeat == 0 {
+		return ""
+	}
+	return strconv.Itoa(c.Set.Repeat)
+}
+
+func (c *SetForm) changeRepeat(event vugu.DOMEvent) {
+	repeat, err := strconv.Atoi(event.PropString("target", "value"))
+	if err != nil {
+		c.repeatInputClass = inputClassError
+		c.Set.Repeat = 0
+		return
+	}
+	if repeat <= 0 {
+		c.repeatInputClass = inputClassError
+		c.Set.Repeat = 0
+		return
+	}
+	c.repeatInputClass = inputClassNormal
+	c.Set.Repeat = repeat
+	totDist := c.Set.Repeat * c.Set.Distance
+	c.Set.TotalDist = &totDist
+}
+
+func (c *SetForm) defaultDist() string {
+	if c.Set.Distance == 0 {
+		return ""
+	}
+	return strconv.Itoa(c.Set.Distance)
+}
+
+func (c *SetForm) changeDistance(event vugu.DOMEvent) {
+	dist, err := strconv.Atoi(event.PropString("target", "value"))
+	if err != nil {
+		c.distInputClass = inputClassError
+		c.Set.Distance = 0
+		return
+	}
+	if dist <= 0 {
+		c.distInputClass = inputClassError
+		c.Set.Distance = 0
+		return
+	}
+	c.distInputClass = inputClassNormal
+	c.Set.Distance = dist
+	totDist := c.Set.Repeat * c.Set.Distance
+	c.Set.TotalDist = &totDist
+}
+
+func (c *SetForm) changeWhat(event vugu.DOMEvent) {
+	c.Set.What = event.PropString("target", "value")
+}
+
+func (c *SetForm) changeRule(event vugu.DOMEvent) {
+	rule := event.PropString("target", "value")
+	if rule == "" {
+		c.ruleSelectClass = selectClassError
+		c.Set.StartingRule.Rule = oapiGen.StartingRuleRule("")
+		return
+	}
+	c.ruleSelectClass = selectClassNormal
+	c.Set.StartingRule.Rule = oapiGen.StartingRuleRule(rule)
+}
+
+func (c *SetForm) changeSeconds(event vugu.DOMEvent) {
+	sec, err := strconv.Atoi(event.PropString("target", "value"))
+	if err != nil {
+		c.secondsInputClass = inputClassError
+		c.Set.StartingRule.Seconds = new(int)
+		return
+	}
+	if sec <= 0 {
+		c.secondsInputClass = inputClassError
+		c.Set.StartingRule.Seconds = new(int)
+		return
+	}
+	c.secondsInputClass = inputClassNormal
+	c.Set.StartingRule.Seconds = &sec
+}
+
+func (c *SetForm) isSelectedRule(val string) bool {
+	return string(c.Set.StartingRule.Rule) == val
 }
 </script>

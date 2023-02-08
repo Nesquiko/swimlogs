@@ -1,4 +1,4 @@
-<div class="w-11/12 shadow border border-solid rounded-lg border-slate-500 bg-white m-4">
+<div class="w-11/12 mx-auto mb-4 shadow border border-solid rounded-lg border-slate-500 bg-white">
 	<div class="flex justify-between mx-4">
 		<h3 vg-content='c.Block.Name'></h3>
 		<h3>Total <span vg-content='c.Block.TotalDist'></span>m</h3>
