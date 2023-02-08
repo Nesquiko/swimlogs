@@ -32,7 +32,7 @@
 			   items-center justify-center shadow"
 		@click='c.Navigate("/add", nil)'>
 		<div class="text-white text-3xl">
-			<div>+</div>
+			<i class="fa-solid fa-pen-to-square"></i>
 		</div>
 	</div>
 	<vg-comp expr='&c.Snackbar'></vg-comp>

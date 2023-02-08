@@ -28,7 +28,10 @@ func main() {
 	).Replace(
 		"<!-- styles -->",
 		`<meta name="viewport" content="width=device-width, initial-scale=1" />`,
-	))
+	).Replace(
+		"",
+		`<script src="https://kit.fontawesome.com/43a06af138.js" crossorigin="anonymous"></script>`),
+	)
 	mux.Exact("/main.wasm", devutil.NewMainWasmHandler(wc))
 	mux.Exact("/wasm_exec.js", devutil.NewWasmExecJSHandler(wc))
 	mux.Default(devutil.NewFileServer().SetDir("./wasm"))
