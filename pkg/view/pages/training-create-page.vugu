@@ -9,25 +9,21 @@
 
 	<comps:TrainingForm :Training='&c.t'></comps:TrainingForm>
 	<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
-	<comps:TrainingSessionForm :Sessions='c.sessions' :Training='&c.t'></comps:TrainingSessionForm>
+	<vg-comp expr='&c.TrainingSessionForm'></vg-comp>
 
 	<button
 		vg-if='!c.isLoading'
-		@click=''
+		@click='c.createTraining(event)'
 		class="m-4 bg-sky-500 focus:ring-4 focus:outline-none focus:ring-sky-300
 				rounded-lg w-11/12 px-4 py-2 text-center shadow text-white
 				text-xl font-semibold"
 		>Create Training
 	</button>
-	<p vg-content='c.t'></p>
 </div>
 
 <script type="application/x-go">
 import (
-	"errors"
-
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
@@ -37,8 +33,8 @@ type TrainingCreatePage struct {
 	vgrouter.NavigatorRef
 	state.SessionStateStorageRef
 
-	t        oapiGen.Training
-	sessions []oapiGen.Session
+	t                   oapiGen.Training
+	TrainingSessionForm comps.TrainingSessionForm
 
 	isLoading  bool
 	bannerText string
@@ -48,36 +44,12 @@ type TrainingCreatePage struct {
 
 func (c *TrainingCreatePage) Init(ctx vugu.InitCtx) {
 	c.t = oapiGen.Training{}
-	go func() {
-		storedSess, err := c.GetSessions()
-		if nil == err {
-			ctx.EventEnv().Lock()
-			c.sessions = storedSess
-			ctx.EventEnv().UnlockRender()
-			return
-		}
+	c.TrainingSessionForm = comps.TrainingSessionForm{Training: &c.t}
+}
 
-		sessions, err := api.GetSessions()
-		switch {
-		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
-			ctx.EventEnv().Lock()
-			c.bannerText = "Couldn't load sessions, server isn't available"
-			ctx.EventEnv().UnlockRender()
-			return
-		case err != nil:
-			ctx.EventEnv().Lock()
-			c.bugErrMsg = err.Error()
-			c.showBug = true
-			c.bannerText = "Application doens't work correctly. Contact developer"
-			ctx.EventEnv().UnlockRender()
-			return
-		}
-
-		ctx.EventEnv().Lock()
-		orderByDays(&sessions)
-		c.SaveSessions(sessions)
-		c.sessions = sessions
-		ctx.EventEnv().UnlockRender()
-	}()
+func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
+	if !c.TrainingSessionForm.IsTrainingSessionReady() {
+		return
+	}
 }
 </script>

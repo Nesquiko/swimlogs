@@ -22,6 +22,7 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
+	"github.com/Nesquiko/swimlogs/pkg/view/util"
 	"github.com/vugu/vgrouter"
 )
 
@@ -64,7 +65,7 @@ func (c *SessionsPage) Init(ctx vugu.InitCtx) {
 		}
 
 		ctx.EventEnv().Lock()
-		orderByDays(&sessions)
+		util.OrderByDays(&sessions)
 		c.SaveSessions(sessions)
 		c.sessions = sessions
 		ctx.EventEnv().UnlockRender()

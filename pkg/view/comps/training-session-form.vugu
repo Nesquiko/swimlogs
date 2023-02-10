@@ -1,7 +1,8 @@
 <div class="mt-2 mx-auto w-11/12">
 	<div class="inline-flex text-center">
 		<button
-			class="mx-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg"
+			:class='c.assignSessionButtonClass'
+			:disabled='c.assignSessionButtonClass == buttonClassDisabled'
 			@click='c.setManually = new(bool)'>
 			Assign session
 		</button>
@@ -11,6 +12,11 @@
 			Set manually
 		</button>
 	</div>
+
+	<comps:SessionForm
+		:Session='&c.manualSess'
+		:InvalidSession='&c.invalidSession'>
+	</comps:SessionForm>
 </div>
 
 <script type="application/x-go">
@@ -18,16 +24,66 @@ import (
 	"fmt"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
+	"github.com/Nesquiko/swimlogs/pkg/view/util"
 )
 
 type TrainingSessionForm struct {
-	Sessions []oapiGen.Session `vugu:"data"`
+	state.SessionStateStorage
 	Training *oapiGen.Training
+
+	sessions       []oapiGen.Session
+	manualSess     oapiGen.Session
+	invalidSession oapiGen.InvalidSession
+
+	assignSessionButtonClass string
 
 	setManually *bool // need 3 states, to only show buttons on load, not section/session form
 }
 
 func (c *TrainingSessionForm) Init(ctx vugu.InitCtx) {
+	c.assignSessionButtonClass = buttonClassNormal
+	go func() {
+		storedSess, err := c.GetSessions()
+		if nil == err {
+			ctx.EventEnv().Lock()
+			c.sessions = storedSess
+			ctx.EventEnv().UnlockRender()
+			return
+		}
+
+		sessions, err := api.GetSessions()
+		if err == nil { // TODO change THIS to !=
+			c.assignSessionButtonClass = buttonClassDisabled
+			tr := true
+			c.setManually = &tr
+		}
+
+		ctx.EventEnv().Lock()
+		util.OrderByDays(&sessions)
+		c.SaveSessions(sessions)
+		c.sessions = sessions
+		ctx.EventEnv().UnlockRender()
+	}()
 }
 
+func (c *TrainingSessionForm) Compute(ctx vugu.ComputeCtx) {
+	if c.setManually != nil && *c.setManually {
+		c.Training.Day = &c.manualSess.Day
+		c.Training.DurationMin = &c.manualSess.DurationMin
+		c.Training.StartTime = &c.manualSess.StartTime
+	}
+}
+
+func (c *TrainingSessionForm) IsTrainingSessionReady() bool {
+	invalidSess := validation.ValidateSession(c.manualSess)
+	if invalidSess != nil {
+		c.invalidSession = *invalidSess
+		return false
+	}
+	return true
+}
 </script>
+

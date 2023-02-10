@@ -34,11 +34,13 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
 )
 
 type SessionCreatePage struct {
 	vgrouter.NavigatorRef
+	state.SessionStateStorageRef
 
 	Session        oapiGen.Session
 	InvalidSession oapiGen.InvalidSession
@@ -86,6 +88,7 @@ func (c *SessionCreatePage) CreateSession(event vugu.DOMEvent) {
 		}
 
 		event.EventEnv().Lock()
+		c.InsertNewSession(c.Session)
 		c.Navigate("/", nil)
 		event.EventEnv().UnlockRender()
 	}()

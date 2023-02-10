@@ -4,11 +4,17 @@ import (
 	"errors"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/util"
 )
 
 type SessionStateStorage struct {
 	editSession *oapiGen.Session
 	sessions    []oapiGen.Session
+}
+
+func (sss *SessionStateStorage) InsertNewSession(s oapiGen.Session) {
+	sss.sessions = append(sss.sessions, s)
+	util.OrderByDays(&sss.sessions)
 }
 
 func (sss *SessionStateStorage) SaveEditSession(s oapiGen.Session) {

@@ -24,3 +24,5 @@ var selectClassError = `bg-red-100 border border-red-300 text-red-900
 var buttonClassNormal = "mx-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg"
 
 var buttonClassError = "mx-2 bg-red-300 hover:bg-red-400 text-red-800 font-bold py-2 px-4 rounded-lg"
+
+var buttonClassDisabled = "mx-2 bg-red-300 hover:bg-red-400 text-red-800 font-bold py-2 px-4 rounded-lg cursor-not-allowed opacity-50"

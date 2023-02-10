@@ -39,7 +39,7 @@ type TrainingForm struct {
 }
 
 func (c *TrainingForm) Init(ctx vugu.InitCtx) {
-	c.Training.Blocks = make([]oapiGen.Block, 1)
+	c.Training.Blocks = make([]oapiGen.Block, 0)
 	sort.Slice(c.Training.Blocks, func(i, j int) bool {
 		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
 	})
