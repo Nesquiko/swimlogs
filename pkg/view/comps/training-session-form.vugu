@@ -1,181 +1,33 @@
 <div class="mt-2 mx-auto w-11/12">
-		<div class="inline-flex text-center">
-			<button
-				:class='c.optionButton'
-				@click='c.setManually = new(bool)'>
-				Assign session
-			</button>
-			<button
-				:class='c.optionButton'
-				@click='tr := true ;c.setManually = &tr'>
-				Set manually
-			</button>
-		</div>
-
-		<vg-template vg-if='c.setManually != nil && !*c.setManually' >
-			<label for="session" class="block mt-4 text-base font-medium text-gray-900">Assign session to training</label>
-		    <vgform:Select
-				id="session"
-				:class='c.sessionSelectClass'
-				:Value='vgform.StringPtr{&c.sessionOpt}'
-				:Options='vgform.SliceOptions(c.options).Title()'>
-			</vgform:Select>
-		</vg-template>
-
-		<div vg-if='c.setManually != nil && *c.setManually' >
-			<div class="mb-6">
-				<label for="days" class="block text-base font-medium text-gray-900">Select day</label>
-				<select
-					id="days"
-					:class='c.daySelectClass'
-					@change='c.changeDay(event)'
-					name="day">
-					<option value="" :selected='c.isSelectedDay("")'>Choose day</option>
-					<option value="monday" :selected='c.isSelectedDay("monday")'>Monday</option>
-					<option value="tuesday" :selected='c.isSelectedDay("tuesday")'>Tuesday</option>
-					<option value="wednesday" :selected='c.isSelectedDay("wednesday")'>Wednesday</option>
-					<option value="thursday" :selected='c.isSelectedDay("thursday")'>Thursday</option>
-					<option value="friday" :selected='c.isSelectedDay("friday")'>Friday</option>
-					<option value="saturday" :selected='c.isSelectedDay("saturday")'>Saturday</option>
-					<option value="sunday" :selected='c.isSelectedDay("sunday")'>Sunday</option>
-				</select>
-			</div>
-
-			<div class="mb-6">
-				<label
-					for="duration"
-					class="block text-base font-medium text-gray-900"
-					>Duration in minutes
-				</label>
-				<input @change='c.changeDuration(event)'
-					type="number"
-					id="duration"
-					placeholder="60"
-					:value='c.defaultDuration()'
-					:class='c.durationInputClass'>
-			</div>
-
-			<div class="mb-6">
-				<label class="block text-base font-medium text-gray-900">Start time</label>
-				<input
-					@change='c.changeStartTime(event)'
-					type="time"
-					.value='c.Training.StartTime'
-					:class="c.startTimeInputClass">
-			</div>
-		</div>
+	<div class="inline-flex text-center">
+		<button
+			class="mx-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg"
+			@click='c.setManually = new(bool)'>
+			Assign session
+		</button>
+		<button
+			class="mx-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg"
+			@click='tr := true ;c.setManually = &tr'>
+			Set manually
+		</button>
+	</div>
 </div>
 
 <script type="application/x-go">
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-	"github.com/vugu/vugu/vgform"
 )
 
 type TrainingSessionForm struct {
 	Sessions []oapiGen.Session `vugu:"data"`
 	Training *oapiGen.Training
 
-	manualSession  oapiGen.Session
-	invalidSession oapiGen.InvalidSession
-
-	sessionSelectClass  string
-	optionButton        string
-	daySelectClass      string
-	durationInputClass  string
-	startTimeInputClass string
-
-	sessionOpt      string
-	options         []string
-	optionToSession map[string]*oapiGen.Session
-
 	setManually *bool // need 3 states, to only show buttons on load, not section/session form
 }
 
 func (c *TrainingSessionForm) Init(ctx vugu.InitCtx) {
-	c.sessionSelectClass = selectClassNormal
-	c.optionButton = buttonClassNormal
-	c.daySelectClass = selectClassNormal
-	c.durationInputClass = inputClassNormal
-	c.startTimeInputClass = startTimeClassNormal
-	c.optionToSession = make(map[string]*oapiGen.Session)
 }
 
-// TODO this is wrong...
-//
-//	this component reuses code from session form, and the validation is really cumbersome
-//	try this differently
-func (c *TrainingSessionForm) Compute(ctx vugu.ComputeCtx) {
-	if len(c.options) <= 1 {
-		c.options = nil
-		c.options = append(c.options, "Choose Session")
-		for i := range c.Sessions {
-			s := &c.Sessions[i]
-			optName := fmt.Sprintf("%s %s %dmin", strings.Title(string(s.Day)), s.StartTime, s.DurationMin)
-			c.optionToSession[optName] = s
-			c.options = append(c.options, optName)
-		}
-	}
-
-	if c.setManually != nil && *c.setManually {
-		fmt.Println("here")
-		c.Training.SessionId = nil
-	} else if c.setManually != nil && !*c.setManually && (c.sessionOpt != "" && c.sessionOpt != "Choose Session") {
-		c.Training.SessionId = &c.optionToSession[c.sessionOpt].Id
-	}
-
-	if c.sessionOpt == "Choose Session" {
-		c.sessionSelectClass = selectClassError
-	} else {
-		c.sessionSelectClass = selectClassNormal
-	}
-}
-
-func (c *TrainingSessionForm) isSelectedDay(val string) bool {
-	if c.Training.Day == nil {
-		return val == ""
-	}
-	return string(*c.Training.Day) == val
-}
-
-func (c *TrainingSessionForm) defaultDuration() string {
-	if c.Training.DurationMin == nil {
-		return ""
-	}
-
-	return strconv.Itoa(*c.Training.DurationMin)
-}
-
-func (c *TrainingSessionForm) changeDay(event vugu.DOMEvent) {
-	input := event.PropString("target", "value")
-	if input == "" {
-		c.daySelectClass = selectClassError
-		c.Training.Day = nil
-		return
-	}
-	c.daySelectClass = selectClassNormal
-	d := oapiGen.Day(input)
-	c.Training.Day = &d
-}
-
-func (c *TrainingSessionForm) changeDuration(event vugu.DOMEvent) {
-	dur, err := strconv.Atoi(event.PropString("target", "value"))
-	if err != nil || dur <= 0 {
-		c.durationInputClass = inputClassError
-		c.Training.DurationMin = nil
-		return
-	}
-
-	c.durationInputClass = inputClassNormal
-	c.Training.DurationMin = &dur
-}
-
-func (c *TrainingSessionForm) changeStartTime(event vugu.DOMEvent) {
-	c.startTimeInputClass = startTimeClassNormal
-	st := event.PropString("target", "value")
-	c.Training.StartTime = &st
-}
 </script>

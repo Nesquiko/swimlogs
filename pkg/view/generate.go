@@ -1,3 +1,3 @@
 package view
 
-//go:generate vugugen -r -s -skip-go-mod -skip-main pages comps
+//go:generate vugugen -r -skip-go-mod -skip-main pages comps

@@ -28,9 +28,13 @@
 
 <script type="application/x-go">
 import (
+	"errors"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/validation"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/vugu/vgrouter"
 )
 
 type SessionCreatePage struct {

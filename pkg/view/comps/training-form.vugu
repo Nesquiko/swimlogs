@@ -29,10 +29,9 @@
 <script type="application/x-go">
 import (
 	"fmt"
-	"strings"
+	"sort"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
-	"github.com/vugu/vugu/vgform"
 )
 
 type TrainingForm struct {
