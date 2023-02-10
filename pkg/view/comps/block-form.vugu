@@ -1,17 +1,19 @@
 <div class="w-full shadow border border-solid rounded-lg border-slate-500 mx-auto">
-	<div class="flex justify-between mx-4 my-2 items-center">
+	<div class="flex justify-evenly my-2 items-center">
+		<b><h3 class="">Block <span vg-content='c.Block.Num+1'></span>.</h3></b>
 		<input
-			@change=''
-			id="name"
+			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+			@change='c.changeName(event)'
 			placeholder="Warm up"
-			value=''
-			:class='smallInputClassNormal'>
-		<h3>Total <span vg-content='c.Block.TotalDist'></span>m</h3>
+			maxlength="255"
+			.value='c.Block.Name'>
+		<h3 class="">Total <span vg-content='c.Block.TotalDist'></span>m</h3>
 	</div>
 
 	<div vg-for='i, _ := range c.Block.Sets'>
-		<hr class="h-px border-0 bg-slate-500">
-		<div class="m-2 inline-flex">
+		<hr class="h-px border-0 bg-slate-500 my-2">
+		<comps:SetForm :Set='&c.Block.Sets[i]'></comps:SetForm>
+		<div class="mb-2 inline-flex">
 			<button
 				class="bg-gray-300 text-gray-800 py-2 px-4 rounded-l"
 				@click='c.moveSetUp(i, event)'
@@ -28,13 +30,12 @@
 				><i class="fa-solid fa-trash-can"></i>
 			</button>
 		</div>
-		<comps:SetForm :Set='&c.Block.Sets[i]'></comps:SetForm>
 	</div>
 
 	<hr class="h-px border-0 bg-slate-500">
-	<div class="m-2 h-5 border border-slate-500 rounded-full flex items-center justify-center shadow"
+	<div class="m-2 h-5 bg-gray-300 rounded-full flex items-center justify-center shadow"
 		@click='c.addSet()'>
-		<div class="text-black text-base">
+		<div class="text-gray-800 text-base font-semibold">
 			<div>Add set</div>
 		</div>
 	</div>
@@ -66,6 +67,10 @@ func (c *BlockForm) Compute(ctx vugu.ComputeCtx) {
 		totDist += *s.TotalDist
 	}
 	c.Block.TotalDist = &totDist
+}
+
+func (c *BlockForm) changeName(event vugu.DOMEvent) {
+	c.Block.Name = event.PropString("target", "value")
 }
 
 func (c *BlockForm) addSet() {

@@ -1,7 +1,24 @@
 <div class="w-11/12 mx-auto text-center bg-white">
-		<vg-template vg-for='i, _ := range c.Training.Blocks'>
+		<div vg-for='i, _ := range c.Training.Blocks'>
 			<comps:BlockForm :Block='&c.Training.Blocks[i]'></comps:BlockForm>
-		</vg-template>
+			<div class="inline-flex m-2">
+				<button
+					class="bg-sky-500 text-white py-2 px-4 rounded-l"
+					@click='c.moveBlockUp(i, event)'
+					><i class="fa-solid fa-arrow-up"></i>
+				</button>
+				<button
+					class="bg-sky-500 text-white py-2 px-4"
+					@click='c.moveBlockDown(i, event)'
+					><i class="fa-solid fa-arrow-down"></i>
+				</button>
+				<button
+					class="bg-sky-500 text-white py-2 px-4 rounded-r"
+					@click='c.removeBlock(i, event)'
+					><i class="fa-solid fa-trash-can"></i>
+				</button>
+			</div>
+		</div>
 
 		<div class="m-4 h-8 rounded-full bg-sky-500 flex items-center justify-center shadow"
 			@click='c.addBlock()'>
@@ -70,6 +87,9 @@ type TrainingForm struct {
 func (c *TrainingForm) Init(ctx vugu.InitCtx) {
 	c.optionToSession = make(map[string]*oapiGen.Session)
 	c.Training.Blocks = make([]oapiGen.Block, 1)
+	sort.Slice(c.Training.Blocks, func(i, j int) bool {
+		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
+	})
 }
 
 func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
@@ -86,8 +106,41 @@ func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
 
 func (c *TrainingForm) addBlock() {
 	c.Training.Blocks = append(c.Training.Blocks, oapiGen.Block{})
-	sort.Slice(c.Training.Blocks, func(i, j int) bool {
-		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
-	})
+	c.numberBlocks()
+}
+
+func (c *TrainingForm) moveBlockUp(blockIndex int, event vugu.DOMEvent) {
+	if blockIndex == 0 {
+		return
+	}
+	c.Training.Blocks[blockIndex].Num--
+	c.Training.Blocks[blockIndex-1].Num++
+
+	tmp := c.Training.Blocks[blockIndex]
+	c.Training.Blocks[blockIndex] = c.Training.Blocks[blockIndex-1]
+	c.Training.Blocks[blockIndex-1] = tmp
+}
+
+func (c *TrainingForm) moveBlockDown(blockIndex int, event vugu.DOMEvent) {
+	if blockIndex == len(c.Training.Blocks)-1 {
+		return
+	}
+	c.Training.Blocks[blockIndex].Num++
+	c.Training.Blocks[blockIndex+1].Num--
+
+	tmp := c.Training.Blocks[blockIndex]
+	c.Training.Blocks[blockIndex] = c.Training.Blocks[blockIndex+1]
+	c.Training.Blocks[blockIndex+1] = tmp
+}
+
+func (c *TrainingForm) removeBlock(blockIndex int, event vugu.DOMEvent) {
+	c.Training.Blocks = append(c.Training.Blocks[:blockIndex], c.Training.Blocks[blockIndex+1:]...)
+	c.numberBlocks()
+}
+
+func (c *TrainingForm) numberBlocks() {
+	for i := range c.Training.Blocks {
+		c.Training.Blocks[i].Num = i
+	}
 }
 </script>
