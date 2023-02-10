@@ -4,8 +4,9 @@ A web application for creating and sharing swim trainings in a swimming team.
 
 ## To fix
 
-1. Add unique constraint to session, [like this](https://stackoverflow.com/a/14221810)
-1. Change CORS! main.go
+1. Migrate getting data from .vugu files to state package
+2. Add unique constraint to session, [like this](https://stackoverflow.com/a/14221810)
+3. Change CORS! main.go
 
 ## TODO
 

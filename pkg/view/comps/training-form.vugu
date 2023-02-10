@@ -19,47 +19,12 @@
 				</button>
 			</div>
 		</div>
-
-		<div class="m-4 h-8 rounded-full bg-sky-500 flex items-center justify-center shadow"
+		<div class="mx-4 h-8 rounded-lg bg-sky-500 flex items-center justify-center shadow"
 			@click='c.addBlock()'>
-			<div class="text-white text-xl">
+			<div class="text-white text-lg font-semibold">
 				<div>Add block</div>
 			</div>
 		</div>
-
-		<hr class="h-px border-0 bg-slate-500">
-
-		<div class="pt-4 inline-flex text-center">
-			<button
-				class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l"
-				@click='c.setManually = false'>
-				Assign session
-			</button>
-			<button
-				class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r"
-				@click='c.setManually = true'>
-				Set manually
-			</button>
-		</div>
-
-		<vg-template vg-if='!c.setManually' >
-			<label for="session" class="block mt-4 text-base font-medium text-gray-900">Assign session to training</label>
-		    <vgform:Select
-				 id="session"
-				 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm
-						rounded-lg focus:ring-blue-500 focus:border-blue-500
-						block w-full p-2" 
-				 :Value='vgform.StringPtr{&c.sessionOpt}'
-				:Options='vgform.SliceOptions(c.options).Title()'>
-			</vgform:Select>
-		</vg-template>
-
-		<vg-template vg-if='c.setManually' >
-			<comps:SessionForm
-				:Session='&c.session'
-				:InvalidSession='&c.invalidSession'>
-			</comps:SessionForm>
-		</vg-template>
 </div>
 <script type="application/x-go">
 import (
@@ -72,36 +37,13 @@ import (
 
 type TrainingForm struct {
 	Training *oapiGen.Training `vugu:"data"`
-	Sessions []oapiGen.Session `vugu:"data"`
-
-	session        oapiGen.Session
-	invalidSession oapiGen.InvalidSession
-
-	sessionOpt      string
-	options         []string
-	optionToSession map[string]*oapiGen.Session
-
-	setManually bool
 }
 
 func (c *TrainingForm) Init(ctx vugu.InitCtx) {
-	c.optionToSession = make(map[string]*oapiGen.Session)
 	c.Training.Blocks = make([]oapiGen.Block, 1)
 	sort.Slice(c.Training.Blocks, func(i, j int) bool {
 		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
 	})
-}
-
-func (c *TrainingForm) Compute(ctx vugu.ComputeCtx) {
-	if len(c.options) != 0 {
-		return
-	}
-	for i := range c.Sessions {
-		s := &c.Sessions[i]
-		optName := fmt.Sprintf("%s %s %dmin", strings.Title(string(s.Day)), s.StartTime, s.DurationMin)
-		c.optionToSession[optName] = s
-		c.options = append(c.options, optName)
-	}
 }
 
 func (c *TrainingForm) addBlock() {

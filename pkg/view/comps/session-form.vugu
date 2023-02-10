@@ -1,48 +1,48 @@
-<div>
-	<div class="w-11/12 m-4 text-center bg-white">
-		<div class="mb-6">
-			<label for="days" class="block text-base font-medium text-gray-900">Select day</label>
-			<select
-				id="days"
-				:class='c.DaySelectClass'
-				@change='c.changeDay(event)'
-				name="day">
-				<option value="" :selected='c.isSelectedDay("")'>Choose day</option>
-				<option value="monday" :selected='c.isSelectedDay("monday")'>Monday</option>
-				<option value="tuesday" :selected='c.isSelectedDay("tuesday")'>Tuesday</option>
-				<option value="wednesday" :selected='c.isSelectedDay("wednesday")'>Wednesday</option>
-				<option value="thursday" :selected='c.isSelectedDay("thursday")'>Thursday</option>
-				<option value="friday" :selected='c.isSelectedDay("friday")'>Friday</option>
-				<option value="saturday" :selected='c.isSelectedDay("saturday")'>Saturday</option>
-				<option value="sunday" :selected='c.isSelectedDay("sunday")'>Sunday</option>
-			</select>
-			<p vg-if='c.DayError != ""' vg-content='c.DayError' class="text-red-500"></p>
-		</div>
+<div class="w-11/12 m-4 text-center bg-white">
+	<div class="mb-6">
+		<label for="days" class="block text-base font-medium text-gray-900">Select day</label>
+		<select
+			id="days"
+			:class='c.DaySelectClass'
+			@change='c.changeDay(event)'
+			name="day">
+			<option value="" :selected='c.isSelectedDay("")'>Choose day</option>
+			<option value="monday" :selected='c.isSelectedDay("monday")'>Monday</option>
+			<option value="tuesday" :selected='c.isSelectedDay("tuesday")'>Tuesday</option>
+			<option value="wednesday" :selected='c.isSelectedDay("wednesday")'>Wednesday</option>
+			<option value="thursday" :selected='c.isSelectedDay("thursday")'>Thursday</option>
+			<option value="friday" :selected='c.isSelectedDay("friday")'>Friday</option>
+			<option value="saturday" :selected='c.isSelectedDay("saturday")'>Saturday</option>
+			<option value="sunday" :selected='c.isSelectedDay("sunday")'>Sunday</option>
+		</select>
+		<p vg-if='c.DayError != ""' vg-content='c.DayError' class="text-red-500"></p>
+	</div>
 
-		<div class="mb-6">
-			<label
-				for="duration"
-				class="block text-base font-medium text-gray-900"
-				>Duration in minutes
-			</label>
-			<input @change='c.changeDuration(event)'
-				type="number"
-				id="duration"
-				placeholder="60"
-				:value='c.defaultDuration()'
-				:class='c.DurationInputClass'>
-			<p vg-if='c.DurationError != ""' vg-content='c.DurationError' class="text-red-500"></p>
-		</div>
+	<div class="mb-6">
+		<label
+			for="duration"
+			class="block text-base font-medium text-gray-900"
+			>Duration in minutes
+		</label>
+		<input @change='c.changeDuration(event)'
+			type="number"
+			id="duration"
+			placeholder="60"
+			:value='c.defaultDuration()'
+			:class='c.DurationInputClass'>
+		</input>
+		<p vg-if='c.DurationError != ""' vg-content='c.DurationError' class="text-red-500"></p>
+	</div>
 
-		<div class="mb-6">
-			<label class="block text-base font-medium text-gray-900">Start time</label>
-			<input
-				@change='c.changeStartTime(event)'
-				type="time"
-				:value='c.Session.StartTime'
-				:class="c.StartTimeInputClass">
-			<p vg-if='c.StartTimeErr != ""' vg-content='c.StartTimeErr' class="text-red-500"></p>
-		</div>
+	<div class="mb-6">
+		<label class="block text-base font-medium text-gray-900">Start time</label>
+		<input
+			@change='c.changeStartTime(event)'
+			type="time"
+			:value='c.Session.StartTime'
+			:class="c.StartTimeInputClass">
+		</input>
+		<p vg-if='c.StartTimeErr != ""' vg-content='c.StartTimeErr' class="text-red-500"></p>
 	</div>
 </div>
 

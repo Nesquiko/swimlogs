@@ -33,7 +33,7 @@
 	</div>
 
 	<hr class="h-px border-0 bg-slate-500">
-	<div class="m-2 h-5 bg-gray-300 rounded-full flex items-center justify-center shadow"
+	<div class="m-2 h-5 bg-gray-300 rounded-lg flex items-center justify-center shadow"
 		@click='c.addSet()'>
 		<div class="text-gray-800 text-base font-semibold">
 			<div>Add set</div>

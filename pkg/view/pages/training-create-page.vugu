@@ -1,4 +1,4 @@
-<div>
+<div class='mx-auto text-center'>
 	<comps:Banner :Text='&c.bannerText'></comps:Banner> 
 
 	<comps:BugDialog
@@ -7,7 +7,19 @@
 		:ErrMsg='c.bugErrMsg'>
 	</comps:BugDialog>
 
-	<comps:TrainingForm :Training='&c.t' :Sessions='c.sessions'></comps:TrainingForm>
+	<comps:TrainingForm :Training='&c.t'></comps:TrainingForm>
+	<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
+	<comps:TrainingSessionForm :Sessions='c.sessions' :Training='&c.t'></comps:TrainingSessionForm>
+
+	<button
+		vg-if='!c.isLoading'
+		@click=''
+		class="m-4 bg-sky-500 focus:ring-4 focus:outline-none focus:ring-sky-300
+				rounded-lg w-11/12 px-4 py-2 text-center shadow text-white
+				text-xl font-semibold"
+		>Create Training
+	</button>
+		<p vg-content='c.t'></p>
 </div>
 
 <script type="application/x-go">
@@ -26,6 +38,7 @@ type TrainingCreatePage struct {
 	t        oapiGen.Training
 	sessions []oapiGen.Session
 
+	isLoading  bool
 	bannerText string
 	showBug    bool
 	bugErrMsg  string
