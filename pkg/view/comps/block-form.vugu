@@ -52,7 +52,9 @@ type BlockForm struct {
 func (c *BlockForm) Init(ctx vugu.InitCtx) {
 	c.Block.Sets = make([]oapiGen.Set, 1)
 	c.Block.TotalDist = new(int)
-	c.sortSets()
+	sort.Slice(c.Block.Sets, func(i, j int) bool {
+		return c.Block.Sets[i].Num < c.Block.Sets[j].Num
+	})
 }
 
 func (c *BlockForm) Compute(ctx vugu.ComputeCtx) {
@@ -72,26 +74,37 @@ func (c *BlockForm) addSet() {
 }
 
 func (c *BlockForm) moveSetUp(setIndex int, event vugu.DOMEvent) {
-	fmt.Println("index up: ", setIndex, c.Block.Sets[setIndex])
+	if setIndex == 0 {
+		return
+	}
+	c.Block.Sets[setIndex].Num--
+	c.Block.Sets[setIndex-1].Num++
+
+	tmp := c.Block.Sets[setIndex]
+	c.Block.Sets[setIndex] = c.Block.Sets[setIndex-1]
+	c.Block.Sets[setIndex-1] = tmp
 }
 
 func (c *BlockForm) moveSetDown(setIndex int, event vugu.DOMEvent) {
-	fmt.Println("index down: ", setIndex, c.Block.Sets[setIndex])
+	if setIndex == len(c.Block.Sets)-1 {
+		return
+	}
+	c.Block.Sets[setIndex].Num++
+	c.Block.Sets[setIndex+1].Num--
+
+	tmp := c.Block.Sets[setIndex]
+	c.Block.Sets[setIndex] = c.Block.Sets[setIndex+1]
+	c.Block.Sets[setIndex+1] = tmp
 }
 
 func (c *BlockForm) removeSet(setIndex int, event vugu.DOMEvent) {
-	fmt.Println("removing: ", setIndex, c.Block.Sets[setIndex])
+	c.Block.Sets = append(c.Block.Sets[:setIndex], c.Block.Sets[setIndex+1:]...)
+	c.numberSets()
 }
 
 func (c *BlockForm) numberSets() {
 	for i := range c.Block.Sets {
 		c.Block.Sets[i].Num = i
 	}
-}
-
-func (c *BlockForm) sortSets() {
-	sort.Slice(c.Block.Sets, func(i, j int) bool {
-		return c.Block.Sets[i].Num < c.Block.Sets[j].Num
-	})
 }
 </script>

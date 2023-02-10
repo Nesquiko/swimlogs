@@ -8,7 +8,7 @@
 				name="repetitions"
 				placeholder="2"
 				@change='c.changeRepeat(event)'
-				:value='c.defaultRepeat()'>
+				.value='c.defaultRepeat()'>
 			</input>
 		</div>
 		<b class="mx-2">x</b>
@@ -20,7 +20,7 @@
 					placeholder="400"
 					name="distance"
 					@change='c.changeDistance(event)'
-					:value='c.defaultDist()'>
+					.value='c.defaultDist()'>
 				</input>
 				<span class='mx-2'>m</span>
 			</div>
@@ -31,7 +31,7 @@
 		placeholder="freestyle 50 fast 50 slow"
 		class="mx-auto p-2 my-2 block w-full text-sm text-black bg-gray-50 rounded-lg border border-gray-300 resize-none"
 		@change='c.changeWhat(event)'
-		:value='c.Set.What'
+		.value='c.Set.What'
 	></textarea>
 	<div class="flex flex-row w-full items-center">
 		<select
@@ -51,7 +51,7 @@
 					name="distance"
 					placeholder="45"
 					@change='c.changeSeconds(event)'
-					:value='c.Set.StartingRule.Seconds'>
+					.value='c.Set.StartingRule.Seconds'>
 				</input>
 				<span class='mx-2'>seconds</span>
 			</div>
@@ -165,4 +165,5 @@ func (c *SetForm) changeSeconds(event vugu.DOMEvent) {
 func (c *SetForm) isSelectedRule(val string) bool {
 	return string(c.Set.StartingRule.Rule) == val
 }
+
 </script>
