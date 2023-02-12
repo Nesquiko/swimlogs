@@ -1,13 +1,21 @@
 <div class="w-full shadow border border-solid rounded-lg border-slate-500 mx-auto">
-	<div class="flex justify-evenly my-2 items-center">
-		<b><h3 class="">Block <span vg-content='c.Block.Num+1'></span>.</h3></b>
+	<div class="flex flex-row w-full my-2 items-center">
+		<label class="mx-2 block text-base font-medium text-gray-900" >Repeat: </label>
 		<input
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+			type="number"
+			:class='c.repeatInputClass'
+			@change='c.changeRepeat(event)'
+			placeholder="2"
+			.value='c.defaultRepeat()'>
+		</input>
+		<input
+			class="w-full p-2 mx-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block"
 			@change='c.changeName(event)'
 			placeholder="Warm up"
 			maxlength="255"
 			.value='c.Block.Name'>
-		<h3 class="">Total <span vg-content='c.Block.TotalDist'></span>m</h3>
+		</input>
+		<h3 class="w-full">Total <span vg-content='c.Block.TotalDist'></span>m</h3>
 	</div>
 
 	<div vg-for='i, _ := range c.Block.Sets'>
@@ -44,16 +52,21 @@
 <script type="application/x-go">
 import (
 	"sort"
+	"strconv"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 )
 
 type BlockForm struct {
 	Block *oapiGen.Block `vugu:"data"`
+
+	repeatInputClass string
 }
 
 func (c *BlockForm) Init(ctx vugu.InitCtx) {
+	c.repeatInputClass = inputClassNormal
 	c.Block.Sets = make([]oapiGen.Set, 1)
+	c.Block.Repeat = 1
 	c.Block.TotalDist = new(int)
 	sort.Slice(c.Block.Sets, func(i, j int) bool {
 		return c.Block.Sets[i].Num < c.Block.Sets[j].Num
@@ -68,7 +81,34 @@ func (c *BlockForm) Compute(ctx vugu.ComputeCtx) {
 		}
 		totDist += *s.TotalDist
 	}
+	totDist *= c.Block.Repeat
 	c.Block.TotalDist = &totDist
+}
+
+func (c *BlockForm) defaultRepeat() string {
+	if c.Block.Repeat == 0 {
+		return ""
+	}
+	return strconv.Itoa(c.Block.Repeat)
+}
+
+func (c *BlockForm) changeRepeat(event vugu.DOMEvent) {
+	repeat, err := strconv.Atoi(event.PropString("target", "value"))
+
+	if err != nil {
+		c.repeatInputClass = inputClassError
+		c.Block.Repeat = 0
+		return
+	}
+
+	if repeat <= 0 {
+		c.repeatInputClass = inputClassError
+		c.Block.Repeat = 0
+		return
+	}
+
+	c.repeatInputClass = inputClassNormal
+	c.Block.Repeat = repeat
 }
 
 func (c *BlockForm) changeName(event vugu.DOMEvent) {

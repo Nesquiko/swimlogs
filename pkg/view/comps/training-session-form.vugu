@@ -27,7 +27,7 @@
 		</vgform:Select>
 	</div>
 
-	<div class="m-4">
+	<div class="m-4" vg-if='c.setManually != nil'>
 		<label
 			for="date"
 			class="block text-base font-medium text-gray-900"
