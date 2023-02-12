@@ -124,12 +124,24 @@ func validateSet(s oapiGen.Set) *oapiGen.InvalidSet {
 
 	if !startingRules[strings.ToLower(string(s.StartingRule.Rule))] {
 		errMsg := fmt.Sprintf("Unkwnown starting rule name '%s'", s.StartingRule.Rule)
+		if invalid.StartingRule == nil {
+			invalid.StartingRule = &struct {
+				Rule    *string `json:"rule,omitempty"`
+				Seconds *string `json:"seconds,omitempty"`
+			}{}
+		}
 		invalid.StartingRule.Rule = &errMsg
 	}
 
 	if s.StartingRule.Rule == oapiGen.Pause || s.StartingRule.Rule == oapiGen.Interval {
 		if s.StartingRule.Seconds == nil {
 			errMsg := fmt.Sprintf("Rule '%s' must have seconds set", string(s.StartingRule.Rule))
+			if invalid.StartingRule == nil {
+				invalid.StartingRule = &struct {
+					Rule    *string `json:"rule,omitempty"`
+					Seconds *string `json:"seconds,omitempty"`
+				}{}
+			}
 			invalid.StartingRule.Seconds = &errMsg
 		}
 	}
