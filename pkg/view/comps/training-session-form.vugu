@@ -14,59 +14,85 @@
 	</div>
 
 	<comps:SessionForm
+		vg-if='c.setManually != nil && *c.setManually'
 		:Session='&c.manualSess'
 		:InvalidSession='&c.invalidSession'>
 	</comps:SessionForm>
+
+	<div vg-if='c.setManually != nil && !*c.setManually' class="m-4">
+		<vgform:Select
+			:class='c.sessionSelectClass'
+			:Value='vgform.StringPtr{&c.selectedSession}'
+			:Options='vgform.SliceOptions(c.sessionOpts).Title()'>
+		</vgform:Select>
+	</div>
 </div>
 
 <script type="application/x-go">
 import (
 	"fmt"
 
+	"strings"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/Nesquiko/swimlogs/pkg/view/util"
+	"github.com/vugu/vugu/vgform"
 )
 
 type TrainingSessionForm struct {
 	state.SessionStateStorage
 	Training *oapiGen.Training
 
-	sessions       []oapiGen.Session
-	manualSess     oapiGen.Session
-	invalidSession oapiGen.InvalidSession
+	sessions        []oapiGen.Session
+	manualSess      oapiGen.Session
+	invalidSession  oapiGen.InvalidSession
+	selectedSession string
+	sessionOpts     []string
+	optToSess       map[string]*oapiGen.Session
 
 	assignSessionButtonClass string
+	sessionSelectClass       string
 
 	setManually *bool // need 3 states, to only show buttons on load, not section/session form
 }
 
 func (c *TrainingSessionForm) Init(ctx vugu.InitCtx) {
 	c.assignSessionButtonClass = buttonClassNormal
+	c.sessionSelectClass = selectClassNormal
+	c.sessionOpts = append(c.sessionOpts, "Choose Session")
 	go func() {
 		storedSess, err := c.GetSessions()
 		if nil == err {
-			ctx.EventEnv().Lock()
 			c.sessions = storedSess
-			ctx.EventEnv().UnlockRender()
+			c.createSessionOpts()
 			return
 		}
 
 		sessions, err := api.GetSessions()
-		if err == nil { // TODO change THIS to !=
+		if err != nil {
 			c.assignSessionButtonClass = buttonClassDisabled
 			tr := true
 			c.setManually = &tr
 		}
 
-		ctx.EventEnv().Lock()
 		util.OrderByDays(&sessions)
 		c.SaveSessions(sessions)
 		c.sessions = sessions
-		ctx.EventEnv().UnlockRender()
+		c.createSessionOpts()
 	}()
+}
+
+func (c *TrainingSessionForm) createSessionOpts() {
+	c.optToSess = make(map[string]*oapiGen.Session)
+	for i := range c.sessions {
+		s := &c.sessions[i]
+		optName := fmt.Sprintf("%s %s %dmin", strings.Title(string(s.Day)), s.StartTime, s.DurationMin)
+		c.optToSess[optName] = s
+		c.sessionOpts = append(c.sessionOpts, optName)
+	}
 }
 
 func (c *TrainingSessionForm) Compute(ctx vugu.ComputeCtx) {
@@ -77,7 +103,19 @@ func (c *TrainingSessionForm) Compute(ctx vugu.ComputeCtx) {
 	}
 }
 
+//func (c *TrainingSessionForm) setSessionId() {
+//}
+
 func (c *TrainingSessionForm) IsTrainingSessionReady() bool {
+	if c.setManually != nil && *c.setManually {
+		return c.isManualSessionValid()
+	} else if c.setManually != nil && !*c.setManually {
+		return c.isSessionIdSetAndCorrect()
+	}
+	return false
+}
+
+func (c *TrainingSessionForm) isManualSessionValid() bool {
 	invalidSess := validation.ValidateSession(c.manualSess)
 	if invalidSess != nil {
 		c.invalidSession = *invalidSess
@@ -85,5 +123,18 @@ func (c *TrainingSessionForm) IsTrainingSessionReady() bool {
 	}
 	return true
 }
-</script>
 
+// Setting of Training.SessionId is handled here, because vgform Select doesn't
+// have a @change method, it can only set value to a string pointer. But I need
+// vgform Select, because it has dynamic option list.
+func (c *TrainingSessionForm) isSessionIdSetAndCorrect() bool {
+	if c.selectedSession == "" || c.selectedSession == "Choose Session" {
+		c.sessionSelectClass = selectClassError
+		return false
+	}
+	c.sessionSelectClass = selectClassNormal
+	s := c.optToSess[c.selectedSession]
+	c.Training.SessionId = &s.Id
+	return true
+}
+</script>
