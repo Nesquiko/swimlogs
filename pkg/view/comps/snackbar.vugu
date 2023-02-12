@@ -11,11 +11,11 @@ import (
 
 type Snackbar struct {
 	Class string
-	Text string
+	Text  string
 }
 
 var Hidden = "hidden"
-var Displayed = "absolute bottom-3 -z-10 w-3/4 p-4 mb-4 text-sm text-red-800 text-center rounded-lg bg-red-50"
+var Displayed = "fixed bottom-3 z-10 w-3/4 p-4 mb-4 text-sm text-red-800 text-center rounded-lg bg-red-50"
 
 func (c *Snackbar) Init(ctx vugu.InitCtx) {
 	c.Class = Hidden
@@ -28,7 +28,7 @@ func (c *Snackbar) Show(event vugu.EventEnv, text string) {
 		c.Class = Displayed
 		event.UnlockRender()
 
-		time.Sleep(5*time.Second)
+		time.Sleep(5 * time.Second)
 
 		event.Lock()
 		c.Class = Hidden
