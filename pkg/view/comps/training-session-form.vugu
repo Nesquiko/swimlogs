@@ -26,19 +26,35 @@
 			:Options='vgform.SliceOptions(c.sessionOpts).Title()'>
 		</vgform:Select>
 	</div>
+
+	<div class="m-4">
+		<label
+			for="date"
+			class="block text-base font-medium text-gray-900"
+			>Date of training</label>
+		<vgform:Select
+			:disabled='len(c.dateOptions) == 0'
+			:class='c.dateSelectClass'
+			:Value='vgform.StringPtr{&c.selectedDate}'
+			:Options='vgform.SliceOptions(c.dateOptions).Title()'>
+		</vgform:Select>
+		<p vg-if='c.dateError != ""' vg-content='c.dateError' class="text-red-500"></p>
+	</div>
+
 </div>
 
 <script type="application/x-go">
 import (
 	"fmt"
-
 	"strings"
+	"time"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/Nesquiko/swimlogs/pkg/view/util"
+	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/vugu/vugu/vgform"
 )
 
@@ -55,6 +71,11 @@ type TrainingSessionForm struct {
 
 	assignSessionButtonClass string
 	sessionSelectClass       string
+	dateSelectClass          string
+
+	selectedDate string
+	dateOptions  []string
+	dateError    string
 
 	setManually *bool // need 3 states, to only show buttons on load, not section/session form
 }
@@ -62,6 +83,7 @@ type TrainingSessionForm struct {
 func (c *TrainingSessionForm) Init(ctx vugu.InitCtx) {
 	c.assignSessionButtonClass = buttonClassNormal
 	c.sessionSelectClass = selectClassNormal
+	c.dateSelectClass = selectClassNormal
 	c.sessionOpts = append(c.sessionOpts, "Choose Session")
 	go func() {
 		storedSess, err := c.GetSessions()
@@ -96,23 +118,52 @@ func (c *TrainingSessionForm) createSessionOpts() {
 }
 
 func (c *TrainingSessionForm) Compute(ctx vugu.ComputeCtx) {
+	day := oapiGen.Day("")
 	if c.setManually != nil && *c.setManually {
+		c.Training.SessionId = nil
 		c.Training.Day = &c.manualSess.Day
 		c.Training.DurationMin = &c.manualSess.DurationMin
 		c.Training.StartTime = &c.manualSess.StartTime
+		day = c.manualSess.Day
+	} else if c.setManually != nil && !*c.setManually {
+		s := c.optToSess[c.selectedSession]
+		if s != nil {
+			day = s.Day
+		}
+	}
+	if string(day) != "" && string(day) != "Choose date" {
+		c.generateDates(day)
+	} else {
+		c.dateOptions = nil
 	}
 }
 
-//func (c *TrainingSessionForm) setSessionId() {
-//}
+func (c *TrainingSessionForm) generateDates(day oapiGen.Day) {
+	if string(day) == "" {
+		return
+	}
+	c.dateOptions = nil
+
+	today := time.Now()
+	end := today.AddDate(0, 1, 0)
+	c.dateOptions = append(c.dateOptions, "Choose date")
+
+	for d := today; d.Before(end); d = d.AddDate(0, 0, 1) {
+		if strings.ToLower(d.Weekday().String()) == string(day) {
+			c.dateOptions = append(c.dateOptions, d.Format("02.01.2006"))
+		}
+	}
+
+}
 
 func (c *TrainingSessionForm) IsTrainingSessionReady() bool {
+	sessionValid := false
 	if c.setManually != nil && *c.setManually {
-		return c.isManualSessionValid()
+		sessionValid = c.isManualSessionValid()
 	} else if c.setManually != nil && !*c.setManually {
-		return c.isSessionIdSetAndCorrect()
+		sessionValid = c.isSessionIdSetAndCorrect()
 	}
-	return false
+	return sessionValid && c.isDateSetAndCorrect()
 }
 
 func (c *TrainingSessionForm) isManualSessionValid() bool {
@@ -135,6 +186,22 @@ func (c *TrainingSessionForm) isSessionIdSetAndCorrect() bool {
 	c.sessionSelectClass = selectClassNormal
 	s := c.optToSess[c.selectedSession]
 	c.Training.SessionId = &s.Id
+	return true
+}
+
+func (c *TrainingSessionForm) isDateSetAndCorrect() bool {
+	if c.selectedDate == "" || c.selectedDate == "Choose date" {
+		c.dateSelectClass = selectClassError
+		return false
+	}
+
+	date, err := time.Parse("02.01.2006", c.selectedDate)
+	if err != nil {
+		panic(err)
+	}
+
+	c.Training.Date = types.Date{Time: date}
+	c.dateSelectClass = selectClassNormal
 	return true
 }
 </script>

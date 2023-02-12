@@ -57,6 +57,15 @@ func ValidateTrainingWithSession(t oapiGen.Training, s oapiGen.Session) *oapiGen
 	return invalid
 }
 
+func ValidateTrainingWithoutSession(t oapiGen.Training) *oapiGen.InvalidTraining {
+	invalid := &oapiGen.InvalidTraining{}
+	invalid.Blocks = validateBlocks(t.Blocks)
+	if invalid.Date == nil && invalid.Blocks == nil {
+		return nil
+	}
+	return invalid
+}
+
 func isDayOnDate(day oapiGen.Day, date time.Time) bool {
 	return strings.ToLower(date.Weekday().String()) == string(day)
 }
