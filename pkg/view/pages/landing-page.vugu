@@ -1,9 +1,7 @@
 <div>
 	<div vg-if='!c.IsLoaded'>Loading...</div>
 
-	<div class="text-center bg-slate-50 p-4 m-16 w-4/5" vg-if='c.ShowBanner'>
-		<h1 class="text-red-500 font-bold text-xl" vg-content='c.BannerTitle'></h1>
-	</div>
+	<comps:Banner :Text='&c.BannerTitle'></comps:Banner>
 
 	<comps:BugDialog
 		vg-if="c.ShowBug"
