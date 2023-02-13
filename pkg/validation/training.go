@@ -153,7 +153,7 @@ func validateSet(s oapiGen.Set) *oapiGen.InvalidSet {
 
 	if s.Repeat <= 0 {
 		errMsg := "Repeat must be greater than 0"
-		invalid.Distance = &errMsg
+		invalid.Repeat = &errMsg
 	}
 
 	if invalid.StartingRule == nil && invalid.Distance == nil && invalid.Repeat == nil {

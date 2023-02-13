@@ -7,7 +7,7 @@
 		:ErrMsg='c.bugErrMsg'>
 	</comps:BugDialog>
 
-	<comps:TrainingForm :Training='&c.t'></comps:TrainingForm>
+	<comps:TrainingForm :Training='&c.t' :InvalidTraining='c.invalidT'></comps:TrainingForm>
 	<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
 	<vg-comp expr='&c.TrainingSessionForm'></vg-comp>
 
@@ -19,11 +19,15 @@
 				text-xl font-semibold"
 		>Create Training
 	</button>
+
+	<vg-comp expr='&c.Snackbar'></vg-comp>
+	<p vg-content='fmt.Sprintf("%+v", c.t)'></p>
 </div>
 
 <script type="application/x-go">
 import (
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/validation"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
@@ -33,13 +37,16 @@ type TrainingCreatePage struct {
 	vgrouter.NavigatorRef
 	state.SessionStateStorageRef
 
-	t                   oapiGen.Training
-	TrainingSessionForm comps.TrainingSessionForm
+	t        oapiGen.Training
+	invalidT *oapiGen.InvalidTraining
 
 	isLoading  bool
 	bannerText string
 	showBug    bool
 	bugErrMsg  string
+
+	TrainingSessionForm comps.TrainingSessionForm
+	Snackbar            comps.Snackbar
 }
 
 func (c *TrainingCreatePage) Init(ctx vugu.InitCtx) {
@@ -48,8 +55,54 @@ func (c *TrainingCreatePage) Init(ctx vugu.InitCtx) {
 }
 
 func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
-	if !c.TrainingSessionForm.IsTrainingSessionReady() {
+	if len(c.t.Blocks) == 0 {
+		c.Snackbar.Show(event.EventEnv(), "No blocks in training")
 		return
+	}
+
+	for _, b := range c.t.Blocks {
+		if len(b.Sets) == 0 {
+			c.Snackbar.Show(event.EventEnv(), fmt.Sprintf("Block #%d doesn't have any sets", b.Num+1))
+			return
+		}
+	}
+
+	if !c.TrainingSessionForm.IsTrainingSessionReady() {
+		c.Snackbar.Show(event.EventEnv(), "Training session has errors")
+		return
+	}
+
+	var invalidT *oapiGen.InvalidTraining
+	if c.t.SessionId == nil {
+		invalidT = validation.ValidateTraining(c.t)
+	} else {
+		invalidT = validation.ValidateTrainingWithoutSession(c.t)
+	}
+
+	if invalidT != nil {
+		c.invalidT = invalidT
+		fmt.Printf("%+v\n", invalidT)
+		for _, b := range *invalidT.Blocks {
+			if b.Name != nil {
+				fmt.Printf("\tName: %v, ", *b.Name)
+			}
+			if b.Repeat != nil {
+				fmt.Printf("\tRepeat: %v \n", *b.Repeat)
+			}
+
+			for _, s := range *b.Sets {
+				fmt.Printf("\t\tset: %+v\n", s)
+				if s.StartingRule != nil {
+					if s.StartingRule.Rule != nil {
+						fmt.Printf("\t\t%v\n", *s.StartingRule.Rule)
+					}
+					if s.StartingRule.Seconds != nil {
+						fmt.Printf("\t\t%v\n", *s.StartingRule.Seconds)
+					}
+				}
+
+			}
+		}
 	}
 }
 </script>

@@ -33,12 +33,16 @@
 		@change='c.changeWhat(event)'
 		.value='c.Set.What'
 	></textarea>
-	<div class="flex flex-row w-full items-center">
+	<div class="flex w-full items-center">
+		<label
+			vg-if='c.Set.StartingRule.Rule == oapiGen.None || c.Set.StartingRule.Rule == ""' 
+			class="w-1/2 text-base font-medium text-gray-900"
+			>Choose start:
+		</label>
 		<select
 			:class='c.ruleSelectClass'
 			@change='c.changeRule(event)'
 			name="rule">
-			<option value="" :selected='c.isSelectedRule("")'>Choose start</option>
 			<option value="none" :selected='c.isSelectedRule("none")'>None</option>
 			<option value="interval" :selected='c.isSelectedRule("interval")'>Interval</option>
 			<option value="pause" :selected='c.isSelectedRule("pause")'>Pause</option>
@@ -53,10 +57,13 @@
 					@change='c.changeSeconds(event)'
 					.value='c.Set.StartingRule.Seconds'>
 				</input>
-				<span class='mx-2'>seconds</span>
+				<span class='ml-2'>seconds</span>
 			</div>
 		</vg-template>
 	</div>
+	<!-- TODO test if correct invalid blocks/sets are passed to forms. -->
+	<!-- TODO setup errors messages when invalid block/set is assigned -->
+	<p vg-content='c.InvalidSet'></p>
 </div>
 
 <script type="application/x-go">
@@ -67,7 +74,8 @@ import (
 )
 
 type SetForm struct {
-	Set               *oapiGen.Set `vugu:"data"`
+	Set               *oapiGen.Set        `vugu:"data"`
+	InvalidSet        *oapiGen.InvalidSet `vugu:"data"`
 	repeatInputClass  string
 	distInputClass    string
 	ruleSelectClass   string
@@ -79,6 +87,10 @@ func (c *SetForm) Init(ctx vugu.InitCtx) {
 	c.distInputClass = inputClassNormal
 	c.ruleSelectClass = selectClassNormal
 	c.secondsInputClass = inputClassNormal
+
+	if string(c.Set.StartingRule.Rule) == "" {
+		c.Set.StartingRule.Rule = oapiGen.None
+	}
 }
 
 func (c *SetForm) defaultRepeat() string {

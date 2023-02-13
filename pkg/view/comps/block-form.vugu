@@ -20,7 +20,7 @@
 
 	<div vg-for='i, _ := range c.Block.Sets'>
 		<hr class="h-px border-0 bg-slate-500 my-2">
-		<comps:SetForm :Set='&c.Block.Sets[i]'></comps:SetForm>
+		<comps:SetForm :Set='&c.Block.Sets[i]' :InvalidSet='c.getCorrespondingInvalidSet(i)'></comps:SetForm>
 		<div class="mb-2 inline-flex">
 			<button
 				class="bg-gray-300 text-gray-800 py-2 px-4 rounded-l"
@@ -58,7 +58,8 @@ import (
 )
 
 type BlockForm struct {
-	Block *oapiGen.Block `vugu:"data"`
+	Block        *oapiGen.Block        `vugu:"data"`
+	InvalidBlock *oapiGen.InvalidBlock `vugu:"data"`
 
 	repeatInputClass string
 }
@@ -153,5 +154,21 @@ func (c *BlockForm) numberSets() {
 	for i := range c.Block.Sets {
 		c.Block.Sets[i].Num = i
 	}
+}
+
+func (c *BlockForm) getCorrespondingInvalidSet(setIndex int) *oapiGen.InvalidSet {
+	if c.InvalidBlock == nil {
+		return nil
+	} else if c.InvalidBlock.Sets == nil {
+		return nil
+	}
+
+	s := c.Block.Sets[setIndex]
+	for _, invalidS := range *c.InvalidBlock.Sets {
+		if *invalidS.Num == s.Num {
+			return &invalidS
+		}
+	}
+	return nil
 }
 </script>

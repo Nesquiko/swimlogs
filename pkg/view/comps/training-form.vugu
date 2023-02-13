@@ -1,6 +1,6 @@
 <div class="w-11/12 mx-auto text-center bg-white">
 		<div vg-for='i, _ := range c.Training.Blocks'>
-			<comps:BlockForm :Block='&c.Training.Blocks[i]'></comps:BlockForm>
+			<comps:BlockForm :Block='&c.Training.Blocks[i]' :InvalidBlock='c.getCorrespondingInvalidBlock(i)'></comps:BlockForm>
 			<div class="inline-flex m-2">
 				<button
 					class="bg-sky-500 text-white py-2 px-4 rounded-l"
@@ -35,11 +35,12 @@ import (
 )
 
 type TrainingForm struct {
-	Training *oapiGen.Training `vugu:"data"`
+	Training        *oapiGen.Training        `vugu:"data"`
+	InvalidTraining *oapiGen.InvalidTraining `vugu:"data"`
 }
 
 func (c *TrainingForm) Init(ctx vugu.InitCtx) {
-	c.Training.Blocks = make([]oapiGen.Block, 0)
+	c.Training.Blocks = make([]oapiGen.Block, 1)
 	sort.Slice(c.Training.Blocks, func(i, j int) bool {
 		return c.Training.Blocks[i].Num < c.Training.Blocks[j].Num
 	})
@@ -83,5 +84,21 @@ func (c *TrainingForm) numberBlocks() {
 	for i := range c.Training.Blocks {
 		c.Training.Blocks[i].Num = i
 	}
+}
+
+func (c *TrainingForm) getCorrespondingInvalidBlock(blockIndex int) *oapiGen.InvalidBlock {
+	if c.InvalidTraining == nil {
+		return nil
+	} else if c.InvalidTraining.Blocks == nil {
+		return nil
+	}
+
+	b := c.Training.Blocks[blockIndex]
+	for _, invalidB := range *c.InvalidTraining.Blocks {
+		if *invalidB.Num == b.Num {
+			return &invalidB
+		}
+	}
+	return nil
 }
 </script>
