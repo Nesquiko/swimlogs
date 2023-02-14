@@ -169,6 +169,7 @@ func (c *BlockForm) getCorrespondingInvalidSet(setIndex int) *oapiGen.InvalidSet
 			return &invalidS
 		}
 	}
+	fmt.Println("no corresponding invalid set found for set ", s.Num)
 	return nil
 }
 </script>

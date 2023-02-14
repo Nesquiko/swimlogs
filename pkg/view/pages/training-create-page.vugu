@@ -103,6 +103,8 @@ func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
 
 			}
 		}
+	} else {
+		c.invalidT = nil
 	}
 }
 </script>

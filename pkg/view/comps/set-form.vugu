@@ -93,6 +93,36 @@ func (c *SetForm) Init(ctx vugu.InitCtx) {
 	}
 }
 
+func (c *SetForm) Compute(ctx vugu.ComputeCtx) {
+	if c.InvalidSet == nil {
+		c.repeatInputClass = inputClassNormal
+		c.distInputClass = inputClassNormal
+		c.ruleSelectClass = selectClassNormal
+		c.secondsInputClass = inputClassNormal
+		return
+	}
+
+	if c.InvalidSet.Repeat != nil {
+		c.repeatInputClass = inputClassError
+	} else {
+		c.repeatInputClass = inputClassNormal
+	}
+	if c.InvalidSet.Distance != nil {
+		c.distInputClass = inputClassError
+	} else {
+		c.distInputClass = inputClassNormal
+	}
+	if c.InvalidSet.StartingRule != nil {
+		c.ruleSelectClass = selectClassError
+		if c.InvalidSet.StartingRule.Seconds != nil {
+			c.secondsInputClass = inputClassError
+		}
+	} else {
+		c.ruleSelectClass = selectClassNormal
+		c.secondsInputClass = inputClassNormal
+	}
+}
+
 func (c *SetForm) defaultRepeat() string {
 	if c.Set.Repeat == 0 {
 		return ""
