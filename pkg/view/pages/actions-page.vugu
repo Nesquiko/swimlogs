@@ -4,12 +4,17 @@
 		@click='c.Navigate("/create/training", nil)'
 		>Create Training
 	</button>
+	<button
+		class="w-full m-2 shadow rounded-lg border border-solid border-slate-500 bg-white text-xl"
+		@click='c.Navigate("/trainings", nil)'
+		>Edit Training
+	</button>
 	<button 
 		class="w-full m-2 shadow rounded-lg border border-solid border-slate-500 bg-white text-xl"
 		@click='c.Navigate("/create/session", nil)'
 		>Create Session
 	</button>
-	<button 
+	<button
 		class="w-full m-2 shadow rounded-lg border border-solid border-slate-500 bg-white text-xl"
 		@click='c.Navigate("/sessions", nil)'
 		>Edit Session

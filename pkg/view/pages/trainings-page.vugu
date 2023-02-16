@@ -1,0 +1,15 @@
+<div>
+	<!-- TODO fetch first 3 pages of training details -->
+	<!-- TODO if bottom is reached, fetch next 1 page of training details -->
+	<!-- TODO when a training details is clicked, navigate to the training edit page -->
+</div>
+
+<script type="application/x-go">
+import (
+	"github.com/vugu/vgrouter"
+)
+
+type TrainingsPage struct {
+	vgrouter.NavigatorRef
+}
+</script>
