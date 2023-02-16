@@ -7,27 +7,31 @@
 		:ErrMsg='c.bugErrMsg'>
 	</comps:BugDialog>
 
-	<comps:TrainingForm :Training='&c.t' :InvalidTraining='c.invalidT'></comps:TrainingForm>
-	<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
-	<vg-comp expr='&c.TrainingSessionForm'></vg-comp>
+	<div vg-if='c.bannerText == ""'>
+		<comps:TrainingForm :Training='&c.t' :InvalidTraining='c.invalidT'></comps:TrainingForm>
+		<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
+		<vg-comp expr='&c.TrainingSessionForm'></vg-comp>
 
-	<button
-		vg-if='!c.isLoading'
-		@click='c.createTraining(event)'
-		class="m-4 bg-sky-500 focus:ring-4 focus:outline-none focus:ring-sky-300
-				rounded-lg w-11/12 px-4 py-2 text-center shadow text-white
-				text-xl font-semibold"
-		>Create Training
-	</button>
+		<button
+			vg-if='!c.isLoading'
+			@click='c.createTraining(event)'
+			class="m-4 bg-sky-500 focus:ring-4 focus:outline-none focus:ring-sky-300
+					rounded-lg w-11/12 px-4 py-2 text-center shadow text-white
+					text-xl font-semibold"
+			>Create Training
+		</button>
 
-	<vg-comp expr='&c.Snackbar'></vg-comp>
-	<p vg-content='fmt.Sprintf("%+v", c.t)'></p>
+		<vg-comp expr='&c.Snackbar'></vg-comp>
+	</div>
 </div>
 
 <script type="application/x-go">
 import (
+	"errors"
+
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/validation"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
 	"github.com/Nesquiko/swimlogs/pkg/view/comps"
 	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
@@ -55,20 +59,24 @@ func (c *TrainingCreatePage) Init(ctx vugu.InitCtx) {
 }
 
 func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
+	c.isLoading = true
 	if len(c.t.Blocks) == 0 {
 		c.Snackbar.Show(event.EventEnv(), "No blocks in training")
+		c.isLoading = false
 		return
 	}
 
 	for _, b := range c.t.Blocks {
 		if len(b.Sets) == 0 {
 			c.Snackbar.Show(event.EventEnv(), fmt.Sprintf("Block #%d doesn't have any sets", b.Num+1))
+			c.isLoading = false
 			return
 		}
 	}
 
 	if !c.TrainingSessionForm.IsTrainingSessionReady() {
 		c.Snackbar.Show(event.EventEnv(), "Training session has errors")
+		c.isLoading = false
 		return
 	}
 
@@ -81,10 +89,38 @@ func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
 
 	if invalidT != nil {
 		c.invalidT = invalidT
+		c.isLoading = false
 		return
 	}
 	c.invalidT = nil
 
-	// TODO send training
+	go func() {
+		_, err := api.CreateTraining(c.t)
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			event.EventEnv().Lock()
+			c.bannerText = "Server isn't available"
+			event.EventEnv().UnlockRender()
+			return
+		case errors.Is(err, &api.BadRequestTraining{}):
+			badRequest, _ := err.(*api.BadRequestTraining)
+			event.EventEnv().Lock()
+			c.invalidT = &badRequest.InvalidTraining
+			event.EventEnv().UnlockRender()
+			return
+		case err != nil:
+			event.EventEnv().Lock()
+			c.bugErrMsg = err.Error()
+			c.showBug = true
+			c.bannerText = "Application doens't work correctly. Contact developer"
+			event.EventEnv().UnlockRender()
+			return
+		}
+
+		c.isLoading = false
+		event.EventEnv().Lock()
+		c.Navigate("/", nil)
+		event.EventEnv().UnlockRender()
+	}()
 }
 </script>

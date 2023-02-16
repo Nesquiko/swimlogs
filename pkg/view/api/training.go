@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,6 +9,44 @@ import (
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/google/uuid"
 )
+
+func CreateTraining(t oapiGen.Training) (oapiGen.TrainingDetail, error) {
+	trainingJson, err := json.Marshal(t)
+	if err != nil {
+		return oapiGen.TrainingDetail{}, fmt.Errorf("CreateTraining: %w", err)
+	}
+
+	res, err := http.Post(BaseUrl+"/trainings", AppJsonType, bytes.NewBuffer(trainingJson))
+	if err != nil {
+		return oapiGen.TrainingDetail{}, fmt.Errorf("CreateTraining: %w", ErrServerUnreachable)
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusBadRequest:
+		dest := oapiGen.CreateTraining400JSONResponse{}
+		dec := json.NewDecoder(res.Body)
+		err = dec.Decode(&dest)
+		if err != nil {
+			return oapiGen.TrainingDetail{}, fmt.Errorf("CreateTraining: %w", err)
+		}
+		return oapiGen.TrainingDetail{}, &BadRequestTraining{
+			oapiGen.InvalidTraining(dest.InvalidTrainingErrorResponseJSONResponse),
+		}
+	case http.StatusInternalServerError:
+		return oapiGen.TrainingDetail{}, fmt.Errorf("CreateTraining: %w", ErrInternalServerError)
+	}
+
+	// training was successfully created
+	var dest oapiGen.CreateTraining201JSONResponse
+	dec := json.NewDecoder(res.Body)
+	err = dec.Decode(&dest)
+	if err != nil {
+		return oapiGen.TrainingDetail{}, fmt.Errorf("CreateTraining: %w", err)
+	}
+
+	return oapiGen.TrainingDetail(dest), nil
+}
 
 func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 	res, err := http.Get(BaseUrl + "/trainings/details/current-week")
@@ -58,4 +97,17 @@ func FetchTraining(id uuid.UUID) (oapiGen.Training, error) {
 	}
 
 	return oapiGen.Training(dest), nil
+}
+
+type BadRequestTraining struct {
+	oapiGen.InvalidTraining
+}
+
+func (r *BadRequestTraining) Error() string {
+	return fmt.Sprintf("invalid training, %v", r.InvalidTraining)
+}
+
+func (r *BadRequestTraining) Is(tgt error) bool {
+	_, ok := tgt.(*BadRequestTraining)
+	return ok
 }
