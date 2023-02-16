@@ -61,8 +61,6 @@
 			</div>
 		</vg-template>
 	</div>
-	<!-- TODO test if correct invalid blocks/sets are passed to forms. -->
-	<!-- TODO setup errors messages when invalid block/set is assigned -->
 	<p vg-content='c.InvalidSet'></p>
 </div>
 
@@ -113,9 +111,15 @@ func (c *SetForm) Compute(ctx vugu.ComputeCtx) {
 		c.distInputClass = inputClassNormal
 	}
 	if c.InvalidSet.StartingRule != nil {
-		c.ruleSelectClass = selectClassError
+		if c.InvalidSet.StartingRule.Rule != nil {
+			c.ruleSelectClass = selectClassError
+		} else {
+			c.ruleSelectClass = selectClassNormal
+		}
 		if c.InvalidSet.StartingRule.Seconds != nil {
 			c.secondsInputClass = inputClassError
+		} else {
+			c.secondsInputClass = inputClassNormal
 		}
 	} else {
 		c.ruleSelectClass = selectClassNormal

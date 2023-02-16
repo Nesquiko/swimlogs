@@ -81,30 +81,10 @@ func (c *TrainingCreatePage) createTraining(event vugu.DOMEvent) {
 
 	if invalidT != nil {
 		c.invalidT = invalidT
-		fmt.Printf("%+v\n", invalidT)
-		for _, b := range *invalidT.Blocks {
-			if b.Name != nil {
-				fmt.Printf("\tName: %v, ", *b.Name)
-			}
-			if b.Repeat != nil {
-				fmt.Printf("\tRepeat: %v \n", *b.Repeat)
-			}
-
-			for _, s := range *b.Sets {
-				fmt.Printf("\t\tset: %+v\n", s)
-				if s.StartingRule != nil {
-					if s.StartingRule.Rule != nil {
-						fmt.Printf("\t\t%v\n", *s.StartingRule.Rule)
-					}
-					if s.StartingRule.Seconds != nil {
-						fmt.Printf("\t\t%v\n", *s.StartingRule.Seconds)
-					}
-				}
-
-			}
-		}
-	} else {
-		c.invalidT = nil
+		return
 	}
+	c.invalidT = nil
+
+	// TODO send training
 }
 </script>
