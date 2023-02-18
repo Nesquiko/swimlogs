@@ -44,10 +44,10 @@ func (psql *postgresDbConn) GetDetailsOfTrainingsCurrentWeek() ([]Training, erro
 	return trainings, nil
 }
 
-var SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $2 offset $1;"
+var SelectTrainingDetails = "select t.id, t.date, t.day, t.starttime, t.duration, t.total_dist from training t order by t.modified_at limit $1 offset $2;"
 
 func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Training, error) {
-	rows, err := psql.Query(SelectTrainingDetails, page*pageSize, pageSize)
+	rows, err := psql.Query(SelectTrainingDetails, pageSize, page*pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
 	}

@@ -49,8 +49,8 @@ func (app *swimLogsApp) GetTrainingsDetails(
 	}
 
 	return oapiGen.GetTrainingsDetails200JSONResponse{
-		Details:    &details,
-		Pagination: &pagination,
+		Details:    details,
+		Pagination: pagination,
 	}, nil
 }
 
@@ -93,9 +93,9 @@ func (app *swimLogsApp) CreateTraining(
 			id  *uuid.UUID
 			err error
 
-			day       = *newTraining.Day
-			startTime = *newTraining.StartTime
-			durMin    = *newTraining.DurationMin
+			day       = newTraining.Day
+			startTime = newTraining.StartTime
+			durMin    = newTraining.DurationMin
 		)
 
 		if newTraining.SessionId == nil {
@@ -104,9 +104,10 @@ func (app *swimLogsApp) CreateTraining(
 			var populatedT *data.Training
 			populatedT, err = app.db.SaveTrainingWithSesssionData(t, *newTraining.SessionId, tx)
 			id = &populatedT.Id
-			day = oapiGen.Day(*populatedT.Day)
-			startTime = *populatedT.StartTime
-			durMin = *populatedT.DurationMin
+			d := oapiGen.Day(*populatedT.Day)
+			day = &d
+			startTime = populatedT.StartTime
+			durMin = populatedT.DurationMin
 		}
 		if err != nil {
 			return err
@@ -114,9 +115,9 @@ func (app *swimLogsApp) CreateTraining(
 
 		td.Id = *id
 		td.Date = newTraining.Date
-		td.Day = day
-		td.StartTime = startTime
-		td.DurationMin = durMin
+		td.Day = *day
+		td.StartTime = *startTime
+		td.DurationMin = *durMin
 		td.TotalDist = t.TotalDistance
 
 		return nil

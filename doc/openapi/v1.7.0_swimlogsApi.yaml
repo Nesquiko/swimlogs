@@ -253,6 +253,9 @@ paths:
                       $ref: '#/components/schemas/TrainingDetail'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
+                required:
+                  - details
+                  - pagination
         400:
           description: Page or pageSize is invalid
           content:

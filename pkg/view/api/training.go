@@ -48,6 +48,31 @@ func CreateTraining(t oapiGen.Training) (oapiGen.TrainingDetail, error) {
 	return oapiGen.TrainingDetail(dest), nil
 }
 
+func GetTrainingDetails(page, pageSize int) ([]oapiGen.TrainingDetail, oapiGen.Pagination, error) {
+	path := fmt.Sprintf("/trainings/details?page=%d&pageSize=%d", page, pageSize)
+	res, err := http.Get(BaseUrl + path)
+	if err != nil {
+		return nil, oapiGen.Pagination{}, fmt.Errorf("GetTrainingDetails: %w", ErrServerUnreachable)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusInternalServerError {
+		return nil, oapiGen.Pagination{}, fmt.Errorf(
+			"GetTrainingDetails: %w",
+			ErrInternalServerError,
+		)
+	}
+
+	dest := oapiGen.GetTrainingsDetails200JSONResponse{}
+	dec := json.NewDecoder(res.Body)
+	err = dec.Decode(&dest)
+	if err != nil {
+		return nil, oapiGen.Pagination{}, fmt.Errorf("GetTrainingDetails: %w", err)
+	}
+
+	return dest.Details, dest.Pagination, nil
+}
+
 func GetTrainingsInCurrentWeek() ([]oapiGen.TrainingDetail, error) {
 	res, err := http.Get(BaseUrl + "/trainings/details/current-week")
 	if err != nil {

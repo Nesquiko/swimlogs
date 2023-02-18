@@ -197,8 +197,8 @@ func TestGetAllSessions(t *testing.T) {
 		t.Fatalf("expected successfull reponse, but response was %+v", sessions)
 	}
 
-	if len(*sessions.Sessions) != n {
-		t.Fatalf("count of sessions, expected %d, but there were %d", n, len(*sessions.Sessions))
+	if len(sessions.Sessions) != n {
+		t.Fatalf("count of sessions, expected %d, but there were %d", n, len(sessions.Sessions))
 	}
 }
 

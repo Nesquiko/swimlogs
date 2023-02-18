@@ -1,15 +1,56 @@
 <div>
-	<!-- TODO fetch first 3 pages of training details -->
-	<!-- TODO if bottom is reached, fetch next 1 page of training details -->
-	<!-- TODO when a training details is clicked, navigate to the training edit page -->
+	<comps:Banner :Text='&c.bannerText'></comps:Banner> 
+
+	<comps:BugDialog
+		vg-if="c.showBug"
+		@Close='c.showBug = false'
+		:ErrMsg='c.bugErrMsg'>
+	</comps:BugDialog>
+
+	<vg-template vg-for='_, td := range c.tds'>
+		<p vg-content='td'></p>
+	</vg-template>
 </div>
 
 <script type="application/x-go">
 import (
+	"errors"
+
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/api"
+	"github.com/Nesquiko/swimlogs/pkg/view/comps"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
 	"github.com/vugu/vgrouter"
 )
 
 type TrainingsPage struct {
 	vgrouter.NavigatorRef
+	state.TrainingStateStorageRef
+
+	tds        []oapiGen.TrainingDetail
+	bannerText string
+	showBug    bool
+	bugErrMsg  string
+}
+
+func (c *TrainingsPage) Init(ctx vugu.InitCtx) {
+	// TODO load next page when scrolled to bottom
+	go func() {
+		tds, err := c.TrainingDetails()
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			c.bannerText = "Couldn't load training details"
+			return
+		case err != nil:
+			c.bannerText = "Couldn't load training details"
+			c.bugErrMsg = err.Error()
+			c.showBug = true
+			return
+		}
+		ctx.EventEnv().Lock()
+		c.tds = *tds
+		ctx.EventEnv().UnlockRender()
+	}()
+
 }
 </script>
