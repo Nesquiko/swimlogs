@@ -56,10 +56,17 @@ func (psql *postgresDbConn) GetDetailsOfTrainings(page, pageSize int) ([]Trainin
 	trainings := make([]Training, 0, pageSize)
 	for rows.Next() {
 		var t Training
-		err = rows.Scan(&t.Id, &t.Date, &t.Day, &t.StartTime, &t.DurationMin, &t.TotalDistance)
+		var startTime string
+		err = rows.Scan(&t.Id, &t.Date, &t.Day, &startTime, &t.DurationMin, &t.TotalDistance)
 		if err != nil {
 			return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
 		}
+		st, err := time.Parse(TimeLayout, startTime)
+		if err != nil {
+			return nil, fmt.Errorf("GetDetailsOfTrainings: %w", err)
+		}
+		startTime = st.Format("15:04")
+		t.StartTime = &startTime
 		trainings = append(trainings, t)
 	}
 	if err = rows.Err(); err != nil {
