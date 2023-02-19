@@ -22,19 +22,21 @@ func main() {
 
 	mux := devutil.NewMux()
 
-	mux.Match(devutil.NoFileExt, devutil.DefaultAutoReloadIndex.Replace(
-		"<title>Vugu App</title>",
-		"<title>SwimLogs</title>",
-	).Replace(
-		"<!-- styles -->",
-		`<meta name="viewport" content="width=device-width, initial-scale=1" />`,
-	).Replace(
-		"",
-		`<script src="https://kit.fontawesome.com/43a06af138.js" crossorigin="anonymous"></script>`),
-	)
+	mux.Match(devutil.NoFileExt, indexHTML)
 	mux.Exact("/main.wasm", devutil.NewMainWasmHandler(wc))
 	mux.Exact("/wasm_exec.js", devutil.NewWasmExecJSHandler(wc))
 	mux.Default(devutil.NewFileServer().SetDir("./wasm"))
 
 	log.Fatal(http.ListenAndServe(l, mux))
 }
+
+var indexHTML = devutil.DefaultAutoReloadIndex.Replace(
+	"<title>Vugu App</title>",
+	"<title>SwimLogs</title>",
+).Replace(
+	"<!-- styles -->",
+	`<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link href="./tailwind.css" rel="stylesheet">`,
+).Replace(
+	"<!-- scripts -->",
+	`<script src="https://kit.fontawesome.com/43a06af138.js" crossorigin="anonymous"></script>`)
