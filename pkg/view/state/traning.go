@@ -3,6 +3,7 @@ package state
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
 	"github.com/Nesquiko/swimlogs/pkg/view/api"
@@ -26,6 +27,10 @@ func (tss *TrainingStateStorage) TrainingDetails() (*[]oapiGen.TrainingDetail, e
 			return nil, fmt.Errorf("TrainingDetails: %w", err)
 		}
 	}
+
+	sort.Slice(tss.details, func(i, j int) bool {
+		return tss.details[i].Date.After(tss.details[j].Date.Time)
+	})
 
 	return &tss.details, nil
 }
@@ -57,6 +62,9 @@ func (tss *TrainingStateStorage) LoadNextDetailsPage() error {
 		return fmt.Errorf("LoadNextDetailsPage: %w", err)
 	}
 	tss.details = append(tss.details, details...)
+	sort.Slice(tss.details, func(i, j int) bool {
+		return tss.details[i].Date.After(tss.details[j].Date.Time)
+	})
 	tss.lastPagination = pagination
 	return nil
 }

@@ -1,4 +1,4 @@
-<div>
+<div class="h-[48em] overflow-y-scroll m-auto" @scroll='c.scrollHandler(event)'>
 	<comps:Banner :Text='&c.bannerText'></comps:Banner> 
 
 	<comps:BugDialog
@@ -7,9 +7,13 @@
 		:ErrMsg='c.bugErrMsg'>
 	</comps:BugDialog>
 
-	<vg-template vg-for='_, td := range c.tds'>
-		<p vg-content='td'></p>
-	</vg-template>
+	<div>
+		<vg-template vg-for='_, td := range c.tds'>
+			<div @click=''>
+				<comps:TrainingCard :TrainingDetail='td'></comps:TrainingCard>
+			</div>
+		</vg-template>
+	</div>
 </div>
 
 <script type="application/x-go">
@@ -34,7 +38,6 @@ type TrainingsPage struct {
 }
 
 func (c *TrainingsPage) Init(ctx vugu.InitCtx) {
-	// TODO load next page when scrolled to bottom
 	go func() {
 		tds, err := c.TrainingDetails()
 		switch {
@@ -52,5 +55,26 @@ func (c *TrainingsPage) Init(ctx vugu.InitCtx) {
 		ctx.EventEnv().UnlockRender()
 	}()
 
+}
+
+func (c *TrainingsPage) scrollHandler(event vugu.DOMEvent) {
+	scrollHeight := event.PropFloat64("target", "scrollHeight")
+	scrollTop := event.PropFloat64("target", "scrollTop")
+	clientHeight := event.PropFloat64("target", "clientHeight")
+	if scrollHeight-scrollTop-clientHeight < 1 {
+		go func() {
+			err := c.LoadNextDetailsPage()
+			if err != nil {
+				return
+			}
+			tds, err := c.TrainingDetails()
+			if err != nil {
+				return
+			}
+			event.EventEnv().Lock()
+			c.tds = *tds
+			event.EventEnv().UnlockRender()
+		}()
+	}
 }
 </script>

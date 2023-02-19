@@ -1,0 +1,27 @@
+<div class="w-11/12 shadow border border-solid rounded-lg border-slate-100 mx-auto my-4 p-2 bg-white">
+	<div class="flex justify-evenly">
+		<p class="text-lg"><b>Date:</b> <span vg-content='c.date'></span></p>
+		<p class="text-lg"><b>Day:</b> <span vg-content='strings.Title(string(c.TrainingDetail.Day))'></span></p>
+	</div>
+	<div class="flex justify-between">
+		<p class="text-base"><b>Start:</b> <span vg-content='c.TrainingDetail.StartTime'></span></p>
+		<p class="text-base"><b>Duration:</b> <span vg-content='c.TrainingDetail.DurationMin'></span>min</p>
+		<p class="text-base"><b>Distance:</b> <span vg-content='c.TrainingDetail.TotalDist'></span>m</p>
+	</div>
+</div>
+<script type="application/x-go">
+import (
+	"strings"
+
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+)
+
+type TrainingCard struct {
+	TrainingDetail oapiGen.TrainingDetail `vugu:"data"`
+	date           string
+}
+
+func (c *TrainingCard) Init(ctx vugu.InitCtx) {
+	c.date = c.TrainingDetail.Date.Format("02.01.2006")
+}
+</script>
