@@ -9,11 +9,13 @@
 
 	<div>
 		<vg-template vg-for='_, td := range c.tds'>
-			<div @click=''>
+			<div @click='c.editTraining(event, td)'>
 				<comps:TrainingCard :TrainingDetail='td'></comps:TrainingCard>
 			</div>
 		</vg-template>
 	</div>
+
+	<vg-comp expr='&c.snackbar'></vg-comp>
 </div>
 
 <script type="application/x-go">
@@ -35,6 +37,8 @@ type TrainingsPage struct {
 	bannerText string
 	showBug    bool
 	bugErrMsg  string
+
+	snackbar comps.Snackbar
 }
 
 func (c *TrainingsPage) Init(ctx vugu.InitCtx) {
@@ -76,5 +80,30 @@ func (c *TrainingsPage) scrollHandler(event vugu.DOMEvent) {
 			event.EventEnv().UnlockRender()
 		}()
 	}
+}
+
+func (c *TrainingsPage) editTraining(event vugu.DOMEvent, td oapiGen.TrainingDetail) {
+	go func() {
+		t, err := api.FetchTraining(td.Id)
+		switch {
+		case errors.Is(err, api.ErrInternalServerError), errors.Is(err, api.ErrServerUnreachable):
+			c.snackbar.Show(event.EventEnv(), "Couldn't load training")
+			return
+		case errors.Is(err, api.ErrNotFound):
+			c.snackbar.Show(event.EventEnv(), "Training wasn't found")
+			return
+		case err != nil:
+			event.EventEnv().Lock()
+			c.bugErrMsg = err.Error()
+			c.showBug = true
+			event.EventEnv().UnlockRender()
+			return
+		}
+
+		c.SaveEditTraining(t)
+		event.EventEnv().Lock()
+		c.Navigate("/edit/training", nil)
+		event.EventEnv().UnlockRender()
+	}()
 }
 </script>

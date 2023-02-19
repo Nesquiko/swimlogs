@@ -15,7 +15,7 @@
 				<span vg-content='strings.Title(string(day))'></span> <span vg-content='c.WeekMap[day][0].Date.Format("02.01.")'></span>
 			</h3>
 			<div vg-for='_, d := range c.WeekMap[day]'>
-				<div @click="c.FetchTraining(event, d.Id)">
+				<div @click="c.fetchTraining(event, d.Id)">
 					<comps:TrainingDetailCard
 						:StartTime="d.StartTime"
 						:DurationMin="d.DurationMin"
@@ -71,7 +71,7 @@ type LandingPage struct {
 	state.TrainingStateStorageRef
 }
 
-func (c *LandingPage) FetchTraining(event vugu.DOMEvent, id uuid.UUID) {
+func (c *LandingPage) fetchTraining(event vugu.DOMEvent, id uuid.UUID) {
 	go func() {
 		if c.IsInCache(id) {
 			event.EventEnv().Lock()

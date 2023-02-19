@@ -14,10 +14,22 @@ const PageSize = 10
 
 type TrainingStateStorage struct {
 	t                  *oapiGen.Training
+	editTraining       *oapiGen.Training
 	currentWeekDetails []oapiGen.TrainingDetail
 
 	details        []oapiGen.TrainingDetail
 	lastPagination oapiGen.Pagination
+}
+
+func (tss *TrainingStateStorage) GetEditTraining() (oapiGen.Training, error) {
+	if tss.editTraining == nil {
+		return oapiGen.Training{}, errors.New("no training stored")
+	}
+	return *tss.editTraining, nil
+}
+
+func (tss *TrainingStateStorage) SaveEditTraining(t oapiGen.Training) {
+	tss.editTraining = &t
 }
 
 func (tss *TrainingStateStorage) TrainingDetails() (*[]oapiGen.TrainingDetail, error) {

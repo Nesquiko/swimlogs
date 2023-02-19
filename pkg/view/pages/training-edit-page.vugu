@@ -1,0 +1,32 @@
+<div>
+	<p vg-content='c.t'></p>
+</div>
+<script type="application/x-go">
+import (
+	"github.com/Nesquiko/swimlogs/oapi-generator/oapiGen"
+	"github.com/Nesquiko/swimlogs/pkg/view/state"
+	"github.com/vugu/vgrouter"
+)
+
+type TrainingEditPage struct {
+	vgrouter.NavigatorRef
+	state.TrainingStateStorageRef
+
+	t oapiGen.Training
+}
+
+func (c *TrainingEditPage) Init(ctx vugu.InitCtx) {
+	go func() {
+		t, err := c.GetEditTraining()
+		if err != nil {
+			ctx.EventEnv().Lock()
+			c.Navigate("/trainings", nil)
+			ctx.EventEnv().UnlockRender()
+		}
+
+		ctx.EventEnv().Lock()
+		c.t = t
+		ctx.EventEnv().UnlockRender()
+	}()
+}
+</script>
