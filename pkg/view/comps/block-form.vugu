@@ -66,8 +66,9 @@ type BlockForm struct {
 
 func (c *BlockForm) Init(ctx vugu.InitCtx) {
 	c.repeatInputClass = inputClassNormal
-	c.Block.Sets = make([]oapiGen.Set, 1)
-	c.Block.Repeat = 1
+	if c.Block.Sets == nil {
+		c.Block.Sets = make([]oapiGen.Set, 1)
+	}
 	c.Block.TotalDist = new(int)
 	sort.Slice(c.Block.Sets, func(i, j int) bool {
 		return c.Block.Sets[i].Num < c.Block.Sets[j].Num
@@ -88,7 +89,8 @@ func (c *BlockForm) Compute(ctx vugu.ComputeCtx) {
 
 func (c *BlockForm) defaultRepeat() string {
 	if c.Block.Repeat == 0 {
-		return ""
+		c.Block.Repeat = 1
+		return "1"
 	}
 	return strconv.Itoa(c.Block.Repeat)
 }

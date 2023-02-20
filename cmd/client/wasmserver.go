@@ -36,7 +36,7 @@ var indexHTML = devutil.DefaultAutoReloadIndex.Replace(
 ).Replace(
 	"<!-- styles -->",
 	`<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link href="./tailwind.css" rel="stylesheet">`,
+	<link href="/tailwind.css" rel="stylesheet">`,
 ).Replace(
 	"<!-- scripts -->",
 	`<script src="https://kit.fontawesome.com/43a06af138.js" crossorigin="anonymous"></script>`)
