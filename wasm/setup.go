@@ -80,12 +80,12 @@ func vuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 		),
 	)
 
-	router.MustAddRouteExact(
-		"/edit/training",
-		vgrouter.RouteHandlerFunc(
-			func(*vgrouter.RouteMatch) { root.Body = &pages.TrainingEditPage{} },
-		),
-	)
+	// router.MustAddRouteExact(
+	// 	"/edit/training",
+	// 	vgrouter.RouteHandlerFunc(
+	// 		func(*vgrouter.RouteMatch) { root.Body = &pages.TrainingEditPage{} },
+	// 	),
+	// )
 
 	// router.SetNotFound(vgrouter.RouteHandlerFunc(
 	// 	func(rm *vgrouter.RouteMatch) {

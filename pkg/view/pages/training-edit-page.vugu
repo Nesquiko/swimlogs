@@ -1,3 +1,6 @@
+<!-- Vugu isn't ready for production (or I dont know how to use it), disabling editting of trainings -->
+<!-- couldnt get the training session form to only use TrainingSessionForm with static reference -->
+<!-- thus, the Init wasn't called when I wanted, or the values weren't set in Init -->
 <div class='mx-auto text-center'>
 	<comps:Banner :Text='&c.bannerText'></comps:Banner>
 
@@ -10,15 +13,15 @@
 	<div vg-if='c.bannerText == ""'>
 		<comps:TrainingForm :Training='&c.t' :InvalidTraining='c.invalidT'></comps:TrainingForm>
 		<hr class="mx-auto w-11/12 h-px border-0 bg-slate-500 my-2">
-		<vg-comp expr='&c.TrainingSessionForm'></vg-comp>
+		<comps:TrainingSessionForm :Training='&c.t'></comps:TrainingSessionForm>
 
 		<button
 			vg-if='!c.isLoading'
-			@click=''
+			@click='fmt.Println(c.t.SessionId, c.t.Date)'
 			class="m-4 bg-sky-500 focus:ring-4 focus:outline-none focus:ring-sky-300
 					rounded-lg w-11/12 px-4 py-2 text-center shadow text-white
 					text-xl font-semibold"
-			>Create Training
+			>Edit Training
 		</button>
 
 		<vg-comp expr='&c.Snackbar'></vg-comp>
@@ -44,8 +47,7 @@ type TrainingEditPage struct {
 	showBug    bool
 	bugErrMsg  string
 
-	TrainingSessionForm comps.TrainingSessionForm
-	Snackbar            comps.Snackbar
+	Snackbar comps.Snackbar
 }
 
 func (c *TrainingEditPage) Init(ctx vugu.InitCtx) {
@@ -59,7 +61,6 @@ func (c *TrainingEditPage) Init(ctx vugu.InitCtx) {
 
 		ctx.EventEnv().Lock()
 		c.t = t
-		c.TrainingSessionForm = comps.TrainingSessionForm{Training: &c.t}
 		ctx.EventEnv().UnlockRender()
 	}()
 }

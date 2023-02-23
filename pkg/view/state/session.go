@@ -10,11 +10,14 @@ import (
 type SessionStateStorage struct {
 	editSession *oapiGen.Session
 	sessions    []oapiGen.Session
+
+	reloadSessions bool
 }
 
 func (sss *SessionStateStorage) InsertNewSession(s oapiGen.Session) {
 	sss.sessions = append(sss.sessions, s)
 	util.OrderByDays(&sss.sessions)
+	sss.reloadSessions = true
 }
 
 func (sss *SessionStateStorage) SaveEditSession(s oapiGen.Session) {
@@ -45,7 +48,7 @@ func (sss *SessionStateStorage) UpdateSessionInStorage(s oapiGen.Session) {
 }
 
 func (sss *SessionStateStorage) GetSessions() ([]oapiGen.Session, error) {
-	if sss.sessions == nil || len(sss.sessions) == 0 {
+	if sss.sessions == nil || len(sss.sessions) == 0 || sss.reloadSessions {
 		return nil, errors.New("no sessions stored")
 	}
 	return sss.sessions, nil
