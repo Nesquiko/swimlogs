@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-	content: ['./pkg/view/**/*.vugu', './pkg/view/comps/comps.go'],
-	theme: {
-		extend: {}
-	},
-	plugins: []
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  theme: {
+    extend: {}
+  },
+  plugins: []
 }

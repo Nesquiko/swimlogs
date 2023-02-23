@@ -3,3 +3,4 @@
 bin/
 *_vgen*
 tailwindcss
+frontend/node_modules
