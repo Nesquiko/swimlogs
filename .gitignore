@@ -1,6 +1,5 @@
 .vscode/
 .task/
-oapiGen/
 bin/
 *_vgen*
 tailwindcss
