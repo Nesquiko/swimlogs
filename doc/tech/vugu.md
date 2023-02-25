@@ -11,5 +11,3 @@ there is a line:
 This line serves an index.html with wrong title, meta tags. So for now there is
 a hacky replace to default tags with correct ones. Didn't come up with better
 solution.
-
-<!-- TODO: how to serve the index.html, or how to do it with only root.vugu?  -->
