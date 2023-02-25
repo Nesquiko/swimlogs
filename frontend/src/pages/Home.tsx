@@ -14,8 +14,9 @@ import EditIcon from '@suid/icons-material/Edit'
 import PoolIcon from '@suid/icons-material/Pool'
 import AccessTimeIcon from '@suid/icons-material/AccessTime'
 import { trainingApi } from '../state/api'
-import { GetDetailsCurrWeekResponse, TrainingDetail } from '../generated'
+import { GetDetailsCurrWeekResponse } from '../generated'
 import DetailCard from '../component/DetailCard'
+import { NavLink } from 'solid-app-router'
 
 async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
   const result = trainingApi.getTrainingsDetailsCurrentWeek()
@@ -39,12 +40,14 @@ const Home: Component = () => {
     >
       <List>
         <ListItem>
-          <ListItemButton>
-            <ListItemIcon>
-              <PoolIcon />
-            </ListItemIcon>
-            <ListItemText primary="Create Training" />
-          </ListItemButton>
+          <NavLink href="/training/create">
+            <ListItemButton>
+              <ListItemIcon>
+                <PoolIcon />
+              </ListItemIcon>
+              <ListItemText primary="Create Training" />
+            </ListItemButton>
+          </NavLink>
         </ListItem>
         <ListItem>
           <ListItemButton>
@@ -108,4 +111,5 @@ const Home: Component = () => {
     </div>
   )
 }
+
 export default Home
