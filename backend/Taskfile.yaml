@@ -6,11 +6,6 @@ vars:
   TESTDB_PORT: 55555
 
 tasks:
-  tailwindcss:
-    deps: [check:tailwindcss]
-    cmds:
-      - ./tailwindcss -i ./wasm/main.css -o ./wasm/tailwind.css --watch
-
   test:coverage:
     cmds:
       - task: setup-test-db
@@ -41,12 +36,12 @@ tasks:
     dir: ./oapi-generator
     cmds:
       - mkdir -p oapiGen
-      - oapi-codegen -config ./config/server.cfg.yaml ../doc/openapi/{{.SPEC}}
-      - oapi-codegen -config ./config/models.cfg.yaml ../doc/openapi/{{.SPEC}}
+      - oapi-codegen -config ./config/server.cfg.yaml ../../doc/openapi/{{.SPEC}}
+      - oapi-codegen -config ./config/models.cfg.yaml ../../doc/openapi/{{.SPEC}}
       - sed -i '5s|^|//lint:file-ignore ST1005 generated code\n|' ./oapiGen/server.gen.go
     vars:
       SPEC:
-        sh: ls -v ../doc/openapi | tail -n 1
+        sh: ls -v ../../doc/openapi | tail -n 1
 
   migration:new:
     deps: [check:migrate]
@@ -114,8 +109,3 @@ tasks:
     preconditions:
       - sh: command -v oapi-codegen
         msg: Oapi-codegen not installed! See ./doc/tech/setup.md to setup the project.
-
-  check:tailwindcss:
-    preconditions:
-      - sh: command -v ./tailwindcss
-        msg: Tailwind binary not installed! See https://tailwindcss.com/blog/standalone-cli
