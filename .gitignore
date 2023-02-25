@@ -4,3 +4,4 @@ backend/bin
 frontend/node_modules
 
 *_vgen.go
+frontend/src/generated
