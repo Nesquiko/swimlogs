@@ -389,7 +389,6 @@ components:
       content:
         application/json:
           schema:
-            type: object
             $ref: '#/components/schemas/ErrorDetail'
           example:
             title: Session wasn't found
