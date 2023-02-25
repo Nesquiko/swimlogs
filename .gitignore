@@ -1,6 +1,6 @@
-.vscode/
-.task/
-bin/
-*_vgen*
-tailwindcss
+.vscode
+backend/.task/checksum
+backend/bin
 frontend/node_modules
+
+*_vgen.go
