@@ -1,0 +1,5 @@
+package: openapi
+generate:
+  chi-server: true
+  embedded-spec: true
+output: ./pkg/openapi/server.gen.go
