@@ -30,16 +30,20 @@ func NewServerHandler(swimLogs app.SwimLogsApp, feOrigin string) http.Handler {
 	s := SwimLogsServer{swimLogs}
 
 	r := chi.NewRouter()
+	serverOpts := openapi.ChiServerOptions{
+		BaseRouter:  r,
+		Middlewares: Middleware(feOrigin),
+		BaseURL:     "",
+	}
 	// group for handling OPTIONS requests
 	r.Group(func(r chi.Router) {
 		r.Use(cors(feOrigin))
 		r.Options("/*", nil)
 	})
 
-	serverOpts := openapi.ChiServerOptions{
-		BaseRouter:  r,
-		Middlewares: Middleware(feOrigin),
-	}
+	r.Group(func(r chi.Router) {
+		r.Get(serverOpts.BaseURL+"/monitoring/heartbeat", s.Heartbeat)
+	})
 
 	return openapi.HandlerWithOptions(&s, serverOpts)
 }

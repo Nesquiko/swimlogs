@@ -1,5 +1,4 @@
 .DEFAULT_GOAL := help
-OPENAPI_SPEC?=../swimlogsApi.yaml
 DOCKER_IMAGE_VERSION?=latest
 
 .PHONY: audit
@@ -26,8 +25,8 @@ help: ## show this help message
 generate: ## generate Go server code from openapi spec
 	@echo "Generating Go server code from openapi spec"
 	mkdir -p ./pkg/openapi
-	oapi-codegen -config ./openapi/server.cfg.yaml ${OPENAPI_SPEC}
-	oapi-codegen -config ./openapi/models.cfg.yaml ${OPENAPI_SPEC}
+	oapi-codegen -config ./openapi/server.cfg.yaml swimlogsApi.yaml
+	oapi-codegen -config ./openapi/models.cfg.yaml swimlogsApi.yaml
 	sed -i '5s|^|//lint:file-ignore ST1005 generated code\n|' ./pkg/openapi/server.gen.go
 
 .PHONY: local

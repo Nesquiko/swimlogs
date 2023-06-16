@@ -31,6 +31,7 @@ func Middleware(feOrigin string) []openapi.MiddlewareFunc {
 			hlog.FromRequest(r).Info().
 				Int("status", status).
 				Int("size", size).
+				// defaults is miliseconds, to override use zerolog.DurationFieldUnit
 				Dur("duration", duration).
 				Msg("")
 		}),

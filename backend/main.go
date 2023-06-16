@@ -27,8 +27,8 @@ const (
 )
 
 func main() {
-	appHost := flag.String("host", AppHostEnvVar, "application host")
-	appPort := flag.String("port", AppPortEnvVar, "application port")
+	appHost := flag.String("host", os.Getenv(AppHostEnvVar), "application host")
+	appPort := flag.String("port", os.Getenv(AppPortEnvVar), "application port")
 
 	dbHost := flag.String("db-host", os.Getenv(DbHostEnvVar), "db host")
 	dbPort := flag.String("db-port", os.Getenv(DbPortEnvVar), "db port")
