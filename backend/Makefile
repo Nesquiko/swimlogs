@@ -1,4 +1,6 @@
 .DEFAULT_GOAL := help
+OPENAPI_SPEC?=../swimlogsApi.yaml
+DOCKER_IMAGE_VERSION?=latest
 
 .PHONY: audit
 audit: ## tidy dependencies and vet
@@ -9,6 +11,13 @@ audit: ## tidy dependencies and vet
 	go vet ./...
 	staticcheck ./...
 
+.PHONY: docker-build
+docker-build: ## [version=$1] build docker image with the given version
+	@echo 'Building docker image with version ${version}'
+	cp ../swimlogsApi.yaml ./swimlogsApi.yaml
+	docker build --tag docker.io/nesquiko/swimlogs:${DOCKER_IMAGE_VERSION} .
+	rm ./swimlogsApi.yaml
+
 .PHONY: help
 help: ## show this help message
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -17,8 +26,8 @@ help: ## show this help message
 generate: ## generate Go server code from openapi spec
 	@echo "Generating Go server code from openapi spec"
 	mkdir -p ./pkg/openapi
-	oapi-codegen -config ./openapi/server.cfg.yaml ../swimlogsApi.yaml
-	oapi-codegen -config ./openapi/models.cfg.yaml ../swimlogsApi.yaml
+	oapi-codegen -config ./openapi/server.cfg.yaml ${OPENAPI_SPEC}
+	oapi-codegen -config ./openapi/models.cfg.yaml ${OPENAPI_SPEC}
 	sed -i '5s|^|//lint:file-ignore ST1005 generated code\n|' ./pkg/openapi/server.gen.go
 
 .PHONY: local
