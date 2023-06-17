@@ -1,6 +1,5 @@
 import { SessionApi } from '../generated'
-import { config } from './api'
 
-const sessionApi = new SessionApi(config)
+const sessionApi = new SessionApi()
 
 export { sessionApi }
