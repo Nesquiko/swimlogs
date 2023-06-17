@@ -11,11 +11,9 @@ audit: ## tidy dependencies and vet
 	staticcheck ./...
 
 .PHONY: docker-build
-docker-build: ## [version=$1] build docker image with the given version
+docker-build: ## build docker image, to override version use DOCKER_IMAGE_VERSION=X.X.X
 	@echo 'Building docker image with version ${version}'
-	cp ../swimlogsApi.yaml ./swimlogsApi.yaml
-	docker build --tag docker.io/nesquiko/swimlogs:${DOCKER_IMAGE_VERSION} .
-	rm ./swimlogsApi.yaml
+	docker build --tag docker.io/nesquiko/swimlogs-backend:${DOCKER_IMAGE_VERSION} .
 
 .PHONY: help
 help: ## show this help message
@@ -30,7 +28,7 @@ generate: ## generate Go server code from openapi spec
 	sed -i '5s|^|//lint:file-ignore ST1005 generated code\n|' ./pkg/openapi/server.gen.go
 
 .PHONY: local
-local: ## run local server
+local: ## run local server, needs a local postgres database
 	@echo "Running local server"
 	go run . -host localhost -port 42069 \
 		-db-host localhost -db-port 5432 \
