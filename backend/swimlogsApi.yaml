@@ -10,8 +10,6 @@ info:
 servers:
   - url: 143.42.26.45:42069
     description: Prod backend server
-  - url: http://localhost:42069
-    description: Local testing server
 
 tags:
   - name: Session
@@ -819,3 +817,4 @@ components:
         - distance
         - what
         - startingRule
+
