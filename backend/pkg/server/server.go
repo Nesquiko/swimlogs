@@ -32,9 +32,10 @@ func NewServerHandler(swimLogs app.SwimLogsApp, feOrigin string) http.Handler {
 	r := chi.NewRouter()
 	serverOpts := openapi.ChiServerOptions{
 		BaseRouter:  r,
-		Middlewares: Middleware(feOrigin),
+		Middlewares: PublicMiddleware(feOrigin),
 		BaseURL:     "",
 	}
+
 	// group for handling OPTIONS requests
 	r.Group(func(r chi.Router) {
 		r.Use(cors(feOrigin))

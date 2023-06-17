@@ -43,12 +43,10 @@ func main() {
 
 	log.Logger = log.With().Caller().Logger()
 	if !*jsonLogs {
-		log.Logger = log.Output(
-			zerolog.ConsoleWriter{
-				Out:             os.Stderr,
-				FormatTimestamp: func(i interface{}) string { return time.Now().Format("2006-01-02 15:04:05.000") },
-			}).
-			With().Caller().Logger()
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, FormatTimestamp: func(i interface{}) string { return time.Now().Format("2006-01-02 15:04:05.000") }}).
+			With().
+			Caller().
+			Logger()
 	}
 
 	conf := data.PostgresConnConf{
