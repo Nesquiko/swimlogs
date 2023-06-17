@@ -1,24 +1,27 @@
 version: '3'
 services:
   backend:
-    build:
-      context: ./backend/
+    image: nesquiko/swimlogs-backend:1.0.0
     ports:
       - 42069:42069
     environment:
-      - APP_HOST=0.0.0.0
+      - APP_HOST=0.0.0.0 # this is inside docker
       - APP_PORT=42069
-
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_USER=swimlogs
       - DATABASE_PASSWORD=swimlogs
       - DATABASE_NAME=swimlogs
-      - FE_ORIGIN=localhost:3000
+      - FE_ORIGIN=http://www.swimlogs.com
+    restart: always
+    healthcheck:
+      test: 'wget --tries=1 --spider http://localhost:42069/monitoring/heartbeat || exit 1'
+      interval: 5s
+      timeout: 3s
+      retries: 3
     depends_on:
       db:
         condition: service_healthy
-
   db:
     image: postgres
     restart: always
@@ -34,6 +37,14 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    image: nesquiko/swimlogs-frontend:1.0.0
+    ports:
+      - 80:80
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   db:
-    driver: local
