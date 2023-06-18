@@ -64,6 +64,7 @@ const TrainingPreview: Component<TrainingPreviewProps> = (props) => {
       <span class="text-2xl">
         Distance in training <b>{props.training?.totalDistance}m</b>
       </span>
+      <div class="h-32 w-full"></div>
     </div>
   )
 }
