@@ -1,5 +1,27 @@
 version: '3.8'
 services:
+
+  nginx:
+    image: nginx:1.25.1
+    container_name: nginx
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - /opt/swimlogs/dist:/usr/share/nginx/html:ro
+      - /opt/swimlogs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /opt/swimlogs/certbot/conf:/etc/letsencrypt:ro
+      - /opt/swimlogs/certbot/www:/var/www/certbot:ro
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - /opt/swimlogs/certbot/conf:/etc/letsencrypt
+      - /opt/swimlogs/certbot/www:/var/www/certbot
+    command: certonly --non-interactive --keep-until-expiring --webroot -w /var/www/certbot --email lukas.castven@gmail.com -d www.swimlogs.com --agree-tos
+
   backend:
     image: nesquiko/swimlogs-backend:1.0.0
     container_name: backend
@@ -39,25 +61,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  frontend:
-    image: nesquiko/swimlogs-frontend:1.0.0
-    container_name: frontend
-    ports:
-      - 80:80
-      - 443:443
-    restart: always
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: certonly --non-interactive --keep-until-expiring --webroot -w /var/www/certbot --email lukas.castven@gmail.com -d www.swimlogs.com --agree-tos
 
 volumes:
   db:
