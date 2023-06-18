@@ -8,17 +8,15 @@ info:
   description: Openapi specification for SwimLogs API.
 
 servers:
-  - url: https://www.swimlogs.com/api
+  - url: https://www.swimlogs.com
     description: Prod backend server
-  - url: http://localhost:42069/api
-    description: Local testing server
 
 tags:
   - name: Session
   - name: Training
 
 paths:
-  /sessions:
+  /api/sessions:
     get:
       description: Return all sessions
       tags:
@@ -87,7 +85,7 @@ paths:
                 title: Duplicate session
                 details: Session already exists
 
-  /sessions/{id}:
+  /api/sessions/{id}:
     parameters:
       - name: id
         in: path
@@ -147,7 +145,7 @@ paths:
         409:
           $ref: '#/components/responses/EditConflictResponse'
 
-  /trainings:
+  /api/trainings:
     post:
       description: Creates new training
       tags:
@@ -165,7 +163,7 @@ paths:
                 $ref: '#/components/schemas/TrainingDetail'
         400:
           $ref: '#/components/responses/InvalidTrainingErrorResponse'
-  /trainings/{id}:
+  /api/trainings/{id}:
     parameters:
       - name: id
         in: path
@@ -220,7 +218,7 @@ paths:
         404:
           $ref: '#/components/responses/TrainingNotFoundErrorResponse'
 
-  /trainings/details:
+  /api/trainings/details:
     get:
       description: Returns paginated list of details about trainings,
         ordered by when they were created
@@ -271,7 +269,7 @@ paths:
                 title: Page can't be less than 0
                 detail: Page can't be less than 0, was '-1'.
 
-  /trainings/details/current-week:
+  /api/trainings/details/current-week:
     get:
       description: Returns list of all trainings in current week
       tags:

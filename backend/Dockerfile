@@ -25,6 +25,6 @@ COPY --from=builder /swimlogs-app /swimlogs-app
 EXPOSE 42069
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
-	CMD wget --tries=1 --spider http://localhost:42069/api/monitoring/heartbeat || exit 1
+	CMD wget --tries=1 --spider http://localhost:42069/monitoring/heartbeat || exit 1
 
 CMD ["/swimlogs-app"]

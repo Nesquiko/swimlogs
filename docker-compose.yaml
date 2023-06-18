@@ -2,6 +2,7 @@ version: '3'
 services:
   backend:
     image: nesquiko/swimlogs-backend:1.0.0
+    container_name: backend
     ports:
       - 42069:42069
     environment:
@@ -12,7 +13,7 @@ services:
       - DATABASE_USER=swimlogs
       - DATABASE_PASSWORD=swimlogs
       - DATABASE_NAME=swimlogs
-      - FE_ORIGIN=http://www.swimlogs.com
+      - FE_ORIGIN=https://www.swimlogs.com
     restart: always
     healthcheck:
       test: 'wget --tries=1 --spider http://localhost:42069/monitoring/heartbeat || exit 1'
@@ -25,6 +26,7 @@ services:
 
   db:
     image: postgres
+    container_name: db
     restart: always
     environment:
       - POSTGRES_USER=swimlogs
@@ -40,6 +42,7 @@ services:
 
   frontend:
     image: nesquiko/swimlogs-frontend:1.0.0
+    container_name: frontend
     ports:
       - 80:80
       - 443:443
@@ -50,6 +53,7 @@ services:
 
   certbot:
     image: certbot/certbot
+    container_name: certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
