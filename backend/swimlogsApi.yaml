@@ -8,8 +8,10 @@ info:
   description: Openapi specification for SwimLogs API.
 
 servers:
-  - url: 143.42.26.45:42069
+  - url: https://www.swimlogs.com/api
     description: Prod backend server
+  - url: http://localhost:42069/api
+    description: Local testing server
 
 tags:
   - name: Session

@@ -23,7 +23,6 @@ func PublicMiddleware(feOrigin string) []openapi.MiddlewareFunc {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load OpenAPI spec")
 	}
-	oas.Servers = nil
 
 	// dont move things around, order matters, executes last to first
 	return []openapi.MiddlewareFunc{
