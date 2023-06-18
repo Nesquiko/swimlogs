@@ -4,8 +4,9 @@ import {
   TrainingApi,
   TrainingDetail
 } from '../generated'
+import config from './api'
 
-const trainingApi = new TrainingApi()
+const trainingApi = new TrainingApi(config)
 
 async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
   const result = trainingApi.getTrainingsDetailsCurrentWeek()
