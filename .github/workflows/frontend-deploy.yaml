@@ -8,9 +8,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v3
-      - run: cd frontend
+      - run: rm swimlogsApi.yaml # delete sym link
+      - run: cp ../backend/swimlogsApi.yaml . # hard copy the file
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -18,7 +22,7 @@ jobs:
       - run: npm run build
       - uses: garygrossgarten/github-action-scp@release
         with:
-          local: dist
+          local: frontend/dist
           remote: /opt/swimlogs/dist
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
