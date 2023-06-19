@@ -26,7 +26,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           # removes all files with dynamic names, which on copy wont be rewritten
-          script: rm -f /opt/swimlogs/dist/assets
+          script: rm -f /opt/swimlogs/dist/assets/*
       - uses: garygrossgarten/github-action-scp@release
         with:
           local: frontend/dist
