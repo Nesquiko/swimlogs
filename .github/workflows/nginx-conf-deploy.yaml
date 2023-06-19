@@ -1,0 +1,25 @@
+name: NGINX config deploy
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nginx.conf'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "nginx.conf"
+          target: /opt/swimlogs/nginx
+      - uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: cd /opt/swimlogs; cat ci-passwd | sudo --prompt="" -S docker-compose restart nginx
