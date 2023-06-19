@@ -20,6 +20,13 @@ jobs:
           node-version: '18'
       - run: npm install
       - run: npm run build
+      - uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          # removes all files with dynamic names, which on copy wont be rewritten
+          script: rm -f /opt/swimlogs/dist/assets
       - uses: garygrossgarten/github-action-scp@release
         with:
           local: frontend/dist
