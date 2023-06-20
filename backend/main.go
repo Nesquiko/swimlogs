@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -48,6 +49,13 @@ func main() {
 			Caller().
 			Logger()
 	}
+
+	loc, err := time.LoadLocation(os.Getenv("TZ"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load timezone")
+	}
+	log.Info().Str("tz", loc.String()).Msg("loaded timezone")
+	time.Local = loc
 
 	conf := data.PostgresConnConf{
 		Host: *dbHost,
