@@ -15,6 +15,9 @@ services:
       - /opt/swimlogs/certbot/www:/var/www/certbot:ro
     environment:
       - TZ=Europe/Bratislava
+    depends_on:
+      backend:
+        condition: service_healthy
 
   certbot:
     image: certbot/certbot
@@ -25,7 +28,7 @@ services:
     command: certonly --non-interactive --keep-until-expiring --webroot -w /var/www/certbot --email lukas.castven@gmail.com -d www.swimlogs.com --agree-tos
 
   backend:
-    image: nesquiko/swimlogs-backend:1.0.2
+    image: nesquiko/swimlogs-backend:1.0.3
     container_name: backend
     ports:
       - 42069:42069

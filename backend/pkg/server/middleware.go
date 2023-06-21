@@ -37,7 +37,7 @@ func PublicMiddleware(feOrigin string) []openapi.MiddlewareFunc {
 		}),
 		hlog.RequestHandler("req"),
 		hlog.UserAgentHandler("user_agent"),
-		hlog.RemoteAddrHandler("ip"),
+		hlog.CustomHeaderHandler("ip", "X-Real-Ip"),
 		hlog.NewHandler(l),
 		middleware.OapiRequestValidator(oas),
 		cors(feOrigin),
