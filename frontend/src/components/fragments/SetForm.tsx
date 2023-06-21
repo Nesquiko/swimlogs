@@ -149,7 +149,7 @@ export const Set: Component<SetProps> = (props) => {
             'sets',
             (set) => set.num === props.set.num,
             'what',
-            what
+            what.trim()
           )
           setInvalidTraining(
             'blocks',

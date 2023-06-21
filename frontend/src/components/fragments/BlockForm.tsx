@@ -101,7 +101,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
               'blocks',
               (block) => block.num === props.block.num,
               'name',
-              val
+              val.trim()
             )
             setInvalidTraining(
               'blocks',
