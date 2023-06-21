@@ -22,4 +22,4 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          script: cd /opt/swimlogs; ./reload-nginx.sh
+          script: cd /opt/swimlogs; docker-compose restart nginx
