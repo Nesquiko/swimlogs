@@ -22,6 +22,12 @@ type Result[T any] struct {
 	hasError bool
 }
 
+func (r *Result[T]) IfSuccess(f func()) {
+	if !r.hasError {
+		f()
+	}
+}
+
 func (r *Result[T]) HasError() bool {
 	return r.hasError
 }

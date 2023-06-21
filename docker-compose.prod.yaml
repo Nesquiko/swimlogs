@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-
   nginx:
     image: nginx:1.25.1
     container_name: nginx
@@ -28,7 +27,7 @@ services:
     command: certonly --non-interactive --keep-until-expiring --webroot -w /var/www/certbot --email lukas.castven@gmail.com -d www.swimlogs.com --agree-tos
 
   backend:
-    image: nesquiko/swimlogs-backend:1.0.3
+    image: nesquiko/swimlogs-backend:1.1.0
     container_name: backend
     ports:
       - 42069:42069
