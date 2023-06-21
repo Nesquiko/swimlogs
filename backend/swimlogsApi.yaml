@@ -375,6 +375,12 @@ components:
     TrainingDetailsCurrentWeekResponse:
       description: List of training details in current week,
         sorted by date and start time
+      headers:
+        Cache-Control:
+          description: Cache-Control header with max-age=3600
+          schema:
+            type: string
+          example: max-age=3600
       content:
         application/json:
           schema:

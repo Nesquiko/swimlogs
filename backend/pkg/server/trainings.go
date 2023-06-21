@@ -33,7 +33,7 @@ func (s *SwimLogsServer) GetTrainingsDetails(
 func (s *SwimLogsServer) GetTrainingsDetailsCurrentWeek(w http.ResponseWriter, r *http.Request) {
 	res := s.app.GetTrainingDetailsForCurrentWeek()
 	res.IfSuccess(func() {
-		r.Header.Add("Cache-Control", "max-age=3600")
+		w.Header().Add("Cache-Control", "max-age=3600")
 	})
 	respondWithJSON(w, res.Code(), res.Body())
 }
