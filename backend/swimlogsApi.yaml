@@ -16,7 +16,7 @@ tags:
   - name: Training
 
 paths:
-  /api/sessions:
+  /sessions:
     get:
       description: Return all sessions
       tags:
@@ -85,7 +85,7 @@ paths:
                 title: Duplicate session
                 details: Session already exists
 
-  /api/sessions/{id}:
+  /sessions/{id}:
     parameters:
       - name: id
         in: path
@@ -145,7 +145,7 @@ paths:
         409:
           $ref: '#/components/responses/EditConflictResponse'
 
-  /api/trainings:
+  /trainings:
     post:
       description: Creates new training
       tags:
@@ -163,7 +163,7 @@ paths:
                 $ref: '#/components/schemas/TrainingDetail'
         400:
           $ref: '#/components/responses/InvalidTrainingErrorResponse'
-  /api/trainings/{id}:
+  /trainings/{id}:
     parameters:
       - name: id
         in: path
@@ -218,7 +218,7 @@ paths:
         404:
           $ref: '#/components/responses/TrainingNotFoundErrorResponse'
 
-  /api/trainings/details:
+  /trainings/details:
     get:
       description: Returns paginated list of details about trainings,
         ordered by when they were created
@@ -269,7 +269,7 @@ paths:
                 title: Page can't be less than 0
                 detail: Page can't be less than 0, was '-1'.
 
-  /api/trainings/details/current-week:
+  /trainings/details/current-week:
     get:
       description: Returns list of all trainings in current week
       tags:

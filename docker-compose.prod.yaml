@@ -25,7 +25,7 @@ services:
     command: certonly --non-interactive --keep-until-expiring --webroot -w /var/www/certbot --email lukas.castven@gmail.com -d www.swimlogs.com --agree-tos
 
   backend:
-    image: nesquiko/swimlogs-backend:1.0.1
+    image: nesquiko/swimlogs-backend:1.0.2
     container_name: backend
     ports:
       - 42069:42069
