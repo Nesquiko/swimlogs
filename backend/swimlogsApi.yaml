@@ -8,7 +8,7 @@ info:
   description: Openapi specification for SwimLogs API.
 
 servers:
-  - url: https://www.swimlogs.com
+  - url: https://www.swimlogs.com/api
     description: Prod backend server
 
 tags:

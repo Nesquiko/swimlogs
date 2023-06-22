@@ -15,7 +15,6 @@ export function cloneBlock(b: NewBlock) {
     newSet.what = s.what
     newSet.distance = s.distance
     newSet.startingRule = Object.assign({}, s.startingRule)
-
     newBlock.sets[i] = newSet
   })
 
