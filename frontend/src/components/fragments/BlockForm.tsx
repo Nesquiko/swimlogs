@@ -178,7 +178,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
         Add Set
       </button>
       {/* Add space at the bottom, so the buttons dont hide block form */}
-      <div class="h-32 w-full"></div>
+      <div class="h-48 w-full"></div>
     </div>
   )
 }

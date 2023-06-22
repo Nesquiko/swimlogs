@@ -1,6 +1,7 @@
 import { batch, Component, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { StartingRuleType } from '../../generated'
+import { cloneBlock } from '../../lib/clone'
 import { mergeInvalidBlocks, validateBlocks } from '../../lib/validation'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 import { BlockForm } from './BlockForm'
@@ -100,6 +101,28 @@ export const BlocksForm: Component = () => {
     })
   }
 
+  const duplicateCurrentBlock = () => {
+    const newB = cloneBlock(training.blocks[currentBlock()])
+    newB.num = training.blocks.length
+
+    batch(() => {
+      setTraining(
+        'blocks',
+        produce((blocks) => blocks.push(newB))
+      )
+      setCurrentBlock(training.blocks.length - 1)
+      setInvalidTraining(
+        'blocks',
+        produce((blocks) =>
+          blocks?.push({
+            num: newB.num,
+            sets: [{ num: newB.sets[0].num, startingRule: {} }]
+          })
+        )
+      )
+    })
+  }
+
   const deleteCurrentBlock = () => {
     batch(() => {
       setTraining('blocks', (blocks) =>
@@ -126,15 +149,23 @@ export const BlocksForm: Component = () => {
           </div>
         }
       >
+        {/* TODO somehow make this prettier */}
+        <button
+          class="float-right mx-2 h-10 w-10 rounded-full bg-red-500 text-white shadow"
+          onClick={() => deleteCurrentBlock()}
+        >
+          <i class="fa-solid fa-trash fa-2xl"></i>
+        </button>
         <BlockForm block={training.blocks[currentBlock()]} />
       </Show>
       <div class="fixed bottom-16 mx-auto my-4 flex w-screen justify-center">
         <button
-          class="mr-12 h-12 w-12 rounded-full bg-red-500 text-2xl text-white shadow"
-          onClick={() => deleteCurrentBlock()}
+          class="mr-8 h-12 w-12 rounded-full bg-sky-500 text-2xl text-white shadow"
+          onClick={() => duplicateCurrentBlock()}
         >
-          <i class="fa-solid fa-trash fa-lg"></i>
+          <i class="fa-regular fa-copy"></i>
         </button>
+
         <For each={shownBlockButtons()}>
           {(blockButton) => {
             return (
@@ -162,7 +193,7 @@ export const BlocksForm: Component = () => {
           }}
         </For>
         <button
-          class="ml-12 h-12 w-12 rounded-full bg-sky-500 text-2xl text-white shadow"
+          class="ml-8 h-12 w-12 rounded-full bg-green-500 text-2xl text-white shadow"
           onClick={() => addNewBlock()}
         >
           <i class="fa-sharp fa-solid fa-plus fa-lg"></i>
