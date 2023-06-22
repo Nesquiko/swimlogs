@@ -126,7 +126,7 @@ export const Set: Component<SetProps> = (props) => {
           }}
         />
         <i
-          class="fa-solid fa-trash fa-xl ml-auto text-red-500"
+          class="fa-solid fa-trash fa-xl ml-auto cursor-pointer text-red-500"
           onClick={() => props.deleteSet()}
         ></i>
       </div>
@@ -149,7 +149,7 @@ export const Set: Component<SetProps> = (props) => {
             'sets',
             (set) => set.num === props.set.num,
             'what',
-            what
+            what.trim()
           )
           setInvalidTraining(
             'blocks',

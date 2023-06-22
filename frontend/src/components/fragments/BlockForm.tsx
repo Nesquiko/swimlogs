@@ -101,7 +101,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
               'blocks',
               (block) => block.num === props.block.num,
               'name',
-              val
+              val.trim()
             )
             setInvalidTraining(
               'blocks',
@@ -159,15 +159,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
         Distance in this block <b>{props.block.totalDistance}m</b>
       </span>
 
-      <div class="flex items-center justify-between space-x-4">
-        <h1 class="my-4 text-2xl">Sets</h1>
-        <button
-          class="rounded bg-sky-500 p-2 font-bold text-white"
-          onClick={() => addSet()}
-        >
-          Add Set
-        </button>
-      </div>
+      <h1 class="my-4 text-2xl">Sets</h1>
       <For each={props.block.sets}>
         {(set) => {
           return (
@@ -179,8 +171,14 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           )
         }}
       </For>
+      <button
+        class="float-right rounded bg-sky-500 p-2 font-bold text-white"
+        onClick={() => addSet()}
+      >
+        Add Set
+      </button>
       {/* Add space at the bottom, so the buttons dont hide block form */}
-      <div class="h-32 w-full"></div>
+      <div class="h-48 w-full"></div>
     </div>
   )
 }
