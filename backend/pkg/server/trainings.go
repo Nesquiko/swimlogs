@@ -32,9 +32,6 @@ func (s *SwimLogsServer) GetTrainingsDetails(
 // (GET /trainings/details/current-week)
 func (s *SwimLogsServer) GetTrainingsDetailsCurrentWeek(w http.ResponseWriter, r *http.Request) {
 	res := s.app.GetTrainingDetailsForCurrentWeek()
-	res.IfSuccess(func() {
-		w.Header().Add("Cache-Control", "max-age=3600")
-	})
 	respondWithJSON(w, res.Code(), res.Body())
 }
 
