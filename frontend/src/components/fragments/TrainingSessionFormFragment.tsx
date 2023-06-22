@@ -127,6 +127,7 @@ export const TrainingSessionForm: Component = () => {
                 onChange={(e) => {
                   const val = e.target.value
                   const newTime = val + ':' + training.startTime.slice(3)
+                  setInvalidTraining('startTime', undefined)
                   setTraining('startTime', newTime)
                 }}
               >
@@ -154,6 +155,7 @@ export const TrainingSessionForm: Component = () => {
                 onChange={(e) => {
                   const val = e.target.value
                   const newTime = training.startTime.slice(0, 3) + val
+                  setInvalidTraining('startTime', undefined)
                   setTraining('startTime', newTime)
                 }}
               >
