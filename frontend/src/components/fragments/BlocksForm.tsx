@@ -1,6 +1,6 @@
 import { batch, Component, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
-import { StartingRuleType } from '../../generated'
+import { NewBlock, StartingRuleType } from '../../generated'
 import { cloneBlock } from '../../lib/clone'
 import { mergeInvalidBlocks, validateBlocks } from '../../lib/validation'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
@@ -82,41 +82,28 @@ export const BlocksForm: Component = () => {
         }
       ]
     }
-
-    batch(() => {
-      setTraining(
-        'blocks',
-        produce((blocks) => blocks.push(newB))
-      )
-      setCurrentBlock(training.blocks.length - 1)
-      setInvalidTraining(
-        'blocks',
-        produce((blocks) =>
-          blocks?.push({
-            num: newB.num,
-            sets: [{ num: newB.sets[0].num, startingRule: {} }]
-          })
-        )
-      )
-    })
+    addBlock(newB)
   }
 
   const duplicateCurrentBlock = () => {
     const newB = cloneBlock(training.blocks[currentBlock()])
     newB.num = training.blocks.length
+    addBlock(newB)
+  }
 
+  const addBlock = (b: NewBlock) => {
     batch(() => {
       setTraining(
         'blocks',
-        produce((blocks) => blocks.push(newB))
+        produce((blocks) => blocks.push(b))
       )
       setCurrentBlock(training.blocks.length - 1)
       setInvalidTraining(
         'blocks',
         produce((blocks) =>
           blocks?.push({
-            num: newB.num,
-            sets: [{ num: newB.sets[0].num, startingRule: {} }]
+            num: b.num,
+            sets: [{ num: b.sets[0].num, startingRule: {} }]
           })
         )
       )
@@ -149,22 +136,22 @@ export const BlocksForm: Component = () => {
           </div>
         }
       >
-        {/* TODO somehow make this prettier */}
-        <button
-          class="float-right mx-2 h-10 w-10 rounded-full bg-red-500 text-white shadow"
-          onClick={() => deleteCurrentBlock()}
-        >
-          <i class="fa-solid fa-trash fa-2xl"></i>
-        </button>
-        <BlockForm block={training.blocks[currentBlock()]} />
+        <BlockForm
+          block={training.blocks[currentBlock()]}
+          onDelete={() => {
+            deleteCurrentBlock()
+          }}
+        />
       </Show>
       <div class="fixed bottom-16 mx-auto my-4 flex w-screen justify-center">
-        <button
-          class="mr-8 h-12 w-12 rounded-full bg-sky-500 text-2xl text-white shadow"
-          onClick={() => duplicateCurrentBlock()}
-        >
-          <i class="fa-regular fa-copy"></i>
-        </button>
+        <Show when={training.blocks.length !== 0}>
+          <button
+            class="mr-8 h-12 w-12 rounded-full bg-sky-500 text-2xl text-white shadow"
+            onClick={() => duplicateCurrentBlock()}
+          >
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </Show>
 
         <For each={shownBlockButtons()}>
           {(blockButton) => {

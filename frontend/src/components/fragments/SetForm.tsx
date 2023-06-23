@@ -12,6 +12,7 @@ interface SetProps {
   set: NewTrainingSet
   blockNum: number
   deleteSet: () => void
+  duplicateSet: () => void
 }
 
 export const Set: Component<SetProps> = (props) => {
@@ -45,7 +46,10 @@ export const Set: Component<SetProps> = (props) => {
       class="mx-auto my-2 rounded-lg border border-solid border-slate-300 p-2 shadow"
     >
       <div class="my-2 flex items-center">
-        <span class="mr-4 text-lg">Set {props.set.num + 1}</span>
+        <i
+          class="fa-regular fa-copy fa-xl mr-auto cursor-pointer text-sky-500"
+          onClick={() => props.duplicateSet()}
+        ></i>
         <input
           type="number"
           placeholder="1"
@@ -162,7 +166,7 @@ export const Set: Component<SetProps> = (props) => {
         }}
       />
       <div class="flex items-center space-x-4">
-        <label for="start">Starting</label>
+        <label for="start">Start</label>
         <select
           id="start"
           class="my-2 rounded-md border border-solid border-slate-300 bg-white p-2 focus:border-sky-500 focus:outline-none focus:ring"

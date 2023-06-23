@@ -34,7 +34,7 @@ const TrainingPreview: Component<TrainingPreviewProps> = (props) => {
           <span class="text-lg">
             {set.repeat} x {set.distance}m
           </span>
-          <span class="text-lg">{set.what}</span>
+          <span class="whitespace-pre-wrap text-lg">{set.what}</span>
           <Show when={set.startingRule.type !== StartingRuleType.None}>
             <span class="text-lg">
               Start {set.startingRule.type} {set.startingRule.seconds}"

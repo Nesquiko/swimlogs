@@ -1,12 +1,14 @@
 import { batch, Component, createEffect, For } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewBlock, NewTrainingSet, StartingRuleType } from '../../generated'
+import { cloneSet } from '../../lib/clone'
 import { SmallIntMax } from '../../lib/consts'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 import { Set } from './SetForm'
 
 interface BlockFormProps {
   block: NewBlock
+  onDelete: () => void
 }
 
 export const BlockForm: Component<BlockFormProps> = (props) => {
@@ -27,7 +29,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
     )
   })
 
-  const addSet = () => {
+  const addNewSet = () => {
     const newSet = {
       num: props.block.sets.length,
       repeat: 1,
@@ -37,19 +39,28 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
         type: StartingRuleType.None
       }
     } as NewTrainingSet
+    addSet(newSet)
+  }
 
+  const duplicateSet = (setNum: number) => {
+    const newSet = cloneSet(props.block.sets[setNum])
+    newSet.num = props.block.sets.length
+    addSet(newSet)
+  }
+
+  const addSet = (s: NewTrainingSet) => {
     batch(() => {
       setTraining(
         'blocks',
         (block) => block.num === props.block.num,
         'sets',
-        produce((sets) => sets.push(newSet))
+        produce((sets) => sets.push(s))
       )
       setInvalidTraining(
         'blocks',
         (b) => b.num === props.block.num,
         'sets',
-        produce((sets) => sets?.push({ num: newSet.num, startingRule: {} }))
+        produce((sets) => sets?.push({ num: s.num, startingRule: {} }))
       )
     })
   }
@@ -79,8 +90,8 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
 
   return (
     <div class="m-4">
-      <div class="my-2 flex items-center space-x-4">
-        <label class="w-1/5 text-2xl" for="name">
+      <div class="flex items-center">
+        <label class="w-3/5 text-2xl md:w-1/5" for="name">
           Block {props.block.num + 1}
         </label>
         <input
@@ -112,8 +123,8 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           }}
         />
       </div>
-      <div class="my-2 flex items-center space-x-4">
-        <label class="w-1/5 text-2xl" for="repeat">
+      <div class="my-2 flex items-center">
+        <label class="w-3/5 text-2xl md:w-1/5" for="repeat">
           Repeat
         </label>
         <input
@@ -155,11 +166,18 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           }}
         />
       </div>
-      <span class="text-2xl">
-        Distance in this block <b>{props.block.totalDistance}m</b>
-      </span>
+      <div class="flex justify-between">
+        <span class="my-2 text-2xl">
+          Total: <b>{props.block.totalDistance}m</b>
+        </span>
+        <button
+          class="mx-2 h-10 w-10 rounded-full bg-red-500 text-white shadow"
+          onClick={() => props.onDelete()}
+        >
+          <i class="fa-solid fa-trash fa-xl"></i>
+        </button>
+      </div>
 
-      <h1 class="my-4 text-2xl">Sets</h1>
       <For each={props.block.sets}>
         {(set) => {
           return (
@@ -167,13 +185,14 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
               set={set}
               blockNum={props.block.num}
               deleteSet={() => deleteSet(set.num)}
+              duplicateSet={() => duplicateSet(set.num)}
             />
           )
         }}
       </For>
       <button
         class="float-right rounded bg-sky-500 p-2 font-bold text-white"
-        onClick={() => addSet()}
+        onClick={() => addNewSet()}
       >
         Add Set
       </button>
