@@ -28,4 +28,4 @@ jobs:
         with:
           context: ./backend
           tags: ${{ steps.metadata.outputs.tags }}
-          push: ${{ github.ref_type == 'tag' && }}
+          push: ${{ github.ref_type == 'tag' }}
