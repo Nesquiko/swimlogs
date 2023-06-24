@@ -1,3 +1,4 @@
+import { Trans } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import {
   Block,
@@ -8,6 +9,7 @@ import {
   Training,
   TrainingSet
 } from '../generated'
+import { formatDate } from '../lib/datetime'
 
 interface TrainingPreviewProps {
   training?: Training | NewTraining
@@ -48,27 +50,25 @@ const TrainingPreview: Component<TrainingPreviewProps> = (props) => {
     )
   }
 
+  const day = props.training?.date
+    .toLocaleString('en', { weekday: 'long' })
+    .toLowerCase()
+
   return (
-    <div class="m-2 space-y-2">
-      <h1 class="text-2xl">
-        Date{' '}
-        <b>
-          {props.training?.date.toLocaleDateString('sk-SK').replaceAll(' ', '')}
-        </b>
-      </h1>
-      <h1 class="text-2xl">
-        Day{' '}
-        <b>{props.training?.date.toLocaleString('en', { weekday: 'long' })}</b>
-      </h1>
-      <h1 class="text-2xl">
-        Start time <b>{props.training?.startTime}</b>
-      </h1>
-      <h1 class="text-2xl">
-        Duration <b>{props.training?.durationMin} min</b>
-      </h1>
+    <div class=" m-2 space-y-2">
+      <div class="mx-2">
+        <p class="text-3xl">
+          <Trans key={day!} />
+        </p>
+        <p class="text-3xl">{formatDate(props.training?.date)}</p>
+        <p class="text-3xl">
+          {props.training?.startTime} {props.training?.durationMin} min
+        </p>
+      </div>
       <For each={props.training?.blocks}>{block}</For>
       <span class="text-2xl">
-        Distance in training <b>{props.training?.totalDistance}m</b>
+        <Trans key="distance.in.training" />{' '}
+        <b>{props.training?.totalDistance}m</b>
       </span>
       <div class="h-32 w-full"></div>
     </div>

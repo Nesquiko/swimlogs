@@ -1,3 +1,4 @@
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import { Day, Session } from '../../generated'
 import {
@@ -8,7 +9,7 @@ import {
   StartTimeHours,
   StartTimeMinutes
 } from '../../lib/consts'
-import { formatDate } from '../../lib/dateFormat'
+import { formatDate } from '../../lib/datetime'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 
 export const TrainingSessionForm: Component = () => {
@@ -24,6 +25,7 @@ export const TrainingSessionForm: Component = () => {
   const [day, setDay] = state.day
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
+  const [t] = useTransContext()
 
   const sumbit = () => {
     let isValid = true
@@ -68,25 +70,25 @@ export const TrainingSessionForm: Component = () => {
           }}
         >
           <option value="" disabled={day() !== NullDay}>
-            Select day
+            <Trans key="select.day" />
           </option>
           <For each={Object.keys(Day)}>
             {(d) => (
               <option selected={d === day()} value={d}>
-                {d}
+                <Trans key={d.toLowerCase()} />
               </option>
             )}
           </For>
         </select>
         <div class="flex items-center">
           <label class="mx-4 w-3/4 text-xl font-bold" for="duration">
-            Duration in minutes
+            <Trans key="duration.in.minutes" />
           </label>
           <input
             id="duration"
             type="number"
             min="1"
-            placeholder="minutes"
+            placeholder={t('minutes', 'minutes')}
             classList={{
               'border-red-500 text-red-500':
                 invalidTraining.durationMin !== undefined,
@@ -111,7 +113,9 @@ export const TrainingSessionForm: Component = () => {
           />
         </div>
         <div class="flex items-center justify-between">
-          <label class="mx-4 text-xl font-bold">Start time</label>
+          <label class="mx-4 text-xl font-bold">
+            <Trans key="starttime" />
+          </label>
           <div
             classList={{
               'border-red-500 text-red-500':
@@ -196,7 +200,8 @@ export const TrainingSessionForm: Component = () => {
             const sessionStr = e.target.value
             const session = JSON.parse(sessionStr) as Session
 
-            const sesName = `${session.day} ${session.startTime} (${session.durationMin} min)`
+            const localizedDay = t(session.day.toLowerCase(), session.day)
+            const sesName = `${localizedDay} ${session.startTime} (${session.durationMin} min)`
             setSelectedSession(sesName)
 
             setDay(session.day)
@@ -207,11 +212,12 @@ export const TrainingSessionForm: Component = () => {
           }}
         >
           <option value="" disabled={selectedSession() !== ''}>
-            Select session
+            <Trans key="select.session" />
           </option>
           <For each={sessions()?.sessions ?? []}>
             {(session) => {
-              const sesName = `${session.day} ${session.startTime} (${session.durationMin} min)`
+              const localizedDay = t(session.day.toLowerCase(), session.day)
+              const sesName = `${localizedDay} ${session.startTime} (${session.durationMin} min)`
               const sessionStr = JSON.stringify(session)
               return (
                 <option
@@ -236,7 +242,7 @@ export const TrainingSessionForm: Component = () => {
       <div class="fixed bottom-1/2 flex flex-col items-center justify-center">
         <div class="flex w-5/6 items-center text-center">
           <label class="mx-4 w-1/2 text-xl font-bold" for="date">
-            Date
+            <Trans key="date" />
           </label>
           <select
             id="date"
@@ -252,7 +258,7 @@ export const TrainingSessionForm: Component = () => {
             }}
           >
             <option value="" disabled={training.date !== NullDate}>
-              Select date
+              <Trans key="select.date" />
             </option>
             <For each={dates()}>
               {(d, i) => {
@@ -280,7 +286,7 @@ export const TrainingSessionForm: Component = () => {
             class="rounded border border-sky-500 px-4 py-2 font-bold"
             onClick={() => setFromSession(false)}
           >
-            Set manually
+            <Trans key="set.manually" />
           </button>
           <button
             classList={{
@@ -292,7 +298,7 @@ export const TrainingSessionForm: Component = () => {
             disabled={sessions()?.sessions.length === 0}
             onClick={() => setFromSession(true)}
           >
-            Assign session
+            <Trans key="assign.session" />
           </button>
         </div>
       </div>
@@ -301,7 +307,7 @@ export const TrainingSessionForm: Component = () => {
         class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
         onClick={() => sumbit()}
       >
-        Next
+        <Trans key="next" />
       </button>
     </div>
   )

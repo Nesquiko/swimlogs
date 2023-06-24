@@ -18,6 +18,7 @@ import { sessionApi } from '../state/session'
 import Spinner from '../components/Spinner'
 import { CreateTrainingContextProvider } from '../components/context/CreateTrainingContextProvider'
 import { NullDate, NullStartTime } from '../lib/consts'
+import { useTransContext } from '@mbarzda/solid-i18next'
 
 const CreateTrainingPage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
@@ -64,18 +65,22 @@ const CreateTrainingPage: Component = () => {
     setTraining('totalDistance', totalDistance)
   })
 
+  const [t] = useTransContext()
   const navigate = useNavigate()
   async function createTraining() {
     const res = trainingApi.createTraining({ newTraining: training })
     await res
       .then((res) => {
         addTrainingDetail(res)
-        openToast('Training created', ToastType.SUCCESS)
+        openToast(t('training.created', 'Training created'), ToastType.SUCCESS)
         navigate('/', { replace: true })
       })
       .catch((e: ResponseError) => {
         console.error('error', e)
-        openToast('Error creating training', ToastType.ERROR)
+        openToast(
+          t('training.creation.error', 'Error creating training'),
+          ToastType.ERROR
+        )
         navigate('/', { replace: true })
       })
   }
