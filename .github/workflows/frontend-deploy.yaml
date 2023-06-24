@@ -12,25 +12,32 @@ jobs:
       run:
         working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v3
-      - run: rm swimlogsApi.yaml # delete sym link
-      - run: cp ../backend/swimlogsApi.yaml . # hard copy the file
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Remove sym link to OpenApi spec
+        run: rm swimlogsApi.yaml
+      - name: Copy OpenApi spec from backend
+        run: cp ../backend/swimlogsApi.yaml . # hard copy the file
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
           node-version: "18"
-      - run: npm install
-      - run: npm run build
-      - uses: appleboy/ssh-action@v0.1.10
+      - name: Insall dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Remove old artifacts
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          # removes all files with dynamic names, which on copy wont be rewritten
           script: rm -f /opt/swimlogs/dist/assets/*
-      - uses: garygrossgarten/github-action-scp@release
+      - name: Deploy new artifacts
+        uses: appleboy/scp-action@v0.1.4
         with:
-          local: frontend/dist
-          remote: /opt/swimlogs/dist
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
+          source: frontend/dist/*
+          target: /opt/swimlogs/dist
