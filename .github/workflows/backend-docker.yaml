@@ -4,9 +4,9 @@ on:
     branches:
       - main
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - 'v[0-9]+.[0-9]+.[0-9]+'
     paths:
-      - "backend/**"
+      - 'backend/**'
 
 jobs:
   test:
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20'
           cache: false # since it will be rebuilt in docker
       - run: go get .
       - run: go test -p 1 -count=1 -v ./...
@@ -71,4 +71,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: sed -E 's|(nesquiko/swimlogs-backend:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ steps.metadata.outputs.tags }}|' docker-compose.prod.yaml
+      - run: sed -i -E 's|(nesquiko/swimlogs-backend:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ steps.metadata.outputs.tags }}|' docker-compose.yaml
+      - uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: 'docker-compose.yaml'
+          target: /opt/swimlogs
+      - uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /opt/swimlogs
+            docker-compose down
+            docker-compose up -d
