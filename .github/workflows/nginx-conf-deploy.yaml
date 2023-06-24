@@ -9,15 +9,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: appleboy/scp-action@v0.1.4
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Deploy new NGINX config
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: "nginx.conf"
           target: /opt/swimlogs/nginx
-      - uses: appleboy/ssh-action@v0.1.10
+      - name: Restart NGINX container
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
