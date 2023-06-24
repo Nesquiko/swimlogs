@@ -5,8 +5,6 @@ on:
       - main
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
-    paths:
-      - 'backend/**'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,12 +17,13 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=raw,value={{sha}},enable=${{ github.ref_type != 'tag' }}
-      - uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          tags: ${{ steps.metadata.outputs.tags }}
-          push: ${{ github.ref_type == 'tag' }}
+      # - uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKER_HUB_USERNAME }}
+      #     password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      # - uses: docker/build-push-action@v4
+      #   with:
+      #     context: ./backend
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     push: ${{ github.ref_type == 'tag' }}
+      - run: sed -E 's|(nesquiko/swimlogs-backend:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ steps.metadata.outputs.tags }}|' docker-compose.prod.yaml
