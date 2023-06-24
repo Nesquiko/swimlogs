@@ -40,4 +40,5 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: frontend/dist/*
-          target: /opt/swimlogs/dist
+          target: /opt/swimlogs/
+          strip_components: 1
