@@ -4,9 +4,9 @@ on:
     branches:
       - main
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - 'v[0-9]+.[0-9]+.[0-9]+'
     paths:
-      - "backend/**"
+      - 'backend/**'
 
 jobs:
   test:
@@ -36,30 +36,38 @@ jobs:
       TEST_DB_NAME: swimlogs_test_db
       INTEGRATION: true
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Golang
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20'
           cache: false # since it will be rebuilt in docker
-      - run: go get .
-      - run: go test -p 1 -count=1 -v ./...
+      - name: Dowloand dependencies
+        run: go get .
+      - name: Test
+        run: go test -p 1 -count=1 -v ./...
 
-  build:
+  build-push-docker:
     if: github.ref_type == 'tag'
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/metadata-action@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Extract tags for Docker
+        uses: docker/metadata-action@v4
         id: metadata
         with:
           images: nesquiko/swimlogs-backend
           tags: type=semver,pattern={{version}}
-      - uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - uses: docker/build-push-action@v4
+      - name: Build & Push image
+        uses: docker/build-push-action@v4
         with:
           context: ./backend
           tags: ${{ steps.metadata.outputs.tags }}
@@ -67,24 +75,29 @@ jobs:
 
   deploy:
     if: github.ref_type == 'tag'
-    needs: [test, build]
+    needs: build-push-docker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - id: extract_version
-        run: echo "::set-output name=version::${GITHUB_REF#refs/tags/v}"
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Extract latest version
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
       - run: echo "Version ${{ steps.extract_version.outputs.version }}"
 
-      - run: sed -E 's|(nesquiko/swimlogs-backend:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ steps.extract_version.outputs.version }}|' docker-compose.yaml
-      - run: sed -i -E 's|(nesquiko/swimlogs-backend:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ steps.extract_version.outputs.version }}|' docker-compose.yaml
-      - uses: appleboy/scp-action@v0.1.4
+      - name: Update docker-compose.yaml
+        run: sed -i -E 's|(nesquiko/swimlogs-backend:)latest|\1${{ steps.extract_version.outputs.version }}|' docker-compose.yaml
+      - name: Deploy new docker-compose.yaml
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "docker-compose.yaml"
+          source: 'docker-compose.yaml'
           target: /opt/swimlogs
-      - uses: appleboy/ssh-action@v0.1.10
+      - name: Restart Docker compose
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
