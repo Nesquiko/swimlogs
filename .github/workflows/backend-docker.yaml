@@ -83,9 +83,6 @@ jobs:
       - name: Extract latest version
         id: extract_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - run: echo "Version ${{ steps.extract_version.outputs.version }}"
-
       - name: Update docker-compose.yaml
         run: sed -i -E 's|(nesquiko/swimlogs-backend:)latest|\1${{ steps.extract_version.outputs.version }}|' docker-compose.yaml
       - name: Deploy new docker-compose.yaml
