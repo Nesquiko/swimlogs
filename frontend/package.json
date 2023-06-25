@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "./generate-openapi.sh ;vite build",
+    "build": "./generate-openapi.sh ;vite build; cp -r ./locales ./dist/locales",
     "serve": "vite preview",
     "generate": "./generate-openapi.sh"
   },
