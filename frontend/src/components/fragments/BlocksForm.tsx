@@ -1,4 +1,4 @@
-import { Trans } from '@mbarzda/solid-i18next'
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { batch, Component, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewBlock, StartingRuleType } from '../../generated'
@@ -16,6 +16,7 @@ export const BlocksForm: Component = () => {
     [, setCurrentComponent]
   ] = useCreateTraining()
   const [currentBlock, setCurrentBlock] = state.currentBlock
+  const [t] = useTransContext()
 
   const sumbit = () => {
     let isValid = true
@@ -147,10 +148,17 @@ export const BlocksForm: Component = () => {
       <div class="fixed bottom-16 mx-auto my-4 flex w-screen justify-center">
         <Show when={training.blocks.length !== 0}>
           <button
-            class="mr-8 h-12 w-12 rounded-full bg-sky-500 text-2xl text-white shadow"
+            class="mr-8 h-12 w-12 rounded-full bg-sky-500 shadow"
             onClick={() => duplicateCurrentBlock()}
+            title={t('duplicate.block', 'Duplicate block')}
           >
-            <i class="fa-regular fa-copy"></i>
+            <img
+              src="/src/assets/copy.svg"
+              class="mx-auto"
+              width={32}
+              height={32}
+              onClick={() => duplicateCurrentBlock()}
+            />
           </button>
         </Show>
 
@@ -184,7 +192,7 @@ export const BlocksForm: Component = () => {
           class="ml-8 h-12 w-12 rounded-full bg-green-500 text-2xl text-white shadow"
           onClick={() => addNewBlock()}
         >
-          <i class="fa-sharp fa-solid fa-plus fa-lg"></i>
+          <img src="/src/assets/plus.svg" />
         </button>
 
         <button

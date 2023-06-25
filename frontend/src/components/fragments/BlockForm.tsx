@@ -173,10 +173,10 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           <Trans key="total" />: <b>{props.block.totalDistance}m</b>
         </span>
         <button
-          class="mx-2 h-10 w-10 rounded-full bg-red-500 text-white shadow"
+          class="h-12 w-12 rounded-full bg-red-500 shadow"
           onClick={() => props.onDelete()}
         >
-          <i class="fa-solid fa-trash fa-xl"></i>
+          <img src="/src/assets/bin.svg" width={48} height={48} />
         </button>
       </div>
 
@@ -193,7 +193,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
         }}
       </For>
       <button
-        class="float-right rounded bg-sky-500 p-2 font-bold text-white"
+        class="float-right my-4 rounded bg-sky-500 p-2 font-bold text-white"
         onClick={() => addNewSet()}
       >
         <Trans key="add.set" />

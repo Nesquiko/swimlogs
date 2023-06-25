@@ -45,5 +45,7 @@
 	"interval": "Interval",
 	"pause": "Pauza",
 	"set.what.placeholder": "Kraul",
-	"home": "Domov"
+	"home": "Domov",
+	"duplicate.set": "Duplikuj sériu",
+	"duplicate.block": "Duplikuj blok"
 }

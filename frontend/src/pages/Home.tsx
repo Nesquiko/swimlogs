@@ -9,7 +9,7 @@ const Home: Component = () => {
   const navigate = useNavigate()
 
   return (
-    <div class="mx-auto mt-2 h-full">
+    <div class="mx-auto mt-4 h-full">
       <h1 class="mx-4 text-2xl font-bold">
         <Trans key="this.weeks.trainings" />
       </h1>
