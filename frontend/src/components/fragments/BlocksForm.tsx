@@ -6,6 +6,8 @@ import { cloneBlock } from '../../lib/clone'
 import { mergeInvalidBlocks, validateBlocks } from '../../lib/validation'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 import { BlockForm } from './BlockForm'
+import copySvg from '../../assets/copy.svg'
+import plusSvg from '../../assets/plus.svg'
 
 export const BlocksForm: Component = () => {
   const [
@@ -153,7 +155,7 @@ export const BlocksForm: Component = () => {
             title={t('duplicate.block', 'Duplicate block')}
           >
             <img
-              src="/src/assets/copy.svg"
+              src={copySvg}
               class="mx-auto"
               width={32}
               height={32}
@@ -192,7 +194,7 @@ export const BlocksForm: Component = () => {
           class="ml-8 h-12 w-12 rounded-full bg-green-500 text-2xl text-white shadow"
           onClick={() => addNewBlock()}
         >
-          <img src="/src/assets/plus.svg" />
+          <img src={plusSvg} />
         </button>
 
         <button

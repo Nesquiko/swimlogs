@@ -1,6 +1,7 @@
 import { A } from '@solidjs/router'
 import { Component } from 'solid-js'
 import { openDrawer } from './Drawer'
+import menuSvg from '../assets/menu.svg'
 
 const Topbar: Component = () => {
   return (
@@ -8,7 +9,7 @@ const Topbar: Component = () => {
       <div class="inline-block w-1/5 align-middle">
         <img
           class="inline-block cursor-pointer"
-          src="/src/assets/menu.svg"
+          src={menuSvg}
           width={40}
           height={40}
           onClick={() => openDrawer()}

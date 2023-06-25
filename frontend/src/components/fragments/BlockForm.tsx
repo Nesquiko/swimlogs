@@ -6,6 +6,7 @@ import { cloneSet } from '../../lib/clone'
 import { SmallIntMax } from '../../lib/consts'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 import { Set } from './SetForm'
+import binSvg from '../../assets/bin.svg'
 
 interface BlockFormProps {
   block: NewBlock
@@ -176,7 +177,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           class="h-12 w-12 rounded-full bg-red-500 shadow"
           onClick={() => props.onDelete()}
         >
-          <img src="/src/assets/bin.svg" width={48} height={48} />
+          <img src={binSvg} width={48} height={48} />
         </button>
       </div>
 

@@ -1,6 +1,9 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { Component, createSignal } from 'solid-js'
+import swimSvg from '../assets/swim.svg'
+import clockSvg from '../assets/clock.svg'
+import homeSvg from '../assets/home.svg'
 
 const [open, setOpen] = createSignal(false)
 
@@ -51,16 +54,16 @@ const Drawer: Component = () => {
         class="fixed left-0 top-0 z-20 h-full w-1/2 transform transition-transform duration-300 ease-in-out sm:w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
       >
         <div class="h-full flex-col justify-start bg-white pt-4">
-          <Item pathname="/" labelKey="home" imgSrc="/src/assets/home.svg" />
+          <Item pathname="/" labelKey="home" imgSrc={homeSvg} />
           <Item
             pathname="/training/create"
             labelKey="create.training"
-            imgSrc="/src/assets/swim.svg"
+            imgSrc={swimSvg}
           />
           <Item
             pathname="/session/create"
             labelKey="create.session"
-            imgSrc="/src/assets/clock.svg"
+            imgSrc={clockSvg}
           />
         </div>
       </div>

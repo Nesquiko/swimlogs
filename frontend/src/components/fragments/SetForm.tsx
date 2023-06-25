@@ -8,6 +8,8 @@ import {
 } from '../../generated'
 import { SmallIntMax } from '../../lib/consts'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
+import copySkySvg from '../../assets/copy-sky.svg'
+import binRedSvg from '../../assets/bin-red.svg'
 
 interface SetProps {
   set: NewTrainingSet
@@ -48,7 +50,7 @@ export const Set: Component<SetProps> = (props) => {
     >
       <div class="my-2 flex items-center">
         <img
-          src="/src/assets/copy-sky.svg"
+          src={copySkySvg}
           class="mr-auto cursor-pointer"
           title={t('duplicate.set', 'Duplicate set')}
           width={36}
@@ -135,7 +137,7 @@ export const Set: Component<SetProps> = (props) => {
           }}
         />
         <img
-          src="/src/assets/bin-red.svg"
+          src={binRedSvg}
           width={48}
           height={48}
           class="ml-auto cursor-pointer"
