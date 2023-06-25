@@ -1,3 +1,4 @@
+import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate, useParams } from '@solidjs/router'
 import { Component, createResource, Show } from 'solid-js'
 import Spinner from '../components/Spinner'
@@ -10,6 +11,7 @@ const TrainingPage: Component = () => {
   const params = useParams()
   const [training] = createResource(() => params.id, getTraining)
 
+  const [t] = useTransContext()
   const navigate = useNavigate()
   async function getTraining(id: string): Promise<Training> {
     const result = trainingApi
@@ -19,9 +21,9 @@ const TrainingPage: Component = () => {
       })
       .catch((e: ResponseError) => {
         console.error('error', e)
-        let msg = 'Server error'
+        let msg = t('server.error', 'Server error')
         if (e.response?.status === 404) {
-          msg = 'Training not found'
+          msg = t('training.not.found', 'Training not found')
         }
         openToast(msg, ToastType.ERROR)
         navigate('/', { replace: true })

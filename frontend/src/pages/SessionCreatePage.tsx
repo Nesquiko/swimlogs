@@ -1,3 +1,4 @@
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate } from '@solidjs/router'
 import { Component, createSignal, For } from 'solid-js'
 import { createStore } from 'solid-js/store'
@@ -17,6 +18,7 @@ const SessionCreatePage: Component = () => {
   const [dayError, setDayError] = createSignal<boolean>(false)
   const [durationError, setDurationError] = createSignal<boolean>(false)
 
+  const [t] = useTransContext()
   const navigate = useNavigate()
   async function createSession() {
     const starT = startTime.hours + ':' + startTime.minutes
@@ -29,12 +31,15 @@ const SessionCreatePage: Component = () => {
         createSessionRequest: session
       })
       .then(() => {
-        openToast('Session created', ToastType.SUCCESS)
+        openToast(t('session.created', 'Session created'), ToastType.SUCCESS)
         navigate('/', { replace: true })
       })
       .catch((e: ResponseError) => {
         console.error('error', e)
-        openToast('Error creating session', ToastType.ERROR)
+        openToast(
+          t('session.creation.error', 'Error creating session'),
+          ToastType.ERROR
+        )
         navigate('/', { replace: true })
       })
   }
@@ -73,22 +78,26 @@ const SessionCreatePage: Component = () => {
           }}
         >
           <option value="" disabled={isDaySelected()}>
-            Select day
+            <Trans key="select.day" />
           </option>
           <For each={Object.keys(Day)}>
-            {(day) => <option value={day}>{day}</option>}
+            {(day) => (
+              <option value={day}>
+                <Trans key={day.toLowerCase()} />
+              </option>
+            )}
           </For>
         </select>
 
         <div class="flex items-center">
           <label class="mx-4 w-3/4 text-xl font-bold" for="duration">
-            Duration in minutes
+            <Trans key="duration.in.minutes" />
           </label>
           <input
             id="duration"
             type="number"
             min="1"
-            placeholder="minutes"
+            placeholder={t('mintes', 'minutes')}
             classList={{
               'border-red-500 text-red-500': durationError(),
               'border-slate-300': !durationError()
@@ -109,7 +118,9 @@ const SessionCreatePage: Component = () => {
         </div>
 
         <div class="flex items-center justify-between">
-          <label class="mx-4 text-xl font-bold">Start time</label>
+          <label class="mx-4 text-xl font-bold">
+            <Trans key="starttime" />
+          </label>
           <div class="my-2 flex w-auto rounded-md border border-slate-300 px-4 py-2 text-xl">
             <select
               name="hours"
@@ -143,7 +154,9 @@ const SessionCreatePage: Component = () => {
   }
   return (
     <div>
-      <h1 class="m-4 text-2xl font-bold">Create Session</h1>
+      <h1 class="m-4 text-2xl font-bold">
+        <Trans key="create.session" />
+      </h1>
 
       {manualTrainingSessionForm()}
 
@@ -152,7 +165,7 @@ const SessionCreatePage: Component = () => {
           class="mx-auto rounded bg-green-600 p-4 text-xl font-bold text-white"
           onClick={createSession}
         >
-          Create Session
+          <Trans key="create.session" />
         </button>
       </div>
     </div>

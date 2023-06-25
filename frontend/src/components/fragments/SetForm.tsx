@@ -1,3 +1,4 @@
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import {
   InvalidTraining,
@@ -18,7 +19,7 @@ interface SetProps {
 export const Set: Component<SetProps> = (props) => {
   const [{ setTraining }, { invalidTraining, setInvalidTraining }, , , ,] =
     useCreateTraining()
-
+  const [t] = useTransContext()
   const getInvalidSet = (invalidTraining: InvalidTraining) => {
     return invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]
   }
@@ -135,7 +136,7 @@ export const Set: Component<SetProps> = (props) => {
         ></i>
       </div>
       <textarea
-        placeholder="Freestyle"
+        placeholder={t('set.what.placeholder', 'Freestyle')}
         maxlength="255"
         classList={{
           'border-red-500 text-red-500':
@@ -166,7 +167,9 @@ export const Set: Component<SetProps> = (props) => {
         }}
       />
       <div class="flex items-center space-x-4">
-        <label for="start">Start</label>
+        <label for="start">
+          <Trans key="start" />
+        </label>
         <select
           id="start"
           class="my-2 rounded-md border border-solid border-slate-300 bg-white p-2 focus:border-sky-500 focus:outline-none focus:ring"
@@ -192,13 +195,15 @@ export const Set: Component<SetProps> = (props) => {
                 selected={typ === props.set.startingRule.type}
                 value={typ}
               >
-                {typ}
+                <Trans key={typ.toLowerCase()} />
               </option>
             )}
           </For>
         </select>
         <Show when={props.set.startingRule.type !== StartingRuleType.None}>
-          <label for="seconds">Seconds</label>
+          <label for="seconds">
+            <Trans key="seconds" />
+          </label>
           <input
             id="seconds"
             type="number"

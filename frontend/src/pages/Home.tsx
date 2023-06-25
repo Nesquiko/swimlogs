@@ -2,6 +2,7 @@ import { Component, createSignal, Show, For } from 'solid-js'
 import { useTrainingsDetails } from '../state/trainings'
 import DetailCard from '../components/DetailCard'
 import { A, useNavigate } from '@solidjs/router'
+import { Trans } from '@mbarzda/solid-i18next'
 
 const Home: Component = () => {
   const [details] = useTrainingsDetails()
@@ -21,11 +22,15 @@ const Home: Component = () => {
         <div class="flex h-full w-1/2 flex-col justify-start space-y-8 bg-white pl-2 pt-4 md:w-1/4 lg:w-1/6">
           <A href="/training/create">
             <i class="fa-solid fa-person-swimming fa-2xl m-2 text-black"></i>
-            <span class="font-bold text-black md:text-xl">Create Training</span>
+            <span class="font-bold text-black md:text-xl">
+              <Trans key="create.training" />
+            </span>
           </A>
           <A href="/session/create">
             <i class="fa-regular fa-clock fa-2xl m-2 text-black"></i>
-            <span class="font-bold text-black md:text-xl">Create Session</span>
+            <span class="font-bold text-black md:text-xl">
+              <Trans key="create.session" />
+            </span>
           </A>
         </div>
       </div>
@@ -34,19 +39,21 @@ const Home: Component = () => {
         class="fixed left-0 top-0 h-full w-screen"
       ></div>
       <div class="mx-auto mt-2 h-full">
-        <h1 class="mx-4 text-2xl font-bold">This week's trainings</h1>
+        <h1 class="mx-4 text-2xl font-bold">
+          <Trans key="this.weeks.trainings" />
+        </h1>
 
         <Show
           when={!details.error}
           fallback={
             <div class="m-4 flex items-center justify-start rounded bg-red-300 p-4 font-bold">
-              Couldn't load training details for this week
+              <Trans key="couldnt.load.trainings" />
             </div>
           }
         >
           <Show when={details()?.details?.length === 0}>
             <div class="m-4 flex items-center justify-start rounded bg-blue-200 p-4 font-bold">
-              No trainings this week
+              <Trans key="no.trainings" />
             </div>
           </Show>
 

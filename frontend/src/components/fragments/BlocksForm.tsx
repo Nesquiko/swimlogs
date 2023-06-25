@@ -1,3 +1,4 @@
+import { Trans } from '@mbarzda/solid-i18next'
 import { batch, Component, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewBlock, StartingRuleType } from '../../generated'
@@ -132,7 +133,7 @@ export const BlocksForm: Component = () => {
         when={training.blocks.length !== 0}
         fallback={
           <div class="m-4 flex items-center justify-start rounded bg-blue-200 p-4 text-xl font-bold">
-            No blocks in training
+            <Trans key="no.blocks.in.training" />
           </div>
         }
       >
@@ -190,13 +191,13 @@ export const BlocksForm: Component = () => {
           class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
           onClick={() => sumbit()}
         >
-          Next
+          <Trans key="next" />
         </button>
         <button
           class="fixed bottom-0 left-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
           onClick={() => setCurrentComponent((c) => c - 1)}
         >
-          Previous
+          <Trans key="previous" />
         </button>
       </div>
     </div>

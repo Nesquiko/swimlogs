@@ -1,3 +1,4 @@
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { batch, Component, createEffect, For } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewBlock, NewTrainingSet, StartingRuleType } from '../../generated'
@@ -14,6 +15,7 @@ interface BlockFormProps {
 export const BlockForm: Component<BlockFormProps> = (props) => {
   const [{ setTraining }, { invalidTraining, setInvalidTraining }] =
     useCreateTraining()
+  const [t] = useTransContext()
 
   createEffect(() => {
     const dist = props.block.sets.reduce(
@@ -90,13 +92,13 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
 
   return (
     <div class="m-4">
-      <div class="flex items-center">
-        <label class="w-3/5 text-2xl md:w-1/5" for="name">
-          Block {props.block.num + 1}
+      <div class="my-2 flex items-center justify-between">
+        <label class="w-2/5 text-2xl" for="name">
+          <Trans key="block" /> {props.block.num + 1}
         </label>
         <input
           id="name"
-          placeholder="Warm up"
+          placeholder={t('block.name.placeholder', 'Warm up')}
           maxlength="255"
           classList={{
             'border-red-500 text-red-500':
@@ -104,7 +106,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
             'border-slate-300 text-black':
               invalidTraining.blocks?.[props.block.num]?.name === undefined
           }}
-          class=" rounded-md border p-2 text-lg focus:border-sky-500 focus:outline-none focus:ring"
+          class=" w-1/2 rounded-md border p-2 text-lg focus:border-sky-500 focus:outline-none focus:ring"
           value={props.block.name}
           onChange={(e) => {
             const val = e.target.value
@@ -123,9 +125,9 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
           }}
         />
       </div>
-      <div class="my-2 flex items-center">
-        <label class="w-3/5 text-2xl md:w-1/5" for="repeat">
-          Repeat
+      <div class="my-2 flex items-center justify-between">
+        <label class="w-2/5 text-2xl" for="repeat">
+          <Trans key="repeat" />
         </label>
         <input
           id="repeat"
@@ -137,7 +139,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
             'border-red-500 text-red-500':
               invalidTraining.blocks?.[props.block.num].repeat !== undefined
           }}
-          class="rounded-md border p-2 text-lg focus:border-sky-500 focus:outline-none focus:ring"
+          class="w-1/2 rounded-md border p-2 text-lg focus:border-sky-500 focus:outline-none focus:ring"
           value={props.block.repeat}
           onChange={(e) => {
             const val = e.target.value
@@ -168,7 +170,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
       </div>
       <div class="flex justify-between">
         <span class="my-2 text-2xl">
-          Total: <b>{props.block.totalDistance}m</b>
+          <Trans key="total" />: <b>{props.block.totalDistance}m</b>
         </span>
         <button
           class="mx-2 h-10 w-10 rounded-full bg-red-500 text-white shadow"
@@ -194,7 +196,7 @@ export const BlockForm: Component<BlockFormProps> = (props) => {
         class="float-right rounded bg-sky-500 p-2 font-bold text-white"
         onClick={() => addNewSet()}
       >
-        Add Set
+        <Trans key="add.set" />
       </button>
       {/* Add space at the bottom, so the buttons dont hide block form */}
       <div class="h-48 w-full"></div>
