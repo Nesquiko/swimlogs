@@ -5,11 +5,16 @@ import { openDrawer } from './Drawer'
 const Topbar: Component = () => {
   return (
     <div class="w-full bg-sky-500 p-2">
-      <i
-        class="fa-solid fa-bars fa-xl inline-block w-1/5 cursor-pointer px-2 text-white"
-        onClick={() => openDrawer()}
-      ></i>
-      <div class="inline-block w-3/5 text-center">
+      <div class="inline-block w-1/5 align-middle">
+        <img
+          class="inline-block cursor-pointer"
+          src="/src/assets/menu.svg"
+          width={40}
+          height={40}
+          onClick={() => openDrawer()}
+        />
+      </div>
+      <div class="inline-block w-3/5 text-center align-middle">
         <A href="/" class="cursor-pointer text-xl font-bold text-white">
           SwimLogs
         </A>
