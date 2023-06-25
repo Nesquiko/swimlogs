@@ -25,6 +25,7 @@
     "@mbarzda/solid-i18next": "^1.2.2",
     "@solidjs/router": "^0.8.2",
     "i18next": "^23.2.3",
+    "i18next-browser-languagedetector": "^7.0.2",
     "i18next-http-backend": "^2.2.1",
     "solid-js": "^1.6.10"
   }
