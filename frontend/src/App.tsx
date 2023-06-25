@@ -1,5 +1,6 @@
 import { Routes, Route } from '@solidjs/router'
 import { Component, lazy } from 'solid-js'
+import { Drawer } from './components/Drawer'
 import { Toast } from './components/Toast'
 import Topbar from './components/Topbar'
 import Home from './pages/Home'
@@ -12,6 +13,7 @@ const App: Component = () => {
   return (
     <div>
       <Topbar />
+      <Drawer />
       <Routes>
         <Route path="/" component={Home} />
         <Route path="/training/create" component={CreateTrainingPage} />

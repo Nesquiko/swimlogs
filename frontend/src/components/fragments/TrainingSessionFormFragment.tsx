@@ -10,6 +10,7 @@ import {
   StartTimeMinutes
 } from '../../lib/consts'
 import { formatDate } from '../../lib/datetime'
+import { isUndefindOrEmpty } from '../../lib/str'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 
 export const TrainingSessionForm: Component = () => {
@@ -235,17 +236,23 @@ export const TrainingSessionForm: Component = () => {
   }
 
   return (
-    <div>
-      <Show when={fromSession()} fallback={manualTrainingSessionForm()}>
-        {setFromSessionForm()}
-      </Show>
-      <div class="fixed bottom-1/2 flex flex-col items-center justify-center">
+    <div class="h-screen">
+      <div class="h-1/4">
+        <Show when={fromSession()} fallback={manualTrainingSessionForm()}>
+          {setFromSessionForm()}
+        </Show>
+      </div>
+      <div class="h-1/2">
         <div class="flex w-5/6 items-center text-center">
           <label class="mx-4 w-1/2 text-xl font-bold" for="date">
             <Trans key="date" />
           </label>
           <select
             id="date"
+            disabled={
+              (isUndefindOrEmpty(selectedSession()) && fromSession()) ||
+              (isUndefindOrEmpty(day()) && !fromSession())
+            }
             classList={{
               'border-red-500 text-red': selectedDate() === undefined,
               'border-slate-300 text-black': selectedDate() !== undefined
@@ -277,17 +284,7 @@ export const TrainingSessionForm: Component = () => {
             </For>
           </select>
         </div>
-        <div class="my-4 flex w-screen justify-around text-xl">
-          <button
-            classList={{
-              'bg-white text-sky-500': fromSession(),
-              'bg-sky-500 text-white': !fromSession()
-            }}
-            class="rounded border border-sky-500 px-4 py-2 font-bold"
-            onClick={() => setFromSession(false)}
-          >
-            <Trans key="set.manually" />
-          </button>
+        <div class="flex w-screen justify-around text-xl">
           <button
             classList={{
               'bg-sky-500 text-white': fromSession(),
@@ -299,6 +296,16 @@ export const TrainingSessionForm: Component = () => {
             onClick={() => setFromSession(true)}
           >
             <Trans key="assign.session" />
+          </button>
+          <button
+            classList={{
+              'bg-white text-sky-500': fromSession(),
+              'bg-sky-500 text-white': !fromSession()
+            }}
+            class="rounded border border-sky-500 px-4 py-2 font-bold"
+            onClick={() => setFromSession(false)}
+          >
+            <Trans key="set.manually" />
           </button>
         </div>
       </div>

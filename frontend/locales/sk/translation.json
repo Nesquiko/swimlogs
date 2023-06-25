@@ -44,5 +44,8 @@
 	"none": "Bez štartu",
 	"interval": "Interval",
 	"pause": "Pauza",
-	"set.what.placeholder": "Kraul"
+	"set.what.placeholder": "Kraul",
+	"home": "Domov",
+	"duplicate.set": "Duplikuj sériu",
+	"duplicate.block": "Duplikuj blok"
 }

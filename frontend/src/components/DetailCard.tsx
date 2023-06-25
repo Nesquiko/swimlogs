@@ -12,7 +12,7 @@ const DetailCard: Component<DetailProps> = (props) => {
     .toLocaleString('en', { weekday: 'long' })
     .toLowerCase()
   return (
-    <div class="z-100 mx-auto my-4 w-11/12 rounded-lg border border-solid border-slate-200 bg-white p-2 shadow">
+    <div class="z-100 mx-auto my-4 w-11/12 cursor-pointer rounded-lg border border-solid border-slate-200 bg-white p-2 shadow">
       <h2 class="flex justify-between text-left text-xl">
         <b class="w-1/3">
           <Trans key={day} />

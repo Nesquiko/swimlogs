@@ -44,5 +44,8 @@
 	"none": "None",
 	"interval": "Interval",
 	"pause": "Pause",
-	"set.what.placeholder": "Freestyle"
+	"set.what.placeholder": "Freestyle",
+	"home": "Home",
+	"duplicate.set": "Duplicate set",
+	"duplicate.block": "Duplicate block"
 }

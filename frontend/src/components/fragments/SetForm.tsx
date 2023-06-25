@@ -8,6 +8,8 @@ import {
 } from '../../generated'
 import { SmallIntMax } from '../../lib/consts'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
+import copySkySvg from '../../assets/copy-sky.svg'
+import binRedSvg from '../../assets/bin-red.svg'
 
 interface SetProps {
   set: NewTrainingSet
@@ -44,13 +46,17 @@ export const Set: Component<SetProps> = (props) => {
           invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]
         )
       }}
-      class="mx-auto my-2 rounded-lg border border-solid border-slate-300 p-2 shadow"
+      class="mx-auto my-2 rounded-lg border border-solid border-slate-300 px-2 shadow"
     >
       <div class="my-2 flex items-center">
-        <i
-          class="fa-regular fa-copy fa-xl mr-auto cursor-pointer text-sky-500"
+        <img
+          src={copySkySvg}
+          class="mr-auto cursor-pointer"
+          title={t('duplicate.set', 'Duplicate set')}
+          width={36}
+          height={36}
           onClick={() => props.duplicateSet()}
-        ></i>
+        />
         <input
           type="number"
           placeholder="1"
@@ -130,10 +136,13 @@ export const Set: Component<SetProps> = (props) => {
             )
           }}
         />
-        <i
-          class="fa-solid fa-trash fa-xl ml-auto cursor-pointer text-red-500"
+        <img
+          src={binRedSvg}
+          width={48}
+          height={48}
+          class="ml-auto cursor-pointer"
           onClick={() => props.deleteSet()}
-        ></i>
+        />
       </div>
       <textarea
         placeholder={t('set.what.placeholder', 'Freestyle')}
