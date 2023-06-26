@@ -101,5 +101,4 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd /opt/swimlogs
-            docker-compose down
-            docker-compose up -d
+            docker-compose up -d backend
