@@ -13,7 +13,8 @@ import {
   GetAllSessionsResponse,
   InvalidTraining,
   InvalidTrainingSet,
-  NewTraining
+  NewTraining,
+  Session
 } from '../../generated'
 import { NullDate, NullDay } from '../../lib/consts'
 
@@ -109,28 +110,29 @@ export const CreateTrainingContextProvider: ParentComponent<
 
 type State = {
   fromSession: Signal<boolean>
-  selectedSession: Signal<string | undefined>
-
   day: Signal<Day | undefined>
   dates: Signal<Array<Date>>
   selectedDate: Signal<Date | undefined>
-
+  selectedSessionSignal: Signal<Session | 'not-selected' | undefined>
   currentBlock: Signal<number>
 }
 
 function initialState(): State {
   const fromSession = createSignal(false)
-  const selectedSession = createSignal<string | undefined>('')
   const day = createSignal<Day | undefined>(NullDay)
   const dates = createSignal<Array<Date>>([])
   const selectedDate = createSignal<Date | undefined>(NullDate)
   const currentBlock = createSignal(0)
+  const selectedSessionSignal = createSignal<
+    Session | 'not-selected' | undefined
+  >('not-selected')
+
   return {
     fromSession,
-    selectedSession,
     day,
     dates,
     selectedDate,
-    currentBlock
+    currentBlock,
+    selectedSessionSignal
   }
 }

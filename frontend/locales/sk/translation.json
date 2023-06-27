@@ -47,5 +47,6 @@
 	"set.what.placeholder": "Kraul",
 	"home": "Domov",
 	"duplicate.set": "Duplikuj sériu",
-	"duplicate.block": "Duplikuj blok"
+	"duplicate.block": "Duplikuj blok",
+	"session.not.selected": "Vyberte termín"
 }

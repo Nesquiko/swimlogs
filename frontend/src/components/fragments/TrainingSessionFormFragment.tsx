@@ -1,6 +1,6 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
-import { Day, Session } from '../../generated'
+import { Day } from '../../generated'
 import {
   NullDate,
   NullDay,
@@ -12,6 +12,7 @@ import {
 import { formatDate } from '../../lib/datetime'
 import { isUndefindOrEmpty } from '../../lib/str'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
+import SessionPicker from '../SessionPicker'
 
 export const TrainingSessionForm: Component = () => {
   const [
@@ -22,18 +23,20 @@ export const TrainingSessionForm: Component = () => {
     [, setCurrentComponent]
   ] = useCreateTraining()
   const [fromSession, setFromSession] = state.fromSession
-  const [selectedSession, setSelectedSession] = state.selectedSession
   const [day, setDay] = state.day
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
   const [t] = useTransContext()
 
+  const [selectedSession, setselectedSession] = state.selectedSessionSignal
+
   const sumbit = () => {
     let isValid = true
-    if (fromSession() && selectedSession() === '') {
-      setSelectedSession(undefined)
+    if (fromSession() && selectedSession() === 'not-selected') {
+      setselectedSession(undefined)
       isValid = false
     }
+
     if (!fromSession() && day() === NullDay) {
       setDay(undefined)
       isValid = false
@@ -191,53 +194,25 @@ export const TrainingSessionForm: Component = () => {
   const setFromSessionForm = () => {
     return (
       <div class="m-4">
-        <select
-          classList={{
-            'border-red-500': selectedSession() === undefined,
-            'border-slate-300': selectedSession() !== undefined
-          }}
-          class="my-2 w-full rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            const sessionStr = e.target.value
-            const session = JSON.parse(sessionStr) as Session
-
-            const localizedDay = t(session.day.toLowerCase(), session.day)
-            const sesName = `${localizedDay} ${session.startTime} (${session.durationMin} min)`
-            setSelectedSession(sesName)
-
-            setDay(session.day)
-            setTraining('startTime', session.startTime)
-            setTraining('durationMin', session.durationMin)
+        <SessionPicker
+          sessions={sessions()?.sessions ?? []}
+          selectedSession={selectedSession()}
+          onSelect={(s) => {
+            setselectedSession(s)
+            setDay(s.day)
+            setTraining('startTime', s.startTime)
+            setTraining('durationMin', s.durationMin)
             setTraining('date', NullDate)
             setSelectedDate(NullDate)
           }}
-        >
-          <option value="" disabled={selectedSession() !== ''}>
-            <Trans key="select.session" />
-          </option>
-          <For each={sessions()?.sessions ?? []}>
-            {(session) => {
-              const localizedDay = t(session.day.toLowerCase(), session.day)
-              const sesName = `${localizedDay} ${session.startTime} (${session.durationMin} min)`
-              const sessionStr = JSON.stringify(session)
-              return (
-                <option
-                  selected={selectedSession() === sesName}
-                  value={sessionStr}
-                >
-                  {sesName}
-                </option>
-              )
-            }}
-          </For>
-        </select>
+        />
       </div>
     )
   }
 
   return (
     <div class="h-screen">
-      <div class="h-1/4">
+      <div class="h-1/2">
         <Show when={fromSession()} fallback={manualTrainingSessionForm()}>
           {setFromSessionForm()}
         </Show>
@@ -250,7 +225,9 @@ export const TrainingSessionForm: Component = () => {
           <select
             id="date"
             disabled={
-              (isUndefindOrEmpty(selectedSession()) && fromSession()) ||
+              ((selectedSession() === 'not-selected' ||
+                selectedSession() === undefined) &&
+                fromSession()) ||
               (isUndefindOrEmpty(day()) && !fromSession())
             }
             classList={{

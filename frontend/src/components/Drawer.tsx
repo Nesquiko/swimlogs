@@ -31,7 +31,7 @@ const Drawer: Component = () => {
           navigate(props.pathname)
         }}
       >
-        <img class="inline" src={props.imgSrc} width={50} height={50} />
+        <img class="inline h-8 w-8 md:h-10 md:w-10" src={props.imgSrc} />
         <span class="pl-2 text-lg font-bold text-black">
           <Trans key={props.labelKey} />
         </span>
