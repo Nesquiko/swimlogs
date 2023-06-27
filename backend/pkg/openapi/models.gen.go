@@ -233,7 +233,9 @@ type SessionNotFoundErrorResponse = ErrorDetail
 
 // SessionsResponse defines model for SessionsResponse.
 type SessionsResponse struct {
-	Sessions []Session `json:"sessions"`
+	// Pagination Pagination metadata about paginated response
+	Pagination Pagination `json:"pagination"`
+	Sessions   []Session  `json:"sessions"`
 }
 
 // TrainingDetailsCurrentWeekResponse defines model for TrainingDetailsCurrentWeekResponse.
@@ -284,6 +286,15 @@ type UpdateTrainingRequest struct {
 
 	// StartTime When does the training start during the day.
 	StartTime *string `json:"startTime,omitempty"`
+}
+
+// GetSessionsParams defines parameters for GetSessions.
+type GetSessionsParams struct {
+	// Page Which page to return, starts at 0
+	Page int `form:"page" json:"page"`
+
+	// PageSize How many details to return
+	PageSize int `form:"pageSize" json:"pageSize"`
 }
 
 // CreateSessionJSONBody defines parameters for CreateSession.

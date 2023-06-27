@@ -9,8 +9,12 @@ import (
 )
 
 // (GET /sessions)
-func (s *SwimLogsServer) GetAllSessions(w http.ResponseWriter, r *http.Request) {
-	res := s.app.GetAllSessions()
+func (s *SwimLogsServer) GetSessions(
+	w http.ResponseWriter,
+	r *http.Request,
+	params openapi.GetSessionsParams,
+) {
+	res := s.app.GetSessions(params)
 	respondWithJSON(w, res.Code(), res.Body())
 }
 
