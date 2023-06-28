@@ -1,6 +1,7 @@
 import {
   createContext,
   createEffect,
+  createResource,
   createSignal,
   ParentComponent,
   Resource,
@@ -10,17 +11,19 @@ import {
 import { createStore } from 'solid-js/store'
 import {
   Day,
-  GetAllSessionsResponse,
+  GetSessionsResponse,
   InvalidTraining,
   InvalidTrainingSet,
   NewTraining,
+  ResponseError,
   Session
 } from '../../generated'
 import { NullDate, NullDay } from '../../lib/consts'
+import { sessionApi } from '../../state/session'
 
 const makeTrainingContext = (
   newTraining: NewTraining,
-  sessions: Resource<GetAllSessionsResponse>,
+  sessions: Resource<GetSessionsResponse>,
   state: State,
   currentComponentSignal: Signal<number>,
   sumbitTraining: () => void
@@ -52,9 +55,10 @@ const CreateTrainingContext = createContext<CreateTrainingContextType>()
 
 export const useCreateTraining = () => useContext(CreateTrainingContext)!
 
+export const PAGE_SIZE = 7
+
 interface CreateTrainingContextProps {
   newTraining: NewTraining
-  sessions: Resource<GetAllSessionsResponse>
   currentComponentSignal: Signal<number>
   sumbitTraining: () => void
 }
@@ -64,9 +68,29 @@ export const CreateTrainingContextProvider: ParentComponent<
 > = (props) => {
   const state = initialState()
 
+  const [sessionsPage] = state.sessionsPage
+  const [, setTotalSessions] = state.totalSessions
+  const [sessions] = createResource(sessionsPage, getSessions)
+
+  async function getSessions(page: number): Promise<GetSessionsResponse> {
+    return sessionApi
+      .getSessions({ page, pageSize: PAGE_SIZE })
+      .then((res) => {
+        setTotalSessions(res.pagination.total)
+        return res
+      })
+      .catch((e: ResponseError) => {
+        console.error('error', e)
+        return Promise.resolve({
+          sessions: [],
+          pagination: { page: 0, pageSize: PAGE_SIZE, total: 0 }
+        })
+      })
+  }
+
   createEffect(() => {
     const [, setFromSession] = state.fromSession
-    setFromSession(props.sessions()?.sessions?.length !== 0)
+    setFromSession(sessions()?.sessions?.length !== 0)
   })
 
   createEffect(() => {
@@ -97,7 +121,7 @@ export const CreateTrainingContextProvider: ParentComponent<
     <CreateTrainingContext.Provider
       value={makeTrainingContext(
         props.newTraining,
-        props.sessions,
+        sessions,
         state,
         props.currentComponentSignal,
         props.sumbitTraining
@@ -113,8 +137,10 @@ type State = {
   day: Signal<Day | undefined>
   dates: Signal<Array<Date>>
   selectedDate: Signal<Date | undefined>
-  selectedSessionSignal: Signal<Session | 'not-selected' | undefined>
   currentBlock: Signal<number>
+  sessionsPage: Signal<number>
+  totalSessions: Signal<number>
+  selectedSession: Signal<Session | 'not-selected' | undefined>
 }
 
 function initialState(): State {
@@ -123,9 +149,11 @@ function initialState(): State {
   const dates = createSignal<Array<Date>>([])
   const selectedDate = createSignal<Date | undefined>(NullDate)
   const currentBlock = createSignal(0)
-  const selectedSessionSignal = createSignal<
-    Session | 'not-selected' | undefined
-  >('not-selected')
+  const sessionsPage = createSignal(0)
+  const totalSessions = createSignal(0)
+  const selectedSession = createSignal<Session | 'not-selected' | undefined>(
+    'not-selected'
+  )
 
   return {
     fromSession,
@@ -133,6 +161,8 @@ function initialState(): State {
     dates,
     selectedDate,
     currentBlock,
-    selectedSessionSignal
+    sessionsPage,
+    totalSessions,
+    selectedSession
   }
 }

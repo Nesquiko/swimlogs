@@ -32,11 +32,6 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
           )}
         </For>
       </div>
-      <Show when={props.selectedSession === undefined}>
-        <div class="m-4 flex items-center justify-start rounded bg-red-300 p-4 font-bold">
-          <Trans key="session.not.selected" />
-        </div>
-      </Show>
     </div>
   )
 }

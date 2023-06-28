@@ -11,7 +11,10 @@ import {
 } from '../../lib/consts'
 import { formatDate } from '../../lib/datetime'
 import { isUndefindOrEmpty } from '../../lib/str'
-import { useCreateTraining } from '../context/CreateTrainingContextProvider'
+import {
+  PAGE_SIZE,
+  useCreateTraining
+} from '../context/CreateTrainingContextProvider'
 import SessionPicker from '../SessionPicker'
 
 export const TrainingSessionForm: Component = () => {
@@ -26,14 +29,15 @@ export const TrainingSessionForm: Component = () => {
   const [day, setDay] = state.day
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
+  const [sessionsPage, setSessionsPage] = state.sessionsPage
+  const [totalSessions] = state.totalSessions
   const [t] = useTransContext()
-
-  const [selectedSession, setselectedSession] = state.selectedSessionSignal
+  const [selectedSession, setSelectedSession] = state.selectedSession
 
   const sumbit = () => {
     let isValid = true
     if (fromSession() && selectedSession() === 'not-selected') {
-      setselectedSession(undefined)
+      setSelectedSession(undefined)
       isValid = false
     }
 
@@ -193,31 +197,81 @@ export const TrainingSessionForm: Component = () => {
 
   const setFromSessionForm = () => {
     return (
-      <div class="m-4">
-        <SessionPicker
-          sessions={sessions()?.sessions ?? []}
-          selectedSession={selectedSession()}
-          onSelect={(s) => {
-            setselectedSession(s)
-            setDay(s.day)
-            setTraining('startTime', s.startTime)
-            setTraining('durationMin', s.durationMin)
-            setTraining('date', NullDate)
-            setSelectedDate(NullDate)
-          }}
-        />
+      <div class="m-4 h-full">
+        <div class="h-3/4 lg:h-2/3">
+          <SessionPicker
+            sessions={sessions()?.sessions ?? []}
+            selectedSession={selectedSession()}
+            onSelect={(s) => {
+              setSelectedSession(s)
+              setDay(s.day)
+              setTraining('startTime', s.startTime)
+              setTraining('durationMin', s.durationMin)
+              setTraining('date', NullDate)
+              setSelectedDate(NullDate)
+            }}
+          />
+        </div>
+        <div class="m-4 space-x-8 text-center">
+          <div
+            classList={{ invisible: sessionsPage() === 0 }}
+            class="inline-flex cursor-pointer rounded-full border-2 border-slate-300 bg-white p-2 text-sm font-medium text-slate-500"
+            onClick={() => {
+              setSelectedSession('not-selected')
+              setSessionsPage((i) => i - 1)
+            }}
+          >
+            <svg
+              aria-hidden="true"
+              class="h-6 w-6"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div
+            classList={{
+              invisible: (sessionsPage() + 1) * PAGE_SIZE >= totalSessions()
+            }}
+            class="inline-flex cursor-pointer rounded-full border-2 border-slate-300 bg-white p-2 text-sm font-medium text-slate-500"
+            onClick={() => {
+              setSelectedSession('not-selected')
+              setSessionsPage((i) => i + 1)
+            }}
+          >
+            <svg
+              aria-hidden="true"
+              class="h-6 w-6"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
     <div class="h-screen">
-      <div class="h-1/2">
+      <div class="h-3/5">
         <Show when={fromSession()} fallback={manualTrainingSessionForm()}>
           {setFromSessionForm()}
         </Show>
       </div>
-      <div class="h-1/2">
+      <div class="h-2/5">
         <div class="flex w-5/6 items-center text-center">
           <label class="mx-4 w-1/2 text-xl font-bold" for="date">
             <Trans key="date" />
