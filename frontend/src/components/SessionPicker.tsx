@@ -1,6 +1,6 @@
-import { Trans, useTransContext } from '@mbarzda/solid-i18next'
+import { useTransContext } from '@mbarzda/solid-i18next'
 import { TFunction } from 'i18next'
-import { Component, For, Show } from 'solid-js'
+import { Component, For } from 'solid-js'
 import { Session } from '../generated'
 
 interface SessionPickerProps {
