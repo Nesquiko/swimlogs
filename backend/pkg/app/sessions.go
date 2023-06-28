@@ -11,14 +11,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (app *SwimLogsApp) GetAllSessions() Result[openapi.SessionsResponse] {
-	sessions, err := app.db.GetAllSessions()
+func (app *SwimLogsApp) GetSessions(
+	params openapi.GetSessionsParams,
+) Result[openapi.SessionsResponse] {
+	sessions, pagination, err := app.db.GetSessions(params.Page, params.PageSize)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to get all sessions")
 		return internalServerErrorResult[openapi.SessionsResponse]("Failed to get all sessions")
 	}
 
-	body := openapi.SessionsResponse{Sessions: sessions}
+	body := openapi.SessionsResponse{Sessions: sessions, Pagination: pagination}
 	return resultWithBody(body, http.StatusOK)
 }
 

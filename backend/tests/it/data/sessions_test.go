@@ -111,10 +111,21 @@ func TestGetAllSessions(t *testing.T) {
 		_, err := PostgresDbConn.SaveSession(newSess)
 		assert.Nil(t, err)
 	}
+	assert := assert.New(t)
 
-	sessions, err := PostgresDbConn.GetAllSessions()
-	assert.Nil(t, err)
-	assert.Len(t, sessions, 7)
+	sessions, pagination, err := PostgresDbConn.GetSessions(0, 5)
+	assert.Nil(err)
+	assert.Len(sessions, 5)
+	assert.Equal(7, pagination.Total)
+	assert.Equal(5, pagination.PageSize)
+	assert.Equal(0, pagination.Page)
+
+	sessions, pagination, err = PostgresDbConn.GetSessions(1, 5)
+	assert.Nil(err)
+	assert.Len(sessions, 2)
+	assert.Equal(7, pagination.Total)
+	assert.Equal(2, pagination.PageSize)
+	assert.Equal(1, pagination.Page)
 }
 
 func TestDeleteSessionByIdUnknownId(t *testing.T) {

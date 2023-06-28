@@ -54,20 +54,26 @@ select
     id,
     day,
     start_time,
-    duration
+    duration,
+    count(*) over ()
 from sessions
 order by day::day, start_time, duration
+limit $1 offset $2
 `
 
-func (db *PostgresDbConn) GetAllSessions() ([]openapi.Session, error) {
+// GetSessions returns a paginated list of sessions, page starts at 0
+func (db *PostgresDbConn) GetSessions(
+	page, pageSize int,
+) ([]openapi.Session, openapi.Pagination, error) {
 	sessions := make([]openapi.Session, 0)
 
-	rows, err := db.Query(selectSessions)
+	rows, err := db.Query(selectSessions, pageSize, page*pageSize)
 	if err != nil {
-		return nil, fmt.Errorf("GetAllSessions: %w", err)
+		return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
 	}
 	defer rows.Close()
 
+	total := 0
 	for rows.Next() {
 		var session openapi.Session
 		err := rows.Scan(
@@ -75,17 +81,18 @@ func (db *PostgresDbConn) GetAllSessions() ([]openapi.Session, error) {
 			&session.Day,
 			&session.StartTime,
 			&session.DurationMin,
+			&total,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("GetAllSessions: %w", err)
+			return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
 		}
 		sessions = append(sessions, session)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("GetAllSessions: %w", err)
+		return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
 	}
 
-	return sessions, nil
+	return sessions, openapi.Pagination{Page: page, PageSize: len(sessions), Total: total}, nil
 }
 
 var DeleteSession = "delete from sessions where id = $1"

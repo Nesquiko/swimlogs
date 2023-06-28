@@ -47,5 +47,6 @@
 	"set.what.placeholder": "Freestyle",
 	"home": "Home",
 	"duplicate.set": "Duplicate set",
-	"duplicate.block": "Duplicate block"
+	"duplicate.block": "Duplicate block",
+	"session.not.selected": "No session selected"
 }

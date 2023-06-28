@@ -69,7 +69,7 @@ func TestSaveSessionDuplicate(t *testing.T) {
 	assert.IsType(openapi.ErrorDetail{}, res.Body())
 }
 
-func TestGetAllSessions(t *testing.T) {
+func TestGetSessions(t *testing.T) {
 	it.TestFilter(t)
 	t.Cleanup(func() { it.TruncateSessions(PostgresDbConn.DB) })
 	for _, d := range []openapi.Day{openapi.Monday, openapi.Tuesday, openapi.Wednesday, openapi.Thursday, openapi.Friday, openapi.Saturday, openapi.Sunday} {
@@ -82,13 +82,26 @@ func TestGetAllSessions(t *testing.T) {
 		require.Nil(t, err)
 	}
 
-	res := SwimLogsApp.GetAllSessions()
+	res := SwimLogsApp.GetSessions(openapi.GetSessionsParams{Page: 0, PageSize: 5})
 	assert := assert.New(t)
 	assert.Equal(http.StatusOK, res.Code())
 
 	require.IsType(t, openapi.SessionsResponse{}, res.Body())
-	sessions := res.Body().(openapi.SessionsResponse).Sessions
-	assert.Len(sessions, 7)
+	sessions := res.Body().(openapi.SessionsResponse)
+	assert.Len(sessions.Sessions, 5)
+	assert.Equal(7, sessions.Pagination.Total)
+	assert.Equal(0, sessions.Pagination.Page)
+	assert.Equal(5, sessions.Pagination.PageSize)
+
+	res = SwimLogsApp.GetSessions(openapi.GetSessionsParams{Page: 1, PageSize: 5})
+	assert.Equal(http.StatusOK, res.Code())
+
+	require.IsType(t, openapi.SessionsResponse{}, res.Body())
+	sessions = res.Body().(openapi.SessionsResponse)
+	assert.Len(sessions.Sessions, 2)
+	assert.Equal(7, sessions.Pagination.Total)
+	assert.Equal(1, sessions.Pagination.Page)
+	assert.Equal(2, sessions.Pagination.PageSize)
 }
 
 func TestDeleteSessionByIdNotFound(t *testing.T) {

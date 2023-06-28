@@ -47,17 +47,6 @@ const CreateTrainingPage: Component = () => {
     ]
   })
 
-  const [sessions] = createResource(getSessions)
-  async function getSessions() {
-    return sessionApi
-      .getAllSessions()
-      .then((res) => res)
-      .catch((e: ResponseError) => {
-        console.error('error', e)
-        return Promise.resolve({ sessions: [] })
-      })
-  }
-
   createEffect(() => {
     const totalDistance = training.blocks.reduce((acc, block) => {
       return acc + block.totalDistance
@@ -90,16 +79,13 @@ const CreateTrainingPage: Component = () => {
 
   return (
     <div>
-      <Show when={!sessions.loading} fallback={<Spinner />}>
-        <CreateTrainingContextProvider
-          newTraining={training}
-          sessions={sessions}
-          currentComponentSignal={[currentComponent, setCurrentComponent]}
-          sumbitTraining={createTraining}
-        >
-          <Dynamic component={comps[currentComponent()]} />
-        </CreateTrainingContextProvider>
-      </Show>
+      <CreateTrainingContextProvider
+        newTraining={training}
+        currentComponentSignal={[currentComponent, setCurrentComponent]}
+        sumbitTraining={createTraining}
+      >
+        <Dynamic component={comps[currentComponent()]} />
+      </CreateTrainingContextProvider>
     </div>
   )
 }

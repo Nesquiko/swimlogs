@@ -21,7 +21,24 @@ paths:
       description: Return all sessions
       tags:
         - Session
-      operationId: getAllSessions
+      operationId: getSessions
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Which page to return, starts at 0
+          schema:
+            type: integer
+            example: 0
+            minimum: 0
+        - name: pageSize
+          in: query
+          required: true
+          description: How many details to return
+          schema:
+            type: integer
+            example: 10
+            minimum: 1
       responses:
         200:
           $ref: '#/components/responses/SessionsResponse'
@@ -359,7 +376,7 @@ components:
 
   responses:
     SessionsResponse:
-      description: Response containing all sessions
+      description: Response containing paginated list of sessions
       content:
         application/json:
           schema:
@@ -369,8 +386,11 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Session'
+              pagination:
+                $ref: '#/components/schemas/Pagination'
             required:
               - sessions
+              - pagination
 
     TrainingDetailsCurrentWeekResponse:
       description: List of training details in current week,
