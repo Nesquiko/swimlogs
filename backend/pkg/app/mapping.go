@@ -6,9 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
+func mapDataTrainingsToApiTrainingDetails(ts []data.Training) []openapi.TrainingDetail {
+	return mapSlice[data.Training, openapi.TrainingDetail](ts, dataTrainingIntoApiTrainingDetail)
+}
+
 func dataTrainingIntoApiTrainingDetail(t data.Training) openapi.TrainingDetail {
 	return openapi.TrainingDetail{
-		Id: t.Id,
+		Id:            t.Id,
+		Start:         t.Start,
+		DurationMin:   t.DurationMin,
+		TotalDistance: t.TotalDistance,
 	}
 }
 
@@ -72,4 +79,14 @@ func apiNewSetIntoDataSet(
 
 func asPtr[T any](t T) *T {
 	return &t
+}
+
+// mapSlice is a generic function that maps a source slice of type S to a target
+// slice of type T
+func mapSlice[S, T any](source []S, f func(S) T) []T {
+	result := make([]T, 0, len(source))
+	for _, e := range source {
+		result = append(result, f(e))
+	}
+	return result
 }
