@@ -88,30 +88,14 @@ type InvalidTrainingSet struct {
 	What *string `json:"what,omitempty"`
 }
 
-// NewBlock defines model for NewBlock.
-type NewBlock struct {
-	Name string `json:"name"`
-
-	// Num Number of the block, indicates on which place this block in training is supposed to be.
-	Num int `json:"num"`
-
-	// Repeat How many times to repeat this block
-	Repeat int              `json:"repeat"`
-	Sets   []NewTrainingSet `json:"sets"`
-
-	// TotalDistance Sum of all distances in sets in meters
-	TotalDistance int `json:"totalDistance"`
-}
-
 // NewTraining defines model for NewTraining.
 type NewTraining struct {
-	Blocks []NewBlock `json:"blocks"`
-
 	// Date On what date does the training occur.
 	Date openapi_types.Date `json:"date"`
 
 	// DurationMin How long does the session last, in minutes
-	DurationMin int `json:"durationMin"`
+	DurationMin int              `json:"durationMin"`
+	Sets        []NewTrainingSet `json:"sets"`
 
 	// StartTime When does the training start during the day.
 	StartTime StartTime `json:"startTime"`
@@ -122,17 +106,21 @@ type NewTraining struct {
 
 // NewTrainingSet defines model for NewTrainingSet.
 type NewTrainingSet struct {
-	Distance int `json:"distance"`
-
-	// Num Number of the set, indicates on what place in block the set is supposed to be.
-	Num int `json:"num"`
+	Distance *int `json:"distance,omitempty"`
 
 	// Repeat How many times to repeat this set
-	Repeat       int          `json:"repeat"`
-	StartingRule StartingRule `json:"startingRule"`
+	Repeat int `json:"repeat"`
+
+	// SetOrder Indicates on what place in training the set is
+	SetOrder *int `json:"setOrder,omitempty"`
+
+	// StartSeconds Used by starts which require a time parameter
+	StartSeconds *int              `json:"startSeconds,omitempty"`
+	StartType    *StartingRuleType `json:"startType,omitempty"`
+	SubSets      *[]NewTrainingSet `json:"subSets,omitempty"`
 
 	// What Description of what to swim
-	What string `json:"what"`
+	What *string `json:"what,omitempty"`
 }
 
 // Pagination Pagination metadata about paginated response

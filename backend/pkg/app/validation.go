@@ -31,15 +31,15 @@ func validateNewTraining(newTraining openapi.NewTraining) *openapi.ErrorDetail {
 		errors["durationMin"] = durationErr
 	}
 
-	invalidBlocks := make([]openapi.InvalidBlock, 0)
-	for _, block := range newTraining.Blocks {
-		invalidBlock := validateNewBlock(block)
-		if invalidBlock != nil {
-			invalidBlocks = append(invalidBlocks, *invalidBlock)
+	invalidSets := make([]openapi.InvalidTrainingSet, 0)
+	for _, set := range newTraining.Sets {
+		is := validateNewSet(set)
+		if is != nil {
+			invalidSets = append(invalidSets, *is)
 		}
 	}
-	if len(newTraining.Blocks) != 0 && len(invalidBlocks) > 0 {
-		errors["blocks"] = invalidBlocks
+	if len(invalidSets) > 0 {
+		errors["sets"] = invalidSets
 	}
 
 	if len(errors) == 0 {
@@ -52,66 +52,39 @@ func validateNewTraining(newTraining openapi.NewTraining) *openapi.ErrorDetail {
 	}
 }
 
-func validateNewBlock(newBlock openapi.NewBlock) *openapi.InvalidBlock {
-	invalid := openapi.InvalidBlock{}
-	if len(newBlock.Name) > MaxNameLen {
-		invalid.Name = &blockLongNameErr
-	}
-
-	if newBlock.Repeat <= 0 {
-		invalid.Repeat = &repeatErr
-	}
-
-	invalidSets := make([]openapi.InvalidTrainingSet, 0)
-	for _, set := range newBlock.Sets {
-		invalidSet := validateNewSet(set)
-		if invalidSet != nil {
-			invalidSets = append(invalidSets, *invalidSet)
-		}
-	}
-	if len(invalidSets) > 0 {
-		invalid.Sets = &invalidSets
-	}
-	if allFieldsNill(invalid) {
-		return nil
-	}
-
-	invalid.Num = &newBlock.Num
-	return &invalid
-}
-
 func validateNewSet(set openapi.NewTrainingSet) *openapi.InvalidTrainingSet {
-	invalid := openapi.InvalidTrainingSet{}
-
-	if !openapi.StartingRulesTypes[set.StartingRule.Type] {
-		errMsg := fmt.Sprintf("Unknown starting rule name '%s'", set.StartingRule.Type)
-		invalid.StartingRule = &struct {
-			Seconds *string `json:"seconds,omitempty"`
-			Type    *string `json:"type,omitempty"`
-		}{Type: &errMsg}
-	} else if set.StartingRule.Type == openapi.Pause || set.StartingRule.Type == openapi.Interval {
-		if set.StartingRule.Seconds == nil {
-			errMsg := fmt.Sprintf("Rule '%s' must have seconds set", set.StartingRule.Type)
-			invalid.StartingRule = &struct {
-				Seconds *string `json:"seconds,omitempty"`
-				Type    *string `json:"type,omitempty"`
-			}{Seconds: &errMsg}
-		}
-	}
-
-	if set.Distance <= 0 {
-		invalid.Distance = &setDistanceErr
-	}
-	if set.Repeat <= 0 {
-		invalid.Repeat = &repeatErr
-	}
-
-	if allFieldsNill(invalid) {
-		return nil
-	}
-
-	invalid.Num = &set.Num
-	return &invalid
+	// invalid := openapi.InvalidTrainingSet{}
+	//
+	// if !openapi.StartingRulesTypes[set.StartingRule.Type] {
+	// 	errMsg := fmt.Sprintf("Unknown starting rule name '%s'", set.StartingRule.Type)
+	// 	invalid.StartingRule = &struct {
+	// 		Seconds *string `json:"seconds,omitempty"`
+	// 		Type    *string `json:"type,omitempty"`
+	// 	}{Type: &errMsg}
+	// } else if set.StartingRule.Type == openapi.Pause || set.StartingRule.Type == openapi.Interval {
+	// 	if set.StartingRule.Seconds == nil {
+	// 		errMsg := fmt.Sprintf("Rule '%s' must have seconds set", set.StartingRule.Type)
+	// 		invalid.StartingRule = &struct {
+	// 			Seconds *string `json:"seconds,omitempty"`
+	// 			Type    *string `json:"type,omitempty"`
+	// 		}{Seconds: &errMsg}
+	// 	}
+	// }
+	//
+	// if set.Distance <= 0 {
+	// 	invalid.Distance = &setDistanceErr
+	// }
+	// if set.Repeat <= 0 {
+	// 	invalid.Repeat = &repeatErr
+	// }
+	//
+	// if allFieldsNill(invalid) {
+	// 	return nil
+	// }
+	//
+	// invalid.Num = &set.Num
+	// return &invalid
+	return nil
 }
 
 func validateSessionUpdate(newSess openapi.UpdateSessionJSONBody) *openapi.ErrorDetail {
