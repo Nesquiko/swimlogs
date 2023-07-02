@@ -31,10 +31,12 @@ generate: ## generate Go server code from openapi spec
 local: ## run local server, needs a local postgres database
 	@echo "Running local server"
 	go run . -host localhost -port 42069 \
+		-debug-level 0 \
 		-db-host localhost -db-port 5432 \
 		-db-user swimlogs -db-pass swimlogs \
 		-db-name swimlogs \
 		-fe-origin http://localhost:3000
+local: export TZ = Europe/Bratislava
 
 .PHONY: migrations-new
 migrations-new: ## [name=$1] create a new database migration with the given name

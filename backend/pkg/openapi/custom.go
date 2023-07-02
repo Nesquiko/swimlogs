@@ -33,7 +33,7 @@ var DaysOfWeek = map[Day]int{
 	Saturday:  6,
 }
 
-var StartingRulesTypes = map[StartingRuleType]bool{
+var StartTypes = map[StartingRuleType]bool{
 	None:     true,
 	Pause:    true,
 	Interval: true,
