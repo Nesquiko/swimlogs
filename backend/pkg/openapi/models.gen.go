@@ -167,15 +167,12 @@ type Training struct {
 
 // TrainingDetail defines model for TrainingDetail.
 type TrainingDetail struct {
-	// Date On what date does the training occur.
-	Date openapi_types.Date `json:"date"`
-
 	// DurationMin How long does the session last, in minutes
 	DurationMin int                `json:"durationMin"`
 	Id          openapi_types.UUID `json:"id"`
 
-	// StartTime When does the training start during the day.
-	StartTime StartTime `json:"startTime"`
+	// Start On what date and time does the training occur
+	Start time.Time `json:"start"`
 
 	// TotalDistance Total distance in the training in meters
 	TotalDistance int `json:"totalDistance"`

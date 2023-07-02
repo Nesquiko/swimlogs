@@ -12,6 +12,12 @@ import (
 	"github.com/lib/pq"
 )
 
+const (
+	NoneStartType     = "None"
+	IntervalStartType = "Interval"
+	PauseStartType    = "Pause"
+)
+
 type Training struct {
 	Id            uuid.UUID
 	Start         time.Time
@@ -209,19 +215,14 @@ func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (openapi.Training, error
 }
 
 var selectTrainingDetailsForThisWeek = `
-select
-    t.id,
-    t.date,
-    t.start_time,
-    t.duration,
-    t.total_distance
+select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
 from trainings t
-where date_trunc('week', t.date) = date_trunc('week', current_date)
-order by t.date, t.start_time
+where date_trunc('week', t.start) = date_trunc('week', current_date)
+order by t.start, t.duration_min, t.total_distance
 `
 
-func (db *PostgresDbConn) GetTrainingDetailsForThisWeek() ([]openapi.TrainingDetail, error) {
-	var tds = make([]openapi.TrainingDetail, 0)
+func (db *PostgresDbConn) GetTrainingDetailsInCurrentWeek() ([]Training, error) {
+	var ts = make([]Training, 0)
 
 	rows, err := db.Query(selectTrainingDetailsForThisWeek)
 	if err != nil {
@@ -230,23 +231,20 @@ func (db *PostgresDbConn) GetTrainingDetailsForThisWeek() ([]openapi.TrainingDet
 	defer rows.Close()
 
 	for rows.Next() {
-		var td openapi.TrainingDetail
-		var date time.Time
-
+		var t Training
 		err := rows.Scan(
-			&td.Id,
-			&date,
-			&td.StartTime,
-			&td.DurationMin,
-			&td.TotalDistance,
+			&t.Id,
+			&t.Start,
+			&t.DurationMin,
+			&t.TotalDistance,
+			&t.CreatedAt,
+			&t.ModifiedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("GetTrainingDetailsForThisWeek: %w", err)
 		}
-
-		td.Date = types.Date{Time: date}
-		tds = append(tds, td)
+		ts = append(ts, t)
 	}
 
-	return tds, nil
+	return ts, nil
 }

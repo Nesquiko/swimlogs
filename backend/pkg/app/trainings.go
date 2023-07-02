@@ -122,7 +122,7 @@ func (app *SwimLogsApp) GetTrainingById(id uuid.UUID) Result[openapi.Training] {
 }
 
 func (app *SwimLogsApp) GetTrainingDetailsForCurrentWeek() Result[openapi.TrainingDetailsCurrentWeekResponse] {
-	details, err := app.db.GetTrainingDetailsForThisWeek()
+	trainings, err := app.db.GetTrainingDetailsInCurrentWeek()
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to get training details")
 		return internalServerErrorResult[openapi.TrainingDetailsCurrentWeekResponse](
@@ -130,6 +130,8 @@ func (app *SwimLogsApp) GetTrainingDetailsForCurrentWeek() Result[openapi.Traini
 		)
 	}
 
-	body := openapi.TrainingDetailsCurrentWeekResponse{Details: details}
+	body := openapi.TrainingDetailsCurrentWeekResponse{
+		Details: mapDataTrainingsToApiTrainingDetails(trainings),
+	}
 	return resultWithBody(body, http.StatusOK)
 }
