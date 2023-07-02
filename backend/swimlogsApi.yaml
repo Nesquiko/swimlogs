@@ -777,16 +777,16 @@ components:
           type: integer
           description: Sum of all distances in blocks in meters
           example: 2100
-        blocks:
+        sets:
           type: array
           items:
-            $ref: '#/components/schemas/NewBlock'
+            $ref: '#/components/schemas/NewTrainingSet'
       required:
         - date
         - startTime
         - durationMin
         - totalDistance
-        - blocks
+        - sets
 
     NewBlock:
       type: object
@@ -820,10 +820,9 @@ components:
     NewTrainingSet:
       type: object
       properties:
-        num:
+        setOrder:
           type: integer
-          description: Number of the set, indicates on what place
-            in block the set is supposed to be.
+          description: Indicates on what place in training the set is
         repeat:
           type: integer
           description: How many times to repeat this set
@@ -835,12 +834,18 @@ components:
           type: string
           description: Description of what to swim
           example: Freestyle
-        startingRule:
-          $ref: '#/components/schemas/StartingRule'
+        startType:
+          $ref: '#/components/schemas/StartingRuleType'
+        startSeconds:
+          type: integer
+          description: Used by starts which require a time parameter
+          example: 60
+        subSets:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewTrainingSet'
       required:
         - num
         - repeat
-        - distance
-        - what
         - startingRule
 
