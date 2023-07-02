@@ -12,15 +12,17 @@ import (
 )
 
 func (app *SwimLogsApp) SaveTraining(training openapi.NewTraining) Result[openapi.TrainingDetail] {
-	if errDetails := validateNewTraining(training); errDetails != nil {
-		log.Warn().Msg("invalid training")
-		return resultFromErrorDetails[openapi.TrainingDetail](
-			*errDetails,
+	if tv := validateNewTraining(training); !tv.IsValid {
+		log.Warn().Interface("trainingValidation", tv).Msg("invalid training")
+		return errorResult[openapi.TrainingDetail](
+			tv.InvalidTraining,
 			http.StatusBadRequest,
 		)
 	}
 
-	t, err := app.db.SaveTraining(training)
+	recalculateTotalDistances(&training)
+
+	t, err := app.db.SaveTraining(apiNewTrainingIntoDataTraining(training))
 	if err != nil {
 		switch err {
 		case data.ErrCheckViolation:
@@ -53,7 +55,52 @@ func (app *SwimLogsApp) SaveTraining(training openapi.NewTraining) Result[openap
 		}
 	}
 
-	return resultWithBody(t, http.StatusCreated)
+	return resultWithBody(dataTrainingIntoApiTrainingDetail(t), http.StatusCreated)
+}
+
+func recalculateTotalDistances(t *openapi.NewTraining) {
+	totalDistance := 0
+
+	for i := range t.Sets {
+		setTotalDistance := 0
+
+		if t.Sets[i].SubSets != nil {
+			for j := range *t.Sets[i].SubSets {
+				subSetTotalDistance := *(*t.Sets[i].SubSets)[j].DistanceMeters * (*t.Sets[i].SubSets)[j].Repeat
+				if (*t.Sets[i].SubSets)[j].TotalDistance != subSetTotalDistance {
+					log.Debug().
+						Int("set_number", i).
+						Int("subset_number", j).
+						Int("received_total_distance", (*t.Sets[i].SubSets)[j].TotalDistance).
+						Int("calculated_total_distance", subSetTotalDistance).
+						Msg("total distance in received subset does not match calculated total distance")
+					(*t.Sets[i].SubSets)[j].TotalDistance = subSetTotalDistance
+				}
+				setTotalDistance += subSetTotalDistance
+			}
+			setTotalDistance *= t.Sets[i].Repeat
+		} else {
+			setTotalDistance = *t.Sets[i].DistanceMeters * t.Sets[i].Repeat
+		}
+
+		if t.Sets[i].TotalDistance != setTotalDistance {
+			log.Debug().
+				Int("set_number", i).
+				Int("received_total_distance", t.Sets[i].TotalDistance).
+				Int("calculated_total_distance", setTotalDistance).
+				Msg("total distance in received set does not match calculated total distance")
+			t.Sets[i].TotalDistance = setTotalDistance
+		}
+		totalDistance += setTotalDistance
+	}
+
+	if t.TotalDistance != totalDistance {
+		log.Debug().
+			Int("received_total_distance", t.TotalDistance).
+			Int("calculated_total_distance", totalDistance).
+			Msg("total distance in received training does not match calculated total distance")
+		t.TotalDistance = totalDistance
+	}
 }
 
 func (app *SwimLogsApp) GetTrainingById(id uuid.UUID) Result[openapi.Training] {

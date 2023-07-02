@@ -12,196 +12,125 @@ import (
 	"github.com/lib/pq"
 )
 
-func (db *PostgresDbConn) SaveTraining(newT openapi.NewTraining) (openapi.TrainingDetail, error) {
-	setTotalDistances(&newT)
+type Training struct {
+	Id            uuid.UUID
+	Start         time.Time
+	DurationMin   int
+	TotalDistance int
+	Sets          []TrainingSet
 
-	t, err := txWithResult(db.DB, func(tx *sql.Tx) (openapi.Training, error) {
-		return db.saveTraining(newT, tx)
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+}
+
+type TrainingSet struct {
+	Id             uuid.UUID
+	TrainingId     uuid.UUID
+	ParentSetId    *uuid.UUID
+	SetOrder       int
+	SubSetOrder    *int
+	TotalDistance  int
+	Repeat         int
+	DistanceMeters *int
+	Description    *string
+	StartType      string
+	StartSeconds   *int
+	SubSets        *[]TrainingSet
+}
+
+func (db *PostgresDbConn) SaveTraining(t Training) (Training, error) {
+	return txWithResult(db.DB, func(tx *sql.Tx) (Training, error) {
+		return db.saveTraining(t, tx)
 	})
-
-	if err != nil {
-		return openapi.TrainingDetail{}, fmt.Errorf("SaveTraining: %w", err)
-	}
-
-	td := openapi.TrainingDetail{
-		Id:            t.Id,
-		Date:          t.Date,
-		StartTime:     t.StartTime,
-		DurationMin:   t.DurationMin,
-		TotalDistance: t.TotalDistance,
-	}
-
-	return td, nil
 }
 
 var insertTraining = `
-insert into trainings (date, start_time, duration, total_distance, created_at, modified_at)
-values ($1, $2, $3, $4, now(), now())
-returning id, date, start_time, duration, total_distance
+insert into trainings (id, start, duration_min, total_distance, created_at, modified_at)
+values ($1, $2, $3, $4, $5, $5)
+returning id, start, duration_min, total_distance, created_at, modified_at
 `
 
-func (db *PostgresDbConn) saveTraining(
-	newT openapi.NewTraining,
-	tx *sql.Tx,
-) (openapi.Training, error) {
-	var t openapi.Training
-	var date time.Time
-	err := tx.QueryRow(
-		insertTraining,
-		newT.Date.Time,
-		newT.StartTime,
-		newT.DurationMin,
-		newT.TotalDistance,
-	).Scan(
-		&t.Id,
-		&date,
-		&t.StartTime,
-		&t.DurationMin,
-		&t.TotalDistance,
-	)
-	t.Date = types.Date{Time: date}
+func (db *PostgresDbConn) saveTraining(t Training, tx *sql.Tx) (Training, error) {
+	err := tx.QueryRow(insertTraining, t.Id, t.Start, t.DurationMin, t.TotalDistance, time.Now()).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
 
-	if psErr, ok := err.(*pq.Error); ok {
-		switch psErr.Code {
+	if pqErr, ok := err.(*pq.Error); ok {
+		switch pqErr.Code {
 		case ForeignKeyViolationCode:
-			return openapi.Training{}, fmt.Errorf("saveTraining: %w", ErrForeignKeyViolation)
+			return Training{}, fmt.Errorf("saveTraining: %w", ErrForeignKeyViolation)
 		case CheckViolationCode:
-			return openapi.Training{}, fmt.Errorf("saveTraining: %w", ErrCheckViolation)
+			return Training{}, fmt.Errorf("saveTraining: %w", ErrCheckViolation)
 		case InvalidEnumTypeCode:
-			return openapi.Training{}, fmt.Errorf("saveTraining: %w", ErrInvalidEnumType)
+			return Training{}, fmt.Errorf("saveTraining: %w", ErrInvalidEnumType)
 		default:
-			return openapi.Training{}, fmt.Errorf("saveTraining: %w", err)
+			return Training{}, fmt.Errorf("saveTraining: %w", err)
 		}
 	} else if err != nil {
-		return openapi.Training{}, fmt.Errorf("saveTraining: %w", err)
+		return Training{}, fmt.Errorf("saveTraining: %w", err)
 	}
 
-	for _, b := range newT.Blocks {
-		_, err := db.saveBlock(b, t.Id, tx)
+	for _, s := range t.Sets {
+		_, err := db.saveSet(tx, s)
 		if err != nil {
-			return openapi.Training{}, fmt.Errorf("saveTraining: %w", err)
+			return Training{}, fmt.Errorf("saveTraining: %w", err)
 		}
 	}
 
 	return t, nil
 }
 
-var insertBlock = `
-insert into blocks (num, repeat, name, total_distance, training_id)
-values ($1, $2, $3, $4, $5)
-returning id, num, repeat, name, total_distance
-`
-
-func (db *PostgresDbConn) saveBlock(
-	b openapi.NewBlock,
-	trainingId uuid.UUID,
-	tx *sql.Tx,
-) (openapi.Block, error) {
-	var block openapi.Block
-	err := tx.QueryRow(
-		insertBlock,
-		b.Num,
-		b.Repeat,
-		b.Name,
-		b.TotalDistance,
-		trainingId,
-	).Scan(
-		&block.Id,
-		&block.Num,
-		&block.Repeat,
-		&block.Name,
-		&block.TotalDistance,
-	)
-	if psErr, ok := err.(*pq.Error); ok {
-		switch psErr.Code {
-		case ForeignKeyViolationCode:
-			return openapi.Block{}, fmt.Errorf("saveBlock: %w", ErrForeignKeyViolation)
-		case CheckViolationCode:
-			return openapi.Block{}, fmt.Errorf("saveBlock: %w", ErrCheckViolation)
-		default:
-			return openapi.Block{}, fmt.Errorf("saveBlock: %w", err)
-		}
-	} else if err != nil {
-		return openapi.Block{}, fmt.Errorf("saveBlock: %w", err)
-	}
-
-	for _, s := range b.Sets {
-		_, err := db.saveSet(s, block.Id, tx)
-		if err != nil {
-			return openapi.Block{}, fmt.Errorf("saveBlock: %w", err)
-		}
-	}
-
-	return block, nil
-}
-
 var insertSet = `
-insert into sets (num, repeat, distance, what, starting_rule, rule_seconds, total_distance, block_id)
-values ($1, $2, $3, $4, $5::starting_rule, $6, $7, $8)
-returning id, num, repeat, distance, what, starting_rule, rule_seconds, total_distance
+insert into sets (id, parent_set_id, training_id, set_order, subset_order, repeat,
+		distance_meters, description, start_type, start_seconds, total_distance)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+returning id, parent_set_id, training_id, set_order, subset_order, repeat, distance_meters, description, start_type,
+    start_seconds, total_distance
 `
 
-func (db *PostgresDbConn) saveSet(
-	s openapi.NewTrainingSet,
-	blockId uuid.UUID,
-	tx *sql.Tx,
-) (openapi.TrainingSet, error) {
-	set := openapi.TrainingSet{StartingRule: openapi.StartingRule{}}
-
+func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error) {
 	err := tx.QueryRow(
 		insertSet,
-		s.Num,
+		s.Id,
+		s.ParentSetId,
+		s.TrainingId,
+		s.SetOrder,
+		s.SubSetOrder,
 		s.Repeat,
-		s.Distance,
-		s.What,
-		s.StartingRule.Type,
-		s.StartingRule.Seconds,
-		s.Distance*s.Repeat,
-		blockId,
+		s.DistanceMeters,
+		s.Description,
+		s.StartType,
+		s.StartSeconds,
+		s.TotalDistance,
 	).Scan(
-		&set.Id,
-		&set.Num,
-		&set.Repeat,
-		&set.Distance,
-		&set.What,
-		&set.StartingRule.Type,
-		&set.StartingRule.Seconds,
-		&set.TotalDistance,
+		&s.Id,
+		&s.ParentSetId,
+		&s.TrainingId,
+		&s.SetOrder,
+		&s.SubSetOrder,
+		&s.Repeat,
+		&s.DistanceMeters,
+		&s.Description,
+		&s.StartType,
+		&s.StartSeconds,
+		&s.TotalDistance,
 	)
 
-	if psErr, ok := err.(*pq.Error); ok {
-		switch psErr.Code {
+	if pqErr, ok := err.(*pq.Error); ok {
+		switch pqErr.Code {
 		case ForeignKeyViolationCode:
-			return openapi.TrainingSet{}, fmt.Errorf("saveSet: %w", ErrForeignKeyViolation)
+			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrForeignKeyViolation)
 		case CheckViolationCode:
-			return openapi.TrainingSet{}, fmt.Errorf("saveSet: %w", ErrCheckViolation)
+			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrCheckViolation)
 		case InvalidEnumTypeCode:
-			return openapi.TrainingSet{}, fmt.Errorf("saveSet: %w", ErrInvalidEnumType)
+			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrInvalidEnumType)
 		default:
-			return openapi.TrainingSet{}, fmt.Errorf("saveSet: %w", err)
+			return TrainingSet{}, fmt.Errorf("saveSet: %w", err)
 		}
 	} else if err != nil {
-		return openapi.TrainingSet{}, fmt.Errorf("saveSet: %w", err)
+		return TrainingSet{}, fmt.Errorf("saveSet: %w", err)
 	}
 
-	return set, nil
-}
-
-func setTotalDistances(t *openapi.NewTraining) {
-	t.TotalDistance = 0
-	for i := range t.Blocks {
-		b := &t.Blocks[i]
-		b.TotalDistance = 0
-
-		for i := range b.Sets {
-			s := &b.Sets[i]
-			sDist := s.Distance * s.Repeat
-			b.TotalDistance += sDist
-		}
-
-		b.TotalDistance *= b.Repeat
-		t.TotalDistance += b.TotalDistance
-	}
+	return s, nil
 }
 
 var selectTraining = `

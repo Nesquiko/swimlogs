@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	AppHostEnvVar = "APP_HOST"
-	AppPortEnvVar = "APP_PORT"
+	AppHostEnvVar       = "APP_HOST"
+	AppPortEnvVar       = "APP_PORT"
+	AppDebugLevelEnvVar = "APP_DEBUG_LEVEL"
 
 	DbHostEnvVar = "DATABASE_HOST"
 	DbPortEnvVar = "DATABASE_PORT"
@@ -30,6 +31,11 @@ const (
 func main() {
 	appHost := flag.String("host", os.Getenv(AppHostEnvVar), "application host")
 	appPort := flag.String("port", os.Getenv(AppPortEnvVar), "application port")
+	appDebugLevel := flag.Int(
+		"debug-level",
+		1,
+		"application debug level (trace = -1, debug = 0, info = 1, warn = 2, error = 3, fatal = 4, panic = 5)",
+	)
 
 	dbHost := flag.String("db-host", os.Getenv(DbHostEnvVar), "db host")
 	dbPort := flag.String("db-port", os.Getenv(DbPortEnvVar), "db port")
@@ -42,6 +48,7 @@ func main() {
 	jsonLogs := flag.Bool("json-logs", false, "whether to log in json format")
 	flag.Parse()
 
+	zerolog.SetGlobalLevel(zerolog.Level(*appDebugLevel))
 	log.Logger = log.With().Caller().Logger()
 	if !*jsonLogs {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, FormatTimestamp: func(i interface{}) string { return time.Now().Format("2006-01-02 15:04:05.000") }}).

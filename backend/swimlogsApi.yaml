@@ -561,31 +561,6 @@ components:
         - startingRule
         - totalDistance
 
-    InvalidTrainingSet:
-      type: object
-      properties:
-        num:
-          type: integer
-          description: The number of invalid set in training
-        repeat:
-          type: string
-          example: "Repeat can't be less than 0"
-        distance:
-          type: string
-          example: "Distance can't be less than 0"
-        what:
-          type: string
-          example: "What can't be empty"
-        startingRule:
-          type: object
-          properties:
-            type:
-              type: string
-              example: "Unknown rule 'non'"
-            seconds:
-              type: string
-              example: "Rule 'Interval' requires non 0 seconds"
-
     Block:
       type: object
       properties:
@@ -672,23 +647,6 @@ components:
         - blocks
         - totalDistance
 
-    InvalidTraining:
-      type: object
-      properties:
-        date:
-          type: string
-          example: Date '29.8.2001' isn't on 'monday'
-        startTime:
-          type: string
-          example: Start time must be from 00:00 to 23:59, but was '43:32'
-        durationMin:
-          type: string
-          example: Duration can't be 0
-        blocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/InvalidBlock'
-
     TrainingDetail:
       type: object
       properties:
@@ -760,15 +718,10 @@ components:
     NewTraining:
       type: object
       properties:
-        date:
+        start:
           type: string
-          format: date
-          description: On what date does the training occur.
-        startTime:
-          type: string
-          pattern: ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$
-          description: When does the training start during the day.
-          x-go-type: StartTime
+          format: date-time
+          description: On what date and time does the training occur
         durationMin:
           type: integer
           description: How long does the session last, in minutes
@@ -782,55 +735,43 @@ components:
           items:
             $ref: '#/components/schemas/NewTrainingSet'
       required:
-        - date
-        - startTime
+        - start
         - durationMin
         - totalDistance
         - sets
 
-    NewBlock:
+    InvalidTraining:
       type: object
       properties:
-        num:
-          type: integer
-          description: Number of the block, indicates on which place this block in training is supposed to be.
-        repeat:
-          type: integer
-          description: How many times to repeat this block
-          minimum: 1
-        name:
+        durationMin:
           type: string
-          example: Warm up
-          maxLength: 255
-        totalDistance:
-          type: integer
-          description: Sum of all distances in sets in meters
-          example: 200
+          example: Duration can't be 0
         sets:
+          type: string
+          example: Training must have at least one set
+        invalidSets:
           type: array
           items:
-            $ref: '#/components/schemas/NewTrainingSet'
-      required:
-        - num
-        - repeat
-        - name
-        - totalDistance
-        - sets
+            $ref: '#/components/schemas/InvalidTrainingSet'
+
 
     NewTrainingSet:
       type: object
       properties:
         setOrder:
           type: integer
-          description: Indicates on what place in training the set is
+          description: Indicates on what place in training this set is
+        subSetOrder:
+          type: integer
+          description: Indicates on what place in parent set this set is
         repeat:
           type: integer
           description: How many times to repeat this set
           minimum: 1
-        distance:
+        distanceMeters:
           type: integer
           example: 400
-        what:
+        description:
           type: string
           description: Description of what to swim
           example: Freestyle
@@ -840,12 +781,45 @@ components:
           type: integer
           description: Used by starts which require a time parameter
           example: 60
+        totalDistance:
+          type: integer
+          description: Total distance in this set
+          example: 800
         subSets:
           type: array
           items:
             $ref: '#/components/schemas/NewTrainingSet'
       required:
-        - num
         - repeat
-        - startingRule
+        - startType
+        - totalDistance
 
+    InvalidTrainingSet:
+      type: object
+      properties:
+        setOrder:
+          type: string
+          example:
+            - "Set order can't be less than 0"
+            - "Duplicate set order 0"
+        subSetOrder:
+          type: string
+          example:
+            - "Sub set order can't be less than 0"
+            - "Duplicate sub set order 0"
+        repeat:
+          type: string
+          example: "Repeat must be greater than 0"
+        distanceMeters:
+          type: string
+          example: "Distance must be greater than 0" 
+        startType:
+          type: string
+          example: "Unknown start rule 'Intervl'"
+        startSeconds:
+          type: string
+          example: "Type 'Pause' must have seconds set" 
+        subSets:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvalidTrainingSet'
