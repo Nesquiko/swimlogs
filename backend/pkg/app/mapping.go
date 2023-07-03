@@ -1,6 +1,8 @@
 package app
 
 import (
+	"time"
+
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
 	"github.com/google/uuid"
@@ -124,6 +126,28 @@ func apiNewSetIntoDataSet(
 		Description:    s.Description,
 		StartType:      string(s.StartType),
 		StartSeconds:   s.StartSeconds,
+	}
+}
+
+func apiSessionFromDataSession(s data.Session) openapi.Session {
+	return openapi.Session{
+		Id:          s.Id,
+		Day:         openapi.Day(s.Day),
+		StartTime:   s.StartTime.Format("15:04"),
+		DurationMin: s.DurationMin,
+	}
+}
+
+func mapDataSessionsToApiSessions(sessions []data.Session) []openapi.Session {
+	return mapSlice(sessions, apiSessionFromDataSession)
+}
+
+func dataSessionFromNewApiSession(s openapi.CreateSessionJSONBody) data.Session {
+	startTime, _ := time.Parse("15:04", s.StartTime)
+	return data.Session{
+		Day:         string(s.Day),
+		StartTime:   startTime,
+		DurationMin: s.DurationMin,
 	}
 }
 

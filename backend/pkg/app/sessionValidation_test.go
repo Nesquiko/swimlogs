@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
@@ -10,9 +11,9 @@ import (
 
 func Test_validateNewSession(t *testing.T) {
 	testCases := []struct {
-		desc    string
-		newSess openapi.CreateSessionJSONBody
-		wantErr bool
+		desc     string
+		newSess  openapi.CreateSessionJSONBody
+		expected SessionValidation
 	}{
 		{
 			desc: "valid session",
@@ -21,7 +22,10 @@ func Test_validateNewSession(t *testing.T) {
 				Day:         openapi.Friday,
 				DurationMin: 60,
 			},
-			wantErr: false,
+			expected: SessionValidation{
+				InvalidSession: openapi.InvalidSession{},
+				IsValid:        true,
+			},
 		},
 		{
 			desc: "invalid time",
@@ -30,7 +34,12 @@ func Test_validateNewSession(t *testing.T) {
 				Day:         openapi.Friday,
 				DurationMin: 60,
 			},
-			wantErr: true,
+			expected: SessionValidation{
+				InvalidSession: openapi.InvalidSession{
+					StartTime: asPtr(fmt.Sprintf(StartTimeErrFormat, "24:00")),
+				},
+				IsValid: false,
+			},
 		},
 		{
 			desc: "invalid day",
@@ -39,7 +48,12 @@ func Test_validateNewSession(t *testing.T) {
 				Day:         openapi.Day("invalid"),
 				DurationMin: 60,
 			},
-			wantErr: true,
+			expected: SessionValidation{
+				InvalidSession: openapi.InvalidSession{
+					Day: asPtr(fmt.Sprintf(DayErrFormat, "invalid")),
+				},
+				IsValid: false,
+			},
 		},
 		{
 			desc: "invalid duration",
@@ -48,13 +62,18 @@ func Test_validateNewSession(t *testing.T) {
 				Day:         openapi.Friday,
 				DurationMin: -1,
 			},
-			wantErr: true,
+			expected: SessionValidation{
+				InvalidSession: openapi.InvalidSession{
+					DurationMin: &durationErr,
+				},
+				IsValid: false,
+			},
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			gotErr := validateNewSession(tC.newSess)
-			assert.Equal(t, tC.wantErr, gotErr != nil)
+			actual := validateNewSession(tC.newSess)
+			assert.Equal(t, tC.expected, actual)
 		})
 	}
 }

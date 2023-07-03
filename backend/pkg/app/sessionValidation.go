@@ -10,6 +10,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	StartTimeErrFormat = "Start time must be from 00:00 to 23:59, but was '%s'"
+	DayErrFormat       = "Unknown day name '%s'"
+)
+
 func validateSessionUpdate(newSess openapi.UpdateSessionJSONBody) *openapi.ErrorDetail {
 	if allFieldsNill(newSess) {
 		return &openapi.ErrorDetail{
@@ -45,31 +50,29 @@ func validateSessionUpdate(newSess openapi.UpdateSessionJSONBody) *openapi.Error
 	}
 }
 
-func validateNewSession(newSess openapi.CreateSessionJSONBody) *openapi.ErrorDetail {
-	errors := make(map[string]any)
+type SessionValidation struct {
+	InvalidSession openapi.InvalidSession
+	IsValid        bool
+}
+
+func validateNewSession(newSess openapi.CreateSessionJSONBody) SessionValidation {
+	invalid := openapi.InvalidSession{}
 
 	if _, ok := openapi.DaysOfWeek[newSess.Day]; !ok {
-		errors["day"] = fmt.Sprintf("Unknown day name '%s'", newSess.Day)
+		invalid.Day = asPtr(fmt.Sprintf(DayErrFormat, newSess.Day))
 	}
-	if !isTimeValid(string(newSess.StartTime)) {
-		errors["startTime"] = fmt.Sprintf(
-			"Start time must be from 00:00 to 23:59, but was '%s'",
-			newSess.StartTime,
-		)
+	if !isTimeValid(newSess.StartTime) {
+		invalid.StartTime = asPtr(fmt.Sprintf(StartTimeErrFormat, newSess.StartTime))
 	}
 	if newSess.DurationMin <= 0 {
-		errors["durationMin"] = "Duration can't be 0 or less"
+		invalid.DurationMin = &durationErr
 	}
 
-	if len(errors) == 0 {
-		return nil
+	sv := SessionValidation{InvalidSession: invalid, IsValid: true}
+	if !allFieldsNill(invalid) {
+		sv.IsValid = false
 	}
-
-	return &openapi.ErrorDetail{
-		Title:      "Invalid session",
-		Detail:     "Session contains invalid values",
-		Extensions: &errors,
-	}
+	return sv
 }
 
 func isTimeValid(startTime string) bool {
