@@ -366,7 +366,7 @@ components:
                             type: object
                             properties:
                               type:
-                                $ref: '#/components/schemas/StartingRuleType'
+                                $ref: '#/components/schemas/StartType'
                               seconds:
                                 type: integer
                                 description: Used by rules which require a time parameter
@@ -469,7 +469,7 @@ components:
         - Saturday
         - Sunday
     
-    StartingRuleType:
+    StartType:
       type: string
       enum:
         - None
@@ -537,7 +537,7 @@ components:
           description: Description of what to swim
           example: Freestyle
         startType:
-          $ref: '#/components/schemas/StartingRuleType'
+          $ref: '#/components/schemas/StartType'
         startSeconds:
           type: integer
           description: Used by starts which require a time parameter
@@ -555,23 +555,6 @@ components:
         - repeat
         - startType
         - totalDistance
-
-    InvalidBlock:
-      type: object
-      properties:
-        num:
-          type: integer
-          description: The number of invalid block in training
-        name:
-          type: string
-          example: "Name can't be longer than 255 characters"
-        repeat:
-          type: string
-          example: "Repeat can't be less than 0"
-        sets:
-          type: array
-          items:
-            $ref: '#/components/schemas/InvalidTrainingSet'
 
     Training:
       type: object
@@ -724,7 +707,7 @@ components:
           description: Description of what to swim
           example: Freestyle
         startType:
-          $ref: '#/components/schemas/StartingRuleType'
+          $ref: '#/components/schemas/StartType'
         startSeconds:
           type: integer
           description: Used by starts which require a time parameter

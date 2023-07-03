@@ -20,11 +20,11 @@ const (
 	Wednesday Day = "Wednesday"
 )
 
-// Defines values for StartingRuleType.
+// Defines values for StartType.
 const (
-	Interval StartingRuleType = "Interval"
-	None     StartingRuleType = "None"
-	Pause    StartingRuleType = "Pause"
+	Interval StartType = "Interval"
+	None     StartType = "None"
+	Pause    StartType = "Pause"
 )
 
 // Day defines model for Day.
@@ -86,8 +86,8 @@ type NewTrainingSet struct {
 	SetOrder *int `json:"setOrder,omitempty"`
 
 	// StartSeconds Used by starts which require a time parameter
-	StartSeconds *int             `json:"startSeconds,omitempty"`
-	StartType    StartingRuleType `json:"startType"`
+	StartSeconds *int      `json:"startSeconds,omitempty"`
+	StartType    StartType `json:"startType"`
 
 	// SubSetOrder Indicates on what place in parent set this set is
 	SubSetOrder *int              `json:"subSetOrder,omitempty"`
@@ -121,8 +121,8 @@ type Session struct {
 	StartTime StartTime `json:"startTime"`
 }
 
-// StartingRuleType defines model for StartingRuleType.
-type StartingRuleType string
+// StartType defines model for StartType.
+type StartType string
 
 // Training defines model for Training.
 type Training struct {
@@ -165,8 +165,8 @@ type TrainingSet struct {
 	SetOrder *int `json:"setOrder,omitempty"`
 
 	// StartSeconds Used by starts which require a time parameter
-	StartSeconds *int             `json:"startSeconds,omitempty"`
-	StartType    StartingRuleType `json:"startType"`
+	StartSeconds *int      `json:"startSeconds,omitempty"`
+	StartType    StartType `json:"startType"`
 
 	// SubSetOrder Indicates on what place in parent set this set is
 	SubSetOrder *int           `json:"subSetOrder,omitempty"`
@@ -223,8 +223,8 @@ type UpdateTrainingRequest struct {
 			Repeat       *int `json:"repeat,omitempty"`
 			StartingRule *struct {
 				// Seconds Used by rules which require a time parameter
-				Seconds *int              `json:"seconds,omitempty"`
-				Type    *StartingRuleType `json:"type,omitempty"`
+				Seconds *int       `json:"seconds,omitempty"`
+				Type    *StartType `json:"type,omitempty"`
 			} `json:"startingRule,omitempty"`
 
 			// What Description of what to swim
@@ -302,8 +302,8 @@ type UpdateTrainingJSONBody struct {
 			Repeat       *int `json:"repeat,omitempty"`
 			StartingRule *struct {
 				// Seconds Used by rules which require a time parameter
-				Seconds *int              `json:"seconds,omitempty"`
-				Type    *StartingRuleType `json:"type,omitempty"`
+				Seconds *int       `json:"seconds,omitempty"`
+				Type    *StartType `json:"type,omitempty"`
 			} `json:"startingRule,omitempty"`
 
 			// What Description of what to swim
