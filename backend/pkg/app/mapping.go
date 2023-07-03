@@ -50,7 +50,7 @@ func dataSetIntoApiTrainingSet(s data.TrainingSet) openapi.TrainingSet {
 		Repeat:         s.Repeat,
 		Description:    s.Description,
 		DistanceMeters: s.DistanceMeters,
-		StartType:      openapi.StartingRuleType(s.StartType),
+		StartType:      openapi.StartType(s.StartType),
 		StartSeconds:   s.StartSeconds,
 		TotalDistance:  s.TotalDistance,
 	}

@@ -299,7 +299,7 @@ func Test_validateSet(t *testing.T) {
 			desc: "invalid start type",
 			set: openapi.NewTrainingSet{
 				Repeat:    1,
-				StartType: openapi.StartingRuleType("invalid"),
+				StartType: openapi.StartType("invalid"),
 				SetOrder:  asPtr(0),
 			},
 			expected: openapi.InvalidTrainingSet{
