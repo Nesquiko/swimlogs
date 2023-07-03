@@ -7,66 +7,62 @@ import (
 
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
 	"github.com/Nesquiko/swimlogs/tests/it"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// func TestGetTrainingsDetailsForCurrentWeekSuccessfully(t *testing.T) {
-// 	it.TestFilter(t)
-// 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
-//
-// 	req := newTraining()
-// 	req.Date = types.Date{Time: time.Now()}
-// 	var saved openapi.TrainingDetail
-// 	{
-// 		res := SwimLogsApp.SaveTraining(req)
-// 		require.Equal(t, http.StatusCreated, res.Code())
-// 		require.IsType(t, openapi.TrainingDetail{}, res.Body())
-// 		saved = res.Body().(openapi.TrainingDetail)
-// 	}
-//
-// 	res := SwimLogsApp.GetTrainingDetailsForCurrentWeek()
-// 	require.Equal(t, http.StatusOK, res.Code())
-// 	require.IsType(t, openapi.TrainingDetailsCurrentWeekResponse{}, res.Body())
-// 	trainings := res.Body().(openapi.TrainingDetailsCurrentWeekResponse).Details
-// 	require.Equal(t, 1, len(trainings))
-//
-// 	assert := assert.New(t)
-// 	assert.Equal(saved.Id, trainings[0].Id)
-// 	assert.Equal(saved.StartTime, trainings[0].StartTime)
-// 	assert.Equal(saved.DurationMin, trainings[0].DurationMin)
-// 	assert.Equal(saved.TotalDistance, trainings[0].TotalDistance)
-// }
+func TestGetTrainingsDetailsForCurrentWeekSuccessfully(t *testing.T) {
+	it.TestFilter(t)
+	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
 
-// func TestGetTrainingByIdSuccessfully(t *testing.T) {
-// 	it.TestFilter(t)
-// 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
-//
-// 	req := newTraining()
-// 	res := SwimLogsApp.SaveTraining(req)
-// 	require.Equal(t, http.StatusCreated, res.Code())
-//
-// 	require.IsType(t, openapi.TrainingDetail{}, res.Body())
-// 	saved := res.Body().(openapi.TrainingDetail)
-//
-// 	trainingById := SwimLogsApp.GetTrainingById(saved.Id)
-// 	assert := assert.New(t)
-// 	assert.Equal(http.StatusOK, trainingById.Code())
-//
-// 	require.IsType(t, openapi.Training{}, trainingById.Body())
-// 	training := trainingById.Body().(openapi.Training)
-// 	assert.Equal(saved.StartTime, training.StartTime)
-// 	assert.Equal(saved.DurationMin, training.DurationMin)
-// 	assert.Equal(saved.TotalDistance, training.TotalDistance)
-// }
+	weekTime := time.Date(2023, 8, 24, 12, 0, 0, 0, time.UTC) // Thursday
+	for i := 0; i < 7; i++ {
+		newTraining := newTraining()
+		newTraining.Start = weekTime.AddDate(0, 0, -i)
+		res := SwimLogsApp.SaveTraining(newTraining)
+		require.Equal(t, http.StatusCreated, res.Code())
+		require.IsType(t, openapi.TrainingDetail{}, res.Body())
+	}
 
-// func TestGetTrainingByIdNotFound(t *testing.T) {
-// 	it.TestFilter(t)
-//
-// 	res := SwimLogsApp.GetTrainingById(uuid.New())
-// 	assert := assert.New(t)
-// 	assert.Equal(http.StatusNotFound, res.Code())
-// }
+	expectedCount := 4
+	res := SwimLogsApp.GetTrainingDetailsInWeek(weekTime)
+	require.Equal(t, http.StatusOK, res.Code())
+	require.IsType(t, openapi.TrainingDetailsCurrentWeekResponse{}, res.Body())
+	trainings := res.Body().(openapi.TrainingDetailsCurrentWeekResponse).Details
+	assert.Equal(t, expectedCount, len(trainings))
+
+}
+
+func TestGetTrainingByIdSuccessfully(t *testing.T) {
+	it.TestFilter(t)
+	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
+
+	req := newTraining()
+	res := SwimLogsApp.SaveTraining(req)
+	require.Equal(t, http.StatusCreated, res.Code())
+
+	require.IsType(t, openapi.TrainingDetail{}, res.Body())
+	saved := res.Body().(openapi.TrainingDetail)
+
+	trainingById := SwimLogsApp.GetTrainingById(saved.Id)
+	assert := assert.New(t)
+	assert.Equal(http.StatusOK, trainingById.Code())
+
+	require.IsType(t, openapi.Training{}, trainingById.Body())
+	training := trainingById.Body().(openapi.Training)
+	assert.True(saved.Start.Truncate(time.Second).Equal(training.Start.Truncate(time.Second)))
+	assert.Equal(saved.DurationMin, training.DurationMin)
+	assert.Equal(saved.TotalDistance, training.TotalDistance)
+}
+
+func TestGetTrainingByIdNotFound(t *testing.T) {
+	it.TestFilter(t)
+
+	res := SwimLogsApp.GetTrainingById(uuid.New())
+	assert := assert.New(t)
+	assert.Equal(http.StatusNotFound, res.Code())
+}
 
 func TestSaveTrainingSuccessfully(t *testing.T) {
 	it.TestFilter(t)

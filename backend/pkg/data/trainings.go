@@ -3,13 +3,11 @@ package data
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 	"time"
 
-	"github.com/Nesquiko/swimlogs/pkg/openapi"
-	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -141,75 +139,80 @@ func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error
 
 var selectTraining = `
 select
-    t.id, t.date, t.start_time, t.duration, t.total_distance,
-    b.id, b.num, b.repeat, b.name, b.total_distance,
-    s.id, s.num, s.repeat, s.distance, s.what, s.starting_rule, s.rule_seconds, s.total_distance
+    t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
+    s.id, s.parent_set_id, s.training_id, s.set_order, s.subset_order, s.repeat,
+    s.distance_meters, s.description, s.start_type, s.start_seconds, s.total_distance
 from trainings t
-         join blocks b on t.id = b.training_id
-         join sets s on b.id = s.block_id
+         join sets s on t.id = s.training_id
 where t.id = $1
-order by b.num, s.num
+order by s.set_order, s.subset_order nulls first
 `
 
-func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (openapi.Training, error) {
-	var t openapi.Training
-	var date time.Time
-
+func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
+	var t Training
 	rows, err := db.Query(selectTraining, id)
 	if err != nil {
-		return openapi.Training{}, fmt.Errorf("GetTrainingById: %w", err)
+		return Training{}, fmt.Errorf("GetTrainingById: %w", err)
 	}
 	defer rows.Close()
 
 	count := 0
-	blocks := make(map[uuid.UUID]*openapi.Block)
+	rootSets := make([]TrainingSet, 0)
+	setsMap := make(map[uuid.UUID]*TrainingSet)
 	for rows.Next() {
 		count++
-		var b openapi.Block
-		var s openapi.TrainingSet
-
+		var s TrainingSet
 		err := rows.Scan(
 			&t.Id,
-			&date,
-			&t.StartTime,
+			&t.Start,
 			&t.DurationMin,
 			&t.TotalDistance,
-			&b.Id,
-			&b.Num,
-			&b.Repeat,
-			&b.Name,
-			&b.TotalDistance,
+			&t.CreatedAt,
+			&t.ModifiedAt,
 			&s.Id,
-			&s.Num,
+			&s.ParentSetId,
+			&s.TrainingId,
+			&s.SetOrder,
+			&s.SubSetOrder,
 			&s.Repeat,
-			&s.Distance,
-			&s.What,
-			&s.StartingRule.Type,
-			&s.StartingRule.Seconds,
+			&s.DistanceMeters,
+			&s.Description,
+			&s.StartType,
+			&s.StartSeconds,
 			&s.TotalDistance,
 		)
 		if err != nil {
-			return openapi.Training{}, fmt.Errorf("GetTrainingById: %w", err)
+			return Training{}, fmt.Errorf("GetTrainingById: %w", err)
 		}
 
-		if _, ok := blocks[b.Id]; !ok {
-			blocks[b.Id] = &b
+		if s.ParentSetId == nil {
+			rootSets = append(rootSets, s)
+			setsMap[s.Id] = &rootSets[len(rootSets)-1]
+			continue
 		}
-		blocks[b.Id].Sets = append(blocks[b.Id].Sets, s)
+
+		parentSet, ok := setsMap[*s.ParentSetId]
+		if !ok {
+			log.Error().
+				Str("training_id", t.Id.String()).
+				Str("set_id", s.Id.String()).
+				Str("parent_set_id", s.ParentSetId.String()).
+				Msg("parent set not found")
+			continue
+		}
+
+		if parentSet.SubSets == nil {
+			parentSet.SubSets = &[]TrainingSet{}
+		}
+
+		newSubSets := append(*parentSet.SubSets, s)
+		parentSet.SubSets = &newSubSets
+		setsMap[s.Id] = &(*parentSet.SubSets)[len(*parentSet.SubSets)-1]
 	}
 	if count == 0 {
-		return openapi.Training{}, fmt.Errorf("GetTrainingById: %w", ErrRowsNotFound)
+		return Training{}, fmt.Errorf("GetTrainingById: %w", ErrRowsNotFound)
 	}
-	t.Date = types.Date{Time: date}
-	for _, b := range blocks {
-		sort.Slice(b.Sets, func(i, j int) bool {
-			return b.Sets[i].Num < b.Sets[j].Num
-		})
-		t.Blocks = append(t.Blocks, *b)
-	}
-	sort.Slice(t.Blocks, func(i, j int) bool {
-		return t.Blocks[i].Num < t.Blocks[j].Num
-	})
+	t.Sets = rootSets
 
 	return t, nil
 }
@@ -217,14 +220,14 @@ func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (openapi.Training, error
 var selectTrainingDetailsForThisWeek = `
 select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
 from trainings t
-where date_trunc('week', t.start) = date_trunc('week', current_date)
+where date_trunc('week', t.start) = date_trunc('week', $1::date)
 order by t.start, t.duration_min, t.total_distance
 `
 
-func (db *PostgresDbConn) GetTrainingDetailsInCurrentWeek() ([]Training, error) {
+func (db *PostgresDbConn) GetTrainingDetailsInWeek(week time.Time) ([]Training, error) {
 	var ts = make([]Training, 0)
 
-	rows, err := db.Query(selectTrainingDetailsForThisWeek)
+	rows, err := db.Query(selectTrainingDetailsForThisWeek, week)
 	if err != nil {
 		return nil, fmt.Errorf("GetTrainingDetailsForThisWeek: %w", err)
 	}

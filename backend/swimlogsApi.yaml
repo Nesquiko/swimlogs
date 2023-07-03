@@ -476,18 +476,6 @@ components:
         - Interval
         - Pause
 
-    StartingRule:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/StartingRuleType'
-        seconds:
-          type: integer
-          description: Used by rules which require a time parameter
-          example: 60
-      required:
-        - type
-
     Session:
       type: object
       properties:
@@ -531,68 +519,41 @@ components:
         id:
           type: string
           format: uuid
-        num:
+        setOrder:
           type: integer
-          description: Number of the set, indicates on what place
-            in block the set is supposed to be.
+          description: Indicates on what place in training this set is
+        subSetOrder:
+          type: integer
+          description: Indicates on what place in parent set this set is
         repeat:
           type: integer
           description: How many times to repeat this set
           minimum: 1
-        distance:
+        distanceMeters:
           type: integer
           example: 400
-        what:
+        description:
           type: string
           description: Description of what to swim
           example: Freestyle
-        startingRule:
-          $ref: '#/components/schemas/StartingRule'
+        startType:
+          $ref: '#/components/schemas/StartingRuleType'
+        startSeconds:
+          type: integer
+          description: Used by starts which require a time parameter
+          example: 60
         totalDistance:
           type: integer
-          description: Total distance in this set.
+          description: Total distance in this set
           example: 800
-      required:
-        - id
-        - num
-        - repeat
-        - distance
-        - what
-        - startingRule
-        - totalDistance
-
-    Block:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        num:
-          type: integer
-          description: Number of the block, indicates on which place this block
-            in training is supposed to be.
-        repeat:
-          type: integer
-          description: How many times to repeat this block
-          minimum: 1
-        name:
-          type: string
-          example: Warm up
-          maxLength: 255
-        sets:
+        subSets:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSet'
-        totalDistance:
-          type: integer
-          description: Total distance in this block.
-          example: 800
       required:
         - id
-        - num
         - repeat
-        - name
-        - sets
+        - startType
         - totalDistance
 
     InvalidBlock:
@@ -618,34 +579,28 @@ components:
         id:
           type: string
           format: uuid
-        date:
+        start:
           type: string
-          format: date
-          description: On what date does the training occur
-        startTime:
-          type: string
-          pattern: ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$
-          description: When does the training start during the day.
-          x-go-type: StartTime
+          format: date-time
+          description: On what date and time does the training occur
         durationMin:
           type: integer
           description: How long does the session last, in minutes
           example: 60
-        blocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Block'
         totalDistance:
           type: integer
-          description: Total distance in this training
-          example: 2800
+          description: Sum of all distances in blocks in meters
+          example: 2100
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingSet'
       required:
         - id
-        - date
-        - startTime
+        - start
         - durationMin
-        - blocks
         - totalDistance
+        - sets
 
     TrainingDetail:
       type: object

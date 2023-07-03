@@ -27,22 +27,6 @@ const (
 	Pause    StartingRuleType = "Pause"
 )
 
-// Block defines model for Block.
-type Block struct {
-	Id   openapi_types.UUID `json:"id"`
-	Name string             `json:"name"`
-
-	// Num Number of the block, indicates on which place this block in training is supposed to be.
-	Num int `json:"num"`
-
-	// Repeat How many times to repeat this block
-	Repeat int           `json:"repeat"`
-	Sets   []TrainingSet `json:"sets"`
-
-	// TotalDistance Total distance in this block.
-	TotalDistance int `json:"totalDistance"`
-}
-
 // Day defines model for Day.
 type Day string
 
@@ -137,31 +121,20 @@ type Session struct {
 	StartTime StartTime `json:"startTime"`
 }
 
-// StartingRule defines model for StartingRule.
-type StartingRule struct {
-	// Seconds Used by rules which require a time parameter
-	Seconds *int             `json:"seconds,omitempty"`
-	Type    StartingRuleType `json:"type"`
-}
-
 // StartingRuleType defines model for StartingRuleType.
 type StartingRuleType string
 
 // Training defines model for Training.
 type Training struct {
-	Blocks []Block `json:"blocks"`
-
-	// Date On what date does the training occur
-	Date openapi_types.Date `json:"date"`
-
 	// DurationMin How long does the session last, in minutes
 	DurationMin int                `json:"durationMin"`
 	Id          openapi_types.UUID `json:"id"`
+	Sets        []TrainingSet      `json:"sets"`
 
-	// StartTime When does the training start during the day.
-	StartTime StartTime `json:"startTime"`
+	// Start On what date and time does the training occur
+	Start time.Time `json:"start"`
 
-	// TotalDistance Total distance in this training
+	// TotalDistance Sum of all distances in blocks in meters
 	TotalDistance int `json:"totalDistance"`
 }
 
@@ -180,21 +153,27 @@ type TrainingDetail struct {
 
 // TrainingSet defines model for TrainingSet.
 type TrainingSet struct {
-	Distance int                `json:"distance"`
-	Id       openapi_types.UUID `json:"id"`
-
-	// Num Number of the set, indicates on what place in block the set is supposed to be.
-	Num int `json:"num"`
+	// Description Description of what to swim
+	Description    *string            `json:"description,omitempty"`
+	DistanceMeters *int               `json:"distanceMeters,omitempty"`
+	Id             openapi_types.UUID `json:"id"`
 
 	// Repeat How many times to repeat this set
-	Repeat       int          `json:"repeat"`
-	StartingRule StartingRule `json:"startingRule"`
+	Repeat int `json:"repeat"`
 
-	// TotalDistance Total distance in this set.
+	// SetOrder Indicates on what place in training this set is
+	SetOrder *int `json:"setOrder,omitempty"`
+
+	// StartSeconds Used by starts which require a time parameter
+	StartSeconds *int             `json:"startSeconds,omitempty"`
+	StartType    StartingRuleType `json:"startType"`
+
+	// SubSetOrder Indicates on what place in parent set this set is
+	SubSetOrder *int           `json:"subSetOrder,omitempty"`
+	SubSets     *[]TrainingSet `json:"subSets,omitempty"`
+
+	// TotalDistance Total distance in this set
 	TotalDistance int `json:"totalDistance"`
-
-	// What Description of what to swim
-	What string `json:"what"`
 }
 
 // InvalidSessionErrorResponse defines model for InvalidSessionErrorResponse.

@@ -11,48 +11,50 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetTrainingDetailsForThisWeekSuccessfully(t *testing.T) {
+func TestGetTrainingDetailsForWeekSuccessfully(t *testing.T) {
 	it.TestFilter(t)
 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
 
+	weekTime := time.Date(2023, 8, 24, 12, 0, 0, 0, time.UTC) // Thursday
 	for i := 0; i < 7; i++ {
 		newTraining := newTraining()
-		newTraining.Start = time.Now().AddDate(0, 0, -i)
+		newTraining.Start = weekTime.AddDate(0, 0, -i)
 		_, err := PostgresDbConn.SaveTraining(newTraining)
 		require.Nil(t, err)
 	}
 
-	expectedCount := int((time.Now().Weekday()+6)%7 + 1)
-	trainings, err := PostgresDbConn.GetTrainingDetailsInCurrentWeek()
+	expectedCount := 4
+	trainings, err := PostgresDbConn.GetTrainingDetailsInWeek(weekTime)
 	require.Nil(t, err)
 	assert.Equal(t, expectedCount, len(trainings))
 }
 
-// func TestGetTrainingByIdNotFound(t *testing.T) {
-// 	it.TestFilter(t)
-//
-// 	_, err := PostgresDbConn.GetTrainingById(uuid.New())
-// 	require.NotNil(t, err)
-// 	assert.ErrorIs(t, err, data.ErrRowsNotFound)
-// }
-//
-// func TestGetTrainingByIdSuccessfully(t *testing.T) {
-// 	it.TestFilter(t)
-// 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
-//
-// 	newTraining := newTraining()
-// 	saved, err := PostgresDbConn.SaveTraining(newTraining)
-// 	require.Nil(t, err)
-//
-// 	training, err := PostgresDbConn.GetTrainingById(saved.Id)
-// 	require.Nil(t, err)
-//
-// 	assert := assert.New(t)
-// 	assert.Equal(saved.Id, training.Id)
-// 	assert.Equal(saved.Start, training.Start)
-// 	assert.Equal(saved.DurationMin, training.DurationMin)
-// 	assert.Equal(saved.TotalDistance, training.TotalDistance)
-// }
+func TestGetTrainingByIdNotFound(t *testing.T) {
+	it.TestFilter(t)
+
+	_, err := PostgresDbConn.GetTrainingById(uuid.New())
+	require.NotNil(t, err)
+	assert.ErrorIs(t, err, data.ErrRowsNotFound)
+}
+
+func TestGetTrainingByIdSuccessfully(t *testing.T) {
+	it.TestFilter(t)
+	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
+
+	newTraining := newTraining()
+	saved, err := PostgresDbConn.SaveTraining(newTraining)
+	require.Nil(t, err)
+
+	training, err := PostgresDbConn.GetTrainingById(saved.Id)
+	require.Nil(t, err)
+
+	assert := assert.New(t)
+	assert.Equal(saved.Id, training.Id)
+	assert.Equal(saved.Start, training.Start)
+	assert.Equal(saved.DurationMin, training.DurationMin)
+	assert.Equal(saved.TotalDistance, training.TotalDistance)
+	assert.Equal(len(saved.Sets), len(training.Sets))
+}
 
 func TestSaveTrainingSuccessfully(t *testing.T) {
 	it.TestFilter(t)
