@@ -7,6 +7,7 @@ import (
 
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
 	middleware "github.com/deepmap/oapi-codegen/pkg/chi-middleware"
+	chiMidleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
@@ -41,6 +42,7 @@ func PublicMiddleware(feOrigin string) []openapi.MiddlewareFunc {
 		hlog.CustomHeaderHandler("ip", "X-Real-Ip"),
 		hlog.NewHandler(l),
 		cors(feOrigin),
+		chiMidleware.Recoverer,
 	}
 }
 

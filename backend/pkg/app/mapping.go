@@ -6,6 +6,56 @@ import (
 	"github.com/google/uuid"
 )
 
+func dataTrainingIntoApiTraining(t data.Training) openapi.Training {
+	return openapi.Training{
+		Id:            t.Id,
+		Start:         t.Start,
+		DurationMin:   t.DurationMin,
+		TotalDistance: t.TotalDistance,
+		Sets:          dataSetsIntoApiTrainingSets(t.Sets),
+	}
+}
+
+func dataSetsIntoApiTrainingSets(ts []data.TrainingSet) []openapi.TrainingSet {
+	apiSets := make([]openapi.TrainingSet, 0)
+
+	for _, dataSet := range ts {
+		apiSet := dataSetIntoApiTrainingSet(dataSet)
+		if dataSet.SubSets == nil || len(*dataSet.SubSets) == 0 {
+			apiSets = append(apiSets, apiSet)
+			continue
+		}
+
+		for _, subSet := range *dataSet.SubSets {
+			apiSubSet := dataSetIntoApiTrainingSet(subSet)
+
+			if apiSet.SubSets == nil {
+				apiSet.SubSets = &[]openapi.TrainingSet{}
+			}
+
+			newSubSets := append(*apiSet.SubSets, apiSubSet)
+			apiSet.SubSets = &newSubSets
+		}
+		apiSets = append(apiSets, apiSet)
+	}
+
+	return apiSets
+}
+
+func dataSetIntoApiTrainingSet(s data.TrainingSet) openapi.TrainingSet {
+	return openapi.TrainingSet{
+		Id:             s.Id,
+		SetOrder:       &s.SetOrder,
+		SubSetOrder:    s.SubSetOrder,
+		Repeat:         s.Repeat,
+		Description:    s.Description,
+		DistanceMeters: s.DistanceMeters,
+		StartType:      openapi.StartingRuleType(s.StartType),
+		StartSeconds:   s.StartSeconds,
+		TotalDistance:  s.TotalDistance,
+	}
+}
+
 func mapDataTrainingsToApiTrainingDetails(ts []data.Training) []openapi.TrainingDetail {
 	return mapSlice[data.Training, openapi.TrainingDetail](ts, dataTrainingIntoApiTrainingDetail)
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
@@ -118,11 +119,17 @@ func (app *SwimLogsApp) GetTrainingById(id uuid.UUID) Result[openapi.Training] {
 		return internalServerErrorResult[openapi.Training]("Failed to get training")
 	}
 
-	return resultWithBody(t, http.StatusOK)
+	return resultWithBody(dataTrainingIntoApiTraining(t), http.StatusOK)
 }
 
 func (app *SwimLogsApp) GetTrainingDetailsForCurrentWeek() Result[openapi.TrainingDetailsCurrentWeekResponse] {
-	trainings, err := app.db.GetTrainingDetailsInCurrentWeek()
+	return app.GetTrainingDetailsInWeek(time.Now())
+}
+
+func (app *SwimLogsApp) GetTrainingDetailsInWeek(
+	week time.Time,
+) Result[openapi.TrainingDetailsCurrentWeekResponse] {
+	trainings, err := app.db.GetTrainingDetailsInWeek(week)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to get training details")
 		return internalServerErrorResult[openapi.TrainingDetailsCurrentWeekResponse](
