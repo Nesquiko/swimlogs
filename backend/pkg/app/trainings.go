@@ -14,11 +14,8 @@ import (
 
 func (app *SwimLogsApp) SaveTraining(training openapi.NewTraining) Result[openapi.TrainingDetail] {
 	if tv := validateNewTraining(training); !tv.IsValid {
-		log.Warn().Interface("trainingValidation", tv).Msg("invalid training")
-		return errorResult[openapi.TrainingDetail](
-			tv.InvalidTraining,
-			http.StatusBadRequest,
-		)
+		log.Warn().Interface("training_validation", tv).Msg("invalid training")
+		return errorResult[openapi.TrainingDetail](tv.InvalidTraining, http.StatusBadRequest)
 	}
 
 	recalculateTotalDistances(&training)

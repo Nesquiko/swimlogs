@@ -14,28 +14,29 @@ import (
 func (app *SwimLogsApp) GetSessions(
 	params openapi.GetSessionsParams,
 ) Result[openapi.SessionsResponse] {
-	sessions, pagination, err := app.db.GetSessions(params.Page, params.PageSize)
+	sessions, total, err := app.db.GetSessions(params.Page, params.PageSize)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to get all sessions")
 		return internalServerErrorResult[openapi.SessionsResponse]("Failed to get all sessions")
 	}
 
-	body := openapi.SessionsResponse{Sessions: sessions, Pagination: pagination}
+	pagination := openapi.Pagination{Page: params.Page, PageSize: len(sessions), Total: total}
+	body := openapi.SessionsResponse{
+		Sessions:   mapDataSessionsToApiSessions(sessions),
+		Pagination: pagination,
+	}
 	return resultWithBody(body, http.StatusOK)
 }
 
 func (app *SwimLogsApp) SaveSession(
 	session openapi.CreateSessionJSONBody,
 ) Result[openapi.Session] {
-	if errDetails := validateNewSession(session); errDetails != nil {
-		log.Warn().Msg("invalid session")
-		return resultFromErrorDetails[openapi.Session](
-			*errDetails,
-			http.StatusBadRequest,
-		)
+	if sv := validateNewSession(session); !sv.IsValid {
+		log.Warn().Interface("session_validation", sv).Msg("invalid session")
+		return errorResult[openapi.Session](sv.InvalidSession, http.StatusBadRequest)
 	}
 
-	s, err := app.db.SaveSession(session)
+	s, err := app.db.SaveSession(dataSessionFromNewApiSession(session))
 	if err != nil {
 		switch err {
 		case data.ErrCheckViolation:
@@ -67,7 +68,7 @@ func (app *SwimLogsApp) SaveSession(
 			return internalServerErrorResult[openapi.Session]("Failed to save session")
 		}
 	}
-	return resultWithBody(s, http.StatusCreated)
+	return resultWithBody(apiSessionFromDataSession(s), http.StatusCreated)
 }
 
 func (app *SwimLogsApp) DeleteSessionById(id uuid.UUID) Result[struct{}] {
