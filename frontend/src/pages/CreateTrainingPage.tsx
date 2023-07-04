@@ -2,15 +2,14 @@ import { useNavigate } from '@solidjs/router'
 import { Component, createEffect, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
-import { BlocksForm } from '../components/fragments/BlocksForm'
-import { TrainingSessionForm } from '../components/fragments/TrainingSessionFormFragment'
-import { CreateTrainingPreview } from '../components/fragments/TrainingPreviewFragment'
-import { openToast, ToastType } from '../components/Toast'
 import { NewTraining, ResponseError, StartType } from '../generated'
 import { addTrainingDetail, trainingApi } from '../state/trainings'
 import { CreateTrainingContextProvider } from '../components/context/CreateTrainingContextProvider'
 import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
+import { CreateTrainingPreview } from '../components/TrainingPreviewFragment'
+import { TrainingSessionForm } from '../components/TrainingSessionFormFragment'
+import { openToast, ToastType } from '../components/Toast'
 
 const CreateTrainingPage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({

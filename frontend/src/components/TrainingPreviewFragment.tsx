@@ -1,7 +1,7 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { Component } from 'solid-js'
-import { useCreateTraining } from '../context/CreateTrainingContextProvider'
-import TrainingPreview from '../TrainingPreview'
+import { useCreateTraining } from './context/CreateTrainingContextProvider'
+import TrainingPreview from './TrainingPreview'
 
 export const CreateTrainingPreview: Component = () => {
   const [{ training }, , , , [, setCurrentComponent], submitTraining] =
