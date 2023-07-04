@@ -1,55 +1,35 @@
 import { useNavigate } from '@solidjs/router'
-import {
-  Component,
-  createEffect,
-  createResource,
-  createSignal,
-  Show
-} from 'solid-js'
+import { Component, createEffect, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
 import { BlocksForm } from '../components/fragments/BlocksForm'
 import { TrainingSessionForm } from '../components/fragments/TrainingSessionFormFragment'
 import { CreateTrainingPreview } from '../components/fragments/TrainingPreviewFragment'
 import { openToast, ToastType } from '../components/Toast'
-import { NewTraining, ResponseError, StartingRuleType } from '../generated'
+import { NewTraining, ResponseError, StartType } from '../generated'
 import { addTrainingDetail, trainingApi } from '../state/trainings'
-import { sessionApi } from '../state/session'
-import Spinner from '../components/Spinner'
 import { CreateTrainingContextProvider } from '../components/context/CreateTrainingContextProvider'
-import { NullDate, NullStartTime } from '../lib/consts'
+import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
 
 const CreateTrainingPage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
-    date: NullDate,
-    startTime: NullStartTime,
+    start: NullDateTime,
     durationMin: 60,
     totalDistance: 100,
-    blocks: [
+    sets: [
       {
-        num: 0,
         repeat: 1,
-        name: '',
+        distanceMeters: 100,
         totalDistance: 100,
-        sets: [
-          {
-            num: 0,
-            repeat: 1,
-            distance: 100,
-            what: '',
-            startingRule: {
-              type: StartingRuleType.None
-            }
-          }
-        ]
+        startType: StartType.None
       }
     ]
   })
 
   createEffect(() => {
-    const totalDistance = training.blocks.reduce((acc, block) => {
-      return acc + block.totalDistance
+    const totalDistance = training.sets.reduce((acc, set) => {
+      return acc + set.totalDistance
     }, 0)
     setTraining('totalDistance', totalDistance)
   })
@@ -65,6 +45,7 @@ const CreateTrainingPage: Component = () => {
         navigate('/', { replace: true })
       })
       .catch((e: ResponseError) => {
+        // TODO check if error is 400
         console.error('error', e)
         openToast(
           t('training.creation.error', 'Error creating training'),
@@ -75,7 +56,8 @@ const CreateTrainingPage: Component = () => {
   }
 
   const [currentComponent, setCurrentComponent] = createSignal(0)
-  const comps = [TrainingSessionForm, BlocksForm, CreateTrainingPreview]
+  /* const comps = [TrainingSessionForm, BlocksForm, CreateTrainingPreview] */
+  const comps = [TrainingSessionForm, CreateTrainingPreview]
 
   return (
     <div>

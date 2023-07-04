@@ -1,8 +1,8 @@
-import { Trans, useTransContext } from '@mbarzda/solid-i18next'
+import { Trans } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
-import { Day } from '../../generated'
+import { Day, Session } from '../../generated'
 import {
-  NullDate,
+  NullDateTime,
   NullDay,
   NullStartTime,
   SmallIntMax,
@@ -10,85 +10,119 @@ import {
   StartTimeMinutes
 } from '../../lib/consts'
 import { formatDate } from '../../lib/datetime'
-import { isUndefindOrEmpty } from '../../lib/str'
-import {
-  PAGE_SIZE,
-  useCreateTraining
-} from '../context/CreateTrainingContextProvider'
+import { useCreateTraining } from '../context/CreateTrainingContextProvider'
 import SessionPicker from '../SessionPicker'
 
 export const TrainingSessionForm: Component = () => {
   const [
     { training, setTraining },
-    { invalidTraining, setInvalidTraining },
+    ,
     sessions,
     state,
     [, setCurrentComponent]
   ] = useCreateTraining()
-  const [fromSession, setFromSession] = state.fromSession
+  const [pickSession, setPickSession] = state.pickSession
   const [day, setDay] = state.day
+  const [durationMin, setDurationMin] = state.durationMin
+  const [startTime, setStartTime] = state.startTime
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
   const [sessionsPage, setSessionsPage] = state.sessionsPage
   const [totalSessions] = state.totalSessions
-  const [t] = useTransContext()
   const [selectedSession, setSelectedSession] = state.selectedSession
 
   const sumbit = () => {
     let isValid = true
-    if (fromSession() && selectedSession() === 'not-selected') {
+
+    if (pickSession()) {
+      isValid = validateWhenPickingSession()
+    } else {
+      isValid = validateWhenSettingSession()
+    }
+
+    if (selectedDate() === NullDateTime) {
+      setSelectedDate(undefined)
+      isValid = false
+    }
+
+    if (!isValid) {
+      return
+    }
+
+    const session = selectedSession() as Session
+    setTraining('durationMin', session.durationMin)
+    const start = selectedDate()!
+    const hours = parseInt(session.startTime.slice(0, 2))
+    const minutes = parseInt(session.startTime.slice(3))
+    start.setHours(hours, minutes, 0, 0)
+    setTraining('start', start)
+    setCurrentComponent((c) => c + 1)
+  }
+
+  const validateWhenPickingSession = () => {
+    let isValid = true
+    if (
+      selectedSession() === undefined ||
+      selectedSession() === 'not-selected'
+    ) {
       setSelectedSession(undefined)
       isValid = false
     }
 
-    if (!fromSession() && day() === NullDay) {
+    return isValid
+  }
+
+  const validateWhenSettingSession = () => {
+    let isValid = true
+    if (day() === undefined || day() === NullDay) {
       setDay(undefined)
       isValid = false
     }
-    if (!fromSession() && invalidTraining.durationMin !== undefined) {
+
+    if (startTime() === undefined || startTime() === NullStartTime) {
+      setStartTime(undefined)
       isValid = false
     }
-    if (!fromSession() && training.startTime.includes('--')) {
-      setInvalidTraining('startTime', 'Start time must be selected')
+
+    // TODO validate hours and minutes separately
+    if (startTime()!.match(/^[0-9]{2}:[0-9]{2}$/) === null) {
       isValid = false
     }
-    if (training.date === NullDate) {
-      setSelectedDate(undefined)
-      isValid = false
-    }
-    if (!isValid) {
-      return
-    }
-    setCurrentComponent((c) => c + 1)
+    return isValid
   }
 
   const manualTrainingSessionForm = () => {
     return (
       <div class="m-4">
-        <select
-          classList={{
-            'border-red-500': day() === undefined,
-            'border-slate-300': day() !== undefined
-          }}
-          class="my-2 w-full rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            setDay(e.target.value as Day)
-            setTraining('date', NullDate)
-            setSelectedDate(NullDate)
-          }}
-        >
-          <option value="" disabled={day() !== NullDay}>
-            <Trans key="select.day" />
-          </option>
-          <For each={Object.keys(Day)}>
-            {(d) => (
-              <option selected={d === day()} value={d}>
-                <Trans key={d.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </select>
-        <div class="flex items-center">
+        <div class="flex items-center justify-between">
+          <label class="mx-4 text-xl font-bold" for="day">
+            <Trans key="day" />
+          </label>
+          <select
+            id="day"
+            classList={{
+              'border-red-500': day() === undefined,
+              'border-slate-300': day() !== undefined
+            }}
+            class="my-2 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
+            onChange={(e) => {
+              setDay(e.target.value as Day)
+              setSelectedDate(NullDateTime)
+            }}
+          >
+            <option value="" disabled={day() !== NullDay}>
+              <Trans key="select.day" />
+            </option>
+            <For each={Object.keys(Day)}>
+              {(d) => (
+                <option selected={d === day()} value={d}>
+                  <Trans key={d.toLowerCase()} />
+                </option>
+              )}
+            </For>
+          </select>
+        </div>
+        <div class="flex items-center justify-between">
           <label class="mx-4 w-3/4 text-xl font-bold" for="duration">
             <Trans key="duration.in.minutes" />
           </label>
@@ -96,27 +130,21 @@ export const TrainingSessionForm: Component = () => {
             id="duration"
             type="number"
             min="1"
-            placeholder={t('minutes', 'minutes')}
+            placeholder={'60'}
             classList={{
-              'border-red-500 text-red-500':
-                invalidTraining.durationMin !== undefined,
-              'border-slate-300': invalidTraining.durationMin === undefined
+              'border-red-500 text-red-500': durationMin() === undefined,
+              'border-slate-300': durationMin() !== undefined
             }}
-            class="w-1/4 rounded-md border px-4 py-2 text-xl focus:border-blue-500 focus:outline-none focus:ring"
-            value={training.durationMin}
+            class="my-2 w-1/4 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
+            value={durationMin()}
             onChange={(e) => {
               const val = e.target.value
-              setInvalidTraining('durationMin', undefined)
               const dur = parseInt(val)
               if (Number.isNaN(dur) || dur < 1 || dur > SmallIntMax) {
-                setInvalidTraining(
-                  'durationMin',
-                  'Duration must be between 1 and 32767'
-                )
+                setDurationMin(undefined)
                 return
               }
-
-              setTraining('durationMin', dur)
+              setDurationMin(dur)
             }}
           />
         </div>
@@ -126,9 +154,8 @@ export const TrainingSessionForm: Component = () => {
           </label>
           <div
             classList={{
-              'border-red-500 text-red-500':
-                invalidTraining.startTime !== undefined,
-              'border-slate-300': invalidTraining.startTime === undefined
+              'border-red-500 text-red-500': startTime() === undefined,
+              'border-slate-300': startTime() !== undefined
             }}
             class="my-2 w-auto rounded-md border px-4 py-2 text-xl"
           >
@@ -138,21 +165,24 @@ export const TrainingSessionForm: Component = () => {
                 class="appearance-none bg-transparent text-xl outline-none"
                 onChange={(e) => {
                   const val = e.target.value
-                  const newTime = val + ':' + training.startTime.slice(3)
-                  setInvalidTraining('startTime', undefined)
-                  setTraining('startTime', newTime)
+                  const minutes = startTime() ? startTime()!.slice(3) : '--'
+                  const newTime = val + ':' + minutes
+                  setStartTime(newTime)
                 }}
               >
                 <option
                   value=""
-                  disabled={training.startTime !== NullStartTime.slice(0, 2)}
+                  disabled={startTime() !== NullStartTime.slice(0, 2)}
                 >
                   --
                 </option>
                 <For each={Array.from(StartTimeHours)}>
                   {(hour) => (
                     <option
-                      selected={hour === training.startTime.slice(0, 2)}
+                      selected={
+                        startTime() !== undefined &&
+                        hour === startTime()!.slice(0, 2)
+                      }
                       value={hour}
                     >
                       {hour}
@@ -166,21 +196,24 @@ export const TrainingSessionForm: Component = () => {
                 class="appearance-none bg-transparent text-xl outline-none"
                 onChange={(e) => {
                   const val = e.target.value
-                  const newTime = training.startTime.slice(0, 3) + val
-                  setInvalidTraining('startTime', undefined)
-                  setTraining('startTime', newTime)
+                  const hours = startTime() ? startTime()!.slice(0, 2) : '--'
+                  const newTime = hours + ':' + val
+                  setStartTime(newTime)
                 }}
               >
                 <option
                   value=""
-                  disabled={training.startTime !== NullStartTime.slice(3)}
+                  disabled={startTime() !== NullStartTime.slice(3)}
                 >
                   --
                 </option>
                 <For each={Array.from(StartTimeMinutes)}>
                   {(minute) => (
                     <option
-                      selected={minute === training.startTime.slice(3)}
+                      selected={
+                        startTime() !== undefined &&
+                        minute === startTime()!.slice(3)
+                      }
                       value={minute}
                     >
                       {minute}
@@ -195,80 +228,28 @@ export const TrainingSessionForm: Component = () => {
     )
   }
 
-  const setFromSessionForm = () => {
-    return (
-      <div class="m-4 h-full">
-        <div class="h-3/4 lg:h-2/3">
-          <SessionPicker
-            sessions={sessions()?.sessions ?? []}
-            selectedSession={selectedSession()}
-            onSelect={(s) => {
-              setSelectedSession(s)
-              setDay(s.day)
-              setTraining('startTime', s.startTime)
-              setTraining('durationMin', s.durationMin)
-              setTraining('date', NullDate)
-              setSelectedDate(NullDate)
-            }}
-          />
-        </div>
-        <div class="m-4 space-x-8 text-center">
-          <div
-            classList={{ invisible: sessionsPage() === 0 }}
-            class="inline-flex cursor-pointer rounded-full border-2 border-slate-300 bg-white p-2 text-sm font-medium text-slate-500"
-            onClick={() => {
-              setSelectedSession('not-selected')
-              setSessionsPage((i) => i - 1)
-            }}
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
-                clip-rule="evenodd"
-              ></path>
-            </svg>
-          </div>
-          <div
-            classList={{
-              invisible: (sessionsPage() + 1) * PAGE_SIZE >= totalSessions()
-            }}
-            class="inline-flex cursor-pointer rounded-full border-2 border-slate-300 bg-white p-2 text-sm font-medium text-slate-500"
-            onClick={() => {
-              setSelectedSession('not-selected')
-              setSessionsPage((i) => i + 1)
-            }}
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
-                clip-rule="evenodd"
-              ></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div class="h-screen">
       <div class="h-3/5">
-        <Show when={fromSession()} fallback={manualTrainingSessionForm()}>
-          {setFromSessionForm()}
+        <Show when={pickSession()} fallback={manualTrainingSessionForm()}>
+          <SessionPicker
+            sessions={sessions()?.sessions ?? []}
+            sessionPage={sessionsPage()}
+            totalSessions={totalSessions()}
+            selectedSession={selectedSession()}
+            onNextPage={() => {
+              setSelectedSession('not-selected')
+              setSessionsPage((i) => i + 1)
+            }}
+            onPrevPage={() => {
+              setSelectedSession('not-selected')
+              setSessionsPage((i) => i - 1)
+            }}
+            onSelect={(s) => {
+              setSelectedSession(s)
+              setSelectedDate(NullDateTime)
+            }}
+          />
         </Show>
       </div>
       <div class="h-2/5">
@@ -279,10 +260,8 @@ export const TrainingSessionForm: Component = () => {
           <select
             id="date"
             disabled={
-              ((selectedSession() === 'not-selected' ||
-                selectedSession() === undefined) &&
-                fromSession()) ||
-              (isUndefindOrEmpty(day()) && !fromSession())
+              selectedSession() === 'not-selected' ||
+              selectedSession() === undefined
             }
             classList={{
               'border-red-500 text-red': selectedDate() === undefined,
@@ -290,12 +269,11 @@ export const TrainingSessionForm: Component = () => {
             }}
             class="my-2 w-11/12 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
             onChange={(e) => {
-              const date = dates()[parseInt(e.target.value)]
+              const date = new Date(dates()[parseInt(e.target.value)])
               setSelectedDate(date)
-              setTraining('date', date)
             }}
           >
-            <option value="" disabled={training.date !== NullDate}>
+            <option value="" disabled={training.start !== NullDateTime}>
               <Trans key="select.date" />
             </option>
             <For each={dates()}>
@@ -303,8 +281,9 @@ export const TrainingSessionForm: Component = () => {
                 return (
                   <option
                     selected={
-                      training.date === dates()[i()] &&
-                      training.date !== NullDate
+                      training.start !== NullDateTime &&
+                      training.start.toDateString() ===
+                        dates()[i()].toDateString()
                     }
                     value={i()}
                   >
@@ -318,23 +297,23 @@ export const TrainingSessionForm: Component = () => {
         <div class="flex w-screen justify-around text-xl">
           <button
             classList={{
-              'bg-sky-500 text-white': fromSession(),
-              'bg-white text-sky-500': !fromSession(),
+              'bg-sky-500 text-white': pickSession(),
+              'bg-white text-sky-500': !pickSession(),
               'cursor-not-allowed opacity-50': sessions()?.sessions.length === 0
             }}
             class="rounded border border-sky-500 px-4 py-2 text-xl font-bold"
             disabled={sessions()?.sessions.length === 0}
-            onClick={() => setFromSession(true)}
+            onClick={() => setPickSession(true)}
           >
             <Trans key="assign.session" />
           </button>
           <button
             classList={{
-              'bg-white text-sky-500': fromSession(),
-              'bg-sky-500 text-white': !fromSession()
+              'bg-white text-sky-500': pickSession(),
+              'bg-sky-500 text-white': !pickSession()
             }}
             class="rounded border border-sky-500 px-4 py-2 font-bold"
-            onClick={() => setFromSession(false)}
+            onClick={() => setPickSession(false)}
           >
             <Trans key="set.manually" />
           </button>
