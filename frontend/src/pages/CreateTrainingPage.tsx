@@ -7,7 +7,7 @@ import { addTrainingDetail, trainingApi } from '../state/trainings'
 import { CreateTrainingContextProvider } from '../components/context/CreateTrainingContextProvider'
 import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
-import { CreateTrainingPreview } from '../components/TrainingPreviewFragment'
+import { CreateTrainingPreview } from '../components/CreateTrainingPreview'
 import { TrainingSessionForm } from '../components/TrainingSessionForm'
 import { openToast, ToastType } from '../components/Toast'
 
