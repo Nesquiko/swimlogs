@@ -18,7 +18,12 @@ import {
   ResponseError,
   Session
 } from '../../generated'
-import { NullDateTime, NullDay, NullStartTime } from '../../lib/consts'
+import {
+  NullDateTime,
+  NullDay,
+  NullStartTime,
+  PAGE_SIZE
+} from '../../lib/consts'
 import { sessionApi } from '../../state/session'
 
 const makeTrainingContext = (
@@ -50,8 +55,6 @@ const CreateTrainingContext = createContext<CreateTrainingContextType>()
 
 export const useCreateTraining = () => useContext(CreateTrainingContext)!
 
-export const PAGE_SIZE = 7
-
 interface CreateTrainingContextProps {
   newTraining: NewTraining
   currentComponentSignal: Signal<number>
@@ -70,7 +73,7 @@ export const CreateTrainingContextProvider: ParentComponent<
   const [durationMin] = state.durationMin
   const [startTime] = state.startTime
   const [sessions] = createResource(sessionsPage, getSessions)
-  const [, setFromSession] = state.fromSession
+  const [, setFromSession] = state.pickSession
   const [, setDates] = state.dates
 
   async function getSessions(page: number): Promise<GetSessionsResponse> {
@@ -162,29 +165,30 @@ export const CreateTrainingContextProvider: ParentComponent<
 }
 
 type State = {
-  fromSession: Signal<boolean>
+  pickSession: Signal<boolean>
 
+  // TODO somehow organize this? maybe store?
   day: Signal<Day | undefined>
   durationMin: Signal<number | undefined>
   startTime: Signal<string | undefined>
 
   dates: Signal<Array<Date>>
   selectedDate: Signal<Date | undefined>
-  currentBlock: Signal<number>
+
   sessionsPage: Signal<number>
   totalSessions: Signal<number>
 
+  // TODO rename to session
   selectedSession: Signal<Session | 'not-selected' | undefined>
 }
 
 function initialState(): State {
-  const fromSession = createSignal(false)
+  const pickSession = createSignal(false)
   const day = createSignal<Day | undefined>(NullDay)
-  const durationMin = createSignal<number | undefined>(0)
-  const startTime = createSignal<String | undefined>(NullStartTime)
+  const durationMin = createSignal<number | undefined>(60)
+  const startTime = createSignal<string | undefined>(NullStartTime)
   const dates = createSignal<Array<Date>>([])
   const selectedDate = createSignal<Date | undefined>(NullDateTime)
-  const currentBlock = createSignal(0)
   const sessionsPage = createSignal(0)
   const totalSessions = createSignal(0)
   const selectedSession = createSignal<Session | 'not-selected' | undefined>(
@@ -192,13 +196,12 @@ function initialState(): State {
   )
 
   return {
-    fromSession,
+    pickSession,
     day,
     durationMin,
     startTime,
     dates,
     selectedDate,
-    currentBlock,
     sessionsPage,
     totalSessions,
     selectedSession
