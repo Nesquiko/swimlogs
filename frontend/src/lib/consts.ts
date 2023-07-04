@@ -25,3 +25,5 @@ export const NullDateTime = new Date(0)
 export const NullDay = '' as Day
 export const NullStartTime = '--:--'
 export const NotSelected = 'not-selected'
+
+export const PAGE_SIZE = 7
