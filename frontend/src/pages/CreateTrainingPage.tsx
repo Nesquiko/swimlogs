@@ -8,7 +8,7 @@ import { CreateTrainingContextProvider } from '../components/context/CreateTrain
 import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { CreateTrainingPreview } from '../components/TrainingPreviewFragment'
-import { TrainingSessionForm } from '../components/TrainingSessionFormFragment'
+import { TrainingSessionForm } from '../components/TrainingSessionForm'
 import { openToast, ToastType } from '../components/Toast'
 
 const CreateTrainingPage: Component = () => {
