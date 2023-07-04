@@ -4,7 +4,7 @@ import {
   InvalidTraining,
   InvalidTrainingSet,
   NewTrainingSet,
-  StartingRuleType
+  StartType
 } from '../../generated'
 import { SmallIntMax } from '../../lib/consts'
 import { useCreateTraining } from '../context/CreateTrainingContextProvider'
@@ -23,29 +23,27 @@ export const Set: Component<SetProps> = (props) => {
     useCreateTraining()
   const [t] = useTransContext()
   const getInvalidSet = (invalidTraining: InvalidTraining) => {
-    return invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]
+    /* return invalidTraining.sets?.[props.blockNum]?.sets?.[props.set.num] */
   }
 
   const isInvalid = (is: InvalidTrainingSet | undefined) => {
     return (
-      is?.what !== undefined ||
+      is?.setOrder !== undefined ||
+      is?.subSetOrder !== undefined ||
       is?.repeat !== undefined ||
-      is?.distance !== undefined ||
-      is?.startingRule?.type !== undefined ||
-      is?.startingRule?.seconds !== undefined
+      is?.distanceMeters !== undefined ||
+      is?.startType !== undefined ||
+      is?.startSeconds !== undefined ||
+      is?.subSets !== undefined
     )
   }
 
   return (
     <div
-      classList={{
-        'bg-sky-50': !isInvalid(
-          invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]
-        ),
-        'bg-red-50': isInvalid(
-          invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]
-        )
-      }}
+      /* classList={{ */
+      /*   'bg-sky-50': !isInvalid( invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]), */
+      /*   'bg-red-50': isInvalid( invalidTraining.blocks?.[props.blockNum]?.sets?.[props.set.num]) */
+      /* }} */
       class="mx-auto my-2 rounded-lg border border-solid border-slate-300 px-2 shadow"
     >
       <div class="my-2 flex items-center">
@@ -60,12 +58,10 @@ export const Set: Component<SetProps> = (props) => {
         <input
           type="number"
           placeholder="1"
-          classList={{
-            'border-red-500 text-red-500':
-              getInvalidSet(invalidTraining)?.repeat !== undefined,
-            'border-slate-300':
-              getInvalidSet(invalidTraining)?.repeat === undefined
-          }}
+          /* classList={{ */
+          /*   'border-red-500 text-red-500': getInvalidSet(invalidTraining)?.repeat !== undefined, */
+          /*   'border-slate-300': getInvalidSet(invalidTraining)?.repeat === undefined */
+          /* }} */
           class="w-1/6 rounded-md border p-2 text-center focus:border-blue-500 focus:outline-none focus:ring"
           value={props.set.repeat}
           onChange={(e) => {
@@ -74,38 +70,36 @@ export const Set: Component<SetProps> = (props) => {
             if (Number.isNaN(repeat) || repeat < 1 || repeat > SmallIntMax) {
               repeat = 0
             }
-            setTraining(
-              'blocks',
-              (block) => block.num === props.blockNum,
-              'sets',
-              (set) => set.num === props.set.num,
-              'repeat',
-              repeat
-            )
-            setInvalidTraining(
-              'blocks',
-              (b) => b.num === props.blockNum,
-              'sets',
-              (s) => s.num === props.set.num,
-              'repeat',
-              repeat > 0
-                ? undefined
-                : 'Repeat must be a number between 1 and 32767'
-            )
+            /* setTraining( */
+            /*   'blocks', */
+            /*   (block) => block.num === props.blockNum, */
+            /*   'sets', */
+            /*   (set) => set.num === props.set.num, */
+            /*   'repeat', */
+            /*   repeat */
+            /* ) */
+            /* setInvalidTraining( */
+            /*   'blocks', */
+            /*   (b) => b.num === props.blockNum, */
+            /*   'sets', */
+            /*   (s) => s.num === props.set.num, */
+            /*   'repeat', */
+            /*   repeat > 0 */
+            /*     ? undefined */
+            /*     : 'Repeat must be a number between 1 and 32767' */
+            /* ) */
           }}
         />
         <span class="mx-4 text-lg">x</span>
         <input
           type="number"
           placeholder="400"
-          classList={{
-            'border-red-500 text-red-500':
-              getInvalidSet(invalidTraining)?.distance !== undefined,
-            'border-slate-300':
-              getInvalidSet(invalidTraining)?.distance === undefined
-          }}
+          /* classList={{ */
+          /*   'border-red-500 text-red-500': getInvalidSet(invalidTraining)?.distance !== undefined, */
+          /*   'border-slate-300': getInvalidSet(invalidTraining)?.distance === undefined */
+          /* }} */
           class="w-1/3 rounded-md border p-2 text-center focus:border-blue-500 focus:outline-none focus:ring"
-          value={props.set.distance}
+          value={props.set.distanceMeters}
           onChange={(e) => {
             const val = e.target.value
             let distance = parseInt(val)
@@ -116,24 +110,24 @@ export const Set: Component<SetProps> = (props) => {
             ) {
               distance = 0
             }
-            setTraining(
-              'blocks',
-              (block) => block.num === props.blockNum,
-              'sets',
-              (set) => set.num === props.set.num,
-              'distance',
-              distance
-            )
-            setInvalidTraining(
-              'blocks',
-              (b) => b.num === props.blockNum,
-              'sets',
-              (s) => s.num === props.set.num,
-              'distance',
-              distance > 0
-                ? undefined
-                : 'Repeat must be a number between 1 and 32767'
-            )
+            /* setTraining( */
+            /*   'blocks', */
+            /*   (block) => block.num === props.blockNum, */
+            /*   'sets', */
+            /*   (set) => set.num === props.set.num, */
+            /*   'distance', */
+            /*   distance */
+            /* ) */
+            /* setInvalidTraining( */
+            /*   'blocks', */
+            /*   (b) => b.num === props.blockNum, */
+            /*   'sets', */
+            /*   (s) => s.num === props.set.num, */
+            /*   'distance', */
+            /*   distance > 0 */
+            /*     ? undefined */
+            /*     : 'Repeat must be a number between 1 and 32767' */
+            /* ) */
           }}
         />
         <img
@@ -147,32 +141,30 @@ export const Set: Component<SetProps> = (props) => {
       <textarea
         placeholder={t('set.what.placeholder', 'Freestyle')}
         maxlength="255"
-        classList={{
-          'border-red-500 text-red-500':
-            getInvalidSet(invalidTraining)?.what !== undefined,
-          'border-slate-300 text-black':
-            getInvalidSet(invalidTraining)?.what === undefined
-        }}
+        /* classList={{ */
+        /*   'border-red-500 text-red-500': getInvalidSet(invalidTraining)?.what !== undefined, */
+        /*   'border-slate-300 text-black': getInvalidSet(invalidTraining)?.what === undefined */
+        /* }} */
         class="w-full rounded-md border p-2 focus:border-sky-500 focus:outline-none focus:ring"
-        value={props.set.what}
+        value={props.set.description}
         onChange={(e) => {
           const what = e.target.value
-          setTraining(
-            'blocks',
-            (block) => block.num === props.blockNum,
-            'sets',
-            (set) => set.num === props.set.num,
-            'what',
-            what.trim()
-          )
-          setInvalidTraining(
-            'blocks',
-            (b) => b.num === props.blockNum,
-            'sets',
-            (s) => s.num === props.set.num,
-            'what',
-            what.length > 0 ? undefined : "What can't be empty"
-          )
+          /* setTraining( */
+          /*   'blocks', */
+          /*   (block) => block.num === props.blockNum, */
+          /*   'sets', */
+          /*   (set) => set.num === props.set.num, */
+          /*   'what', */
+          /*   what.trim() */
+          /* ) */
+          /* setInvalidTraining( */
+          /*   'blocks', */
+          /*   (b) => b.num === props.blockNum, */
+          /*   'sets', */
+          /*   (s) => s.num === props.set.num, */
+          /*   'what', */
+          /*   what.length > 0 ? undefined : "What can't be empty" */
+          /* ) */
         }}
       />
       <div class="flex items-center space-x-4">
@@ -183,33 +175,26 @@ export const Set: Component<SetProps> = (props) => {
           id="start"
           class="my-2 rounded-md border border-solid border-slate-300 bg-white p-2 focus:border-sky-500 focus:outline-none focus:ring"
           onChange={(e) => {
-            const typ = e.target.value as StartingRuleType
-            const startingRule = {
-              type: typ,
-              seconds: props.set.startingRule.seconds ?? 20
-            }
-            setTraining(
-              'blocks',
-              (block) => block.num === props.blockNum,
-              'sets',
-              (set) => set.num === props.set.num,
-              'startingRule',
-              startingRule
-            )
+            const typ = e.target.value as StartType
+            /* setTraining( */
+            /*   'blocks', */
+            /*   (block) => block.num === props.blockNum, */
+            /*   'sets', */
+            /*   (set) => set.num === props.set.num, */
+            /*   'startingRule', */
+            /*   startingRule */
+            /* ) */
           }}
         >
-          <For each={Object.keys(StartingRuleType)}>
+          <For each={Object.keys(StartType)}>
             {(typ) => (
-              <option
-                selected={typ === props.set.startingRule.type}
-                value={typ}
-              >
+              <option selected={typ === props.set.startType} value={typ}>
                 <Trans key={typ.toLowerCase()} />
               </option>
             )}
           </For>
         </select>
-        <Show when={props.set.startingRule.type !== StartingRuleType.None}>
+        <Show when={props.set.startType !== StartType.None}>
           <label for="seconds">
             <Trans key="seconds" />
           </label>
@@ -217,16 +202,12 @@ export const Set: Component<SetProps> = (props) => {
             id="seconds"
             type="number"
             placeholder="20"
-            classList={{
-              'border-red-500 text-red-500':
-                getInvalidSet(invalidTraining)?.startingRule?.seconds !==
-                undefined,
-              'border-slate-300':
-                getInvalidSet(invalidTraining)?.startingRule?.seconds ===
-                undefined
-            }}
+            /* classList={{ */
+            /*   'border-red-500 text-red-500': getInvalidSet(invalidTraining)?.startingRule?.seconds !== undefined, */
+            /*   'border-slate-300': getInvalidSet(invalidTraining)?.startingRule?.seconds === undefined */
+            /* }} */
             class="w-1/4 rounded-md border border-solid px-4 py-2 text-center focus:border-sky-500 focus:outline-none focus:ring"
-            value={props.set.startingRule.seconds}
+            value={props.set.startSeconds}
             onChange={(e) => {
               const val = e.target.value
               let seconds = parseInt(val)
@@ -238,28 +219,28 @@ export const Set: Component<SetProps> = (props) => {
                 seconds = 0
               }
               const startingRule = {
-                type: props.set.startingRule.type,
+                type: props.set.startType,
                 seconds: seconds
               }
-              setTraining(
-                'blocks',
-                (block) => block.num === props.blockNum,
-                'sets',
-                (set) => set.num === props.set.num,
-                'startingRule',
-                startingRule
-              )
-              setInvalidTraining(
-                'blocks',
-                (b) => b.num === props.blockNum,
-                'sets',
-                (s) => s.num === props.set.num,
-                'startingRule',
-                'seconds',
-                seconds > 0
-                  ? undefined
-                  : 'Seconds must be a number between 1 and 32767'
-              )
+              /* setTraining( */
+              /*   'blocks', */
+              /*   (block) => block.num === props.blockNum, */
+              /*   'sets', */
+              /*   (set) => set.num === props.set.num, */
+              /*   'startingRule', */
+              /*   startingRule */
+              /* ) */
+              /* setInvalidTraining( */
+              /*   'blocks', */
+              /*   (b) => b.num === props.blockNum, */
+              /*   'sets', */
+              /*   (s) => s.num === props.set.num, */
+              /*   'startingRule', */
+              /*   'seconds', */
+              /*   seconds > 0 */
+              /*     ? undefined */
+              /*     : 'Seconds must be a number between 1 and 32767' */
+              /* ) */
             }}
           />
         </Show>

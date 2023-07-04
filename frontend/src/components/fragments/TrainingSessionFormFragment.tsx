@@ -1,8 +1,8 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
-import { Day } from '../../generated'
+import { Day, Session } from '../../generated'
 import {
-  NullDate,
+  NullDateTime,
   NullDay,
   NullStartTime,
   SmallIntMax,
@@ -10,7 +10,6 @@ import {
   StartTimeMinutes
 } from '../../lib/consts'
 import { formatDate } from '../../lib/datetime'
-import { isUndefindOrEmpty } from '../../lib/str'
 import {
   PAGE_SIZE,
   useCreateTraining
@@ -27,6 +26,8 @@ export const TrainingSessionForm: Component = () => {
   ] = useCreateTraining()
   const [fromSession, setFromSession] = state.fromSession
   const [day, setDay] = state.day
+  const [durationMin, setDurationMin] = state.durationMin
+  const [startTime, setStartTime] = state.startTime
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
   const [sessionsPage, setSessionsPage] = state.sessionsPage
@@ -48,14 +49,12 @@ export const TrainingSessionForm: Component = () => {
     if (!fromSession() && invalidTraining.durationMin !== undefined) {
       isValid = false
     }
-    if (!fromSession() && training.startTime.includes('--')) {
-      setInvalidTraining('startTime', 'Start time must be selected')
-      isValid = false
-    }
-    if (training.date === NullDate) {
+
+    if (training.start === NullDateTime) {
       setSelectedDate(undefined)
       isValid = false
     }
+
     if (!isValid) {
       return
     }
@@ -65,30 +64,36 @@ export const TrainingSessionForm: Component = () => {
   const manualTrainingSessionForm = () => {
     return (
       <div class="m-4">
-        <select
-          classList={{
-            'border-red-500': day() === undefined,
-            'border-slate-300': day() !== undefined
-          }}
-          class="my-2 w-full rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            setDay(e.target.value as Day)
-            setTraining('date', NullDate)
-            setSelectedDate(NullDate)
-          }}
-        >
-          <option value="" disabled={day() !== NullDay}>
-            <Trans key="select.day" />
-          </option>
-          <For each={Object.keys(Day)}>
-            {(d) => (
-              <option selected={d === day()} value={d}>
-                <Trans key={d.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </select>
-        <div class="flex items-center">
+        <div class="flex items-center justify-between">
+          <label class="mx-4 text-xl font-bold">
+            <Trans key="day" />
+          </label>
+          <select
+            id="day"
+            classList={{
+              'border-red-500': day() === undefined,
+              'border-slate-300': day() !== undefined
+            }}
+            class="my-2 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
+            onChange={(e) => {
+              setDay(e.target.value as Day)
+              setTraining('start', NullDateTime)
+              setSelectedDate(NullDateTime)
+            }}
+          >
+            <option value="" disabled={day() !== NullDay}>
+              <Trans key="select.day" />
+            </option>
+            <For each={Object.keys(Day)}>
+              {(d) => (
+                <option selected={d === day()} value={d}>
+                  <Trans key={d.toLowerCase()} />
+                </option>
+              )}
+            </For>
+          </select>
+        </div>
+        <div class="flex items-center justify-between">
           <label class="mx-4 w-3/4 text-xl font-bold" for="duration">
             <Trans key="duration.in.minutes" />
           </label>
@@ -102,7 +107,7 @@ export const TrainingSessionForm: Component = () => {
                 invalidTraining.durationMin !== undefined,
               'border-slate-300': invalidTraining.durationMin === undefined
             }}
-            class="w-1/4 rounded-md border px-4 py-2 text-xl focus:border-blue-500 focus:outline-none focus:ring"
+            class="my-2 w-1/4 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
             value={training.durationMin}
             onChange={(e) => {
               const val = e.target.value
@@ -116,7 +121,7 @@ export const TrainingSessionForm: Component = () => {
                 return
               }
 
-              setTraining('durationMin', dur)
+              setDurationMin(dur)
             }}
           />
         </div>
@@ -126,9 +131,8 @@ export const TrainingSessionForm: Component = () => {
           </label>
           <div
             classList={{
-              'border-red-500 text-red-500':
-                invalidTraining.startTime !== undefined,
-              'border-slate-300': invalidTraining.startTime === undefined
+              'border-red-500 text-red-500': startTime() === undefined,
+              'border-slate-300': startTime() !== undefined
             }}
             class="my-2 w-auto rounded-md border px-4 py-2 text-xl"
           >
@@ -138,21 +142,24 @@ export const TrainingSessionForm: Component = () => {
                 class="appearance-none bg-transparent text-xl outline-none"
                 onChange={(e) => {
                   const val = e.target.value
-                  const newTime = val + ':' + training.startTime.slice(3)
-                  setInvalidTraining('startTime', undefined)
-                  setTraining('startTime', newTime)
+                  const minutes = startTime() ? startTime()!.slice(3) : '--'
+                  const newTime = val + ':' + minutes
+                  setStartTime(newTime)
                 }}
               >
                 <option
                   value=""
-                  disabled={training.startTime !== NullStartTime.slice(0, 2)}
+                  disabled={startTime() !== NullStartTime.slice(0, 2)}
                 >
                   --
                 </option>
                 <For each={Array.from(StartTimeHours)}>
                   {(hour) => (
                     <option
-                      selected={hour === training.startTime.slice(0, 2)}
+                      selected={
+                        startTime() !== undefined &&
+                        hour === startTime()!.slice(0, 2)
+                      }
                       value={hour}
                     >
                       {hour}
@@ -166,21 +173,24 @@ export const TrainingSessionForm: Component = () => {
                 class="appearance-none bg-transparent text-xl outline-none"
                 onChange={(e) => {
                   const val = e.target.value
-                  const newTime = training.startTime.slice(0, 3) + val
-                  setInvalidTraining('startTime', undefined)
-                  setTraining('startTime', newTime)
+                  const hours = startTime() ? startTime()!.slice(0, 2) : '--'
+                  const newTime = hours + ':' + val
+                  setStartTime(newTime)
                 }}
               >
                 <option
                   value=""
-                  disabled={training.startTime !== NullStartTime.slice(3)}
+                  disabled={startTime() !== NullStartTime.slice(3)}
                 >
                   --
                 </option>
                 <For each={Array.from(StartTimeMinutes)}>
                   {(minute) => (
                     <option
-                      selected={minute === training.startTime.slice(3)}
+                      selected={
+                        startTime() !== undefined &&
+                        minute === startTime()!.slice(3)
+                      }
                       value={minute}
                     >
                       {minute}
@@ -204,11 +214,7 @@ export const TrainingSessionForm: Component = () => {
             selectedSession={selectedSession()}
             onSelect={(s) => {
               setSelectedSession(s)
-              setDay(s.day)
-              setTraining('startTime', s.startTime)
-              setTraining('durationMin', s.durationMin)
-              setTraining('date', NullDate)
-              setSelectedDate(NullDate)
+              setSelectedDate(NullDateTime)
             }}
           />
         </div>
@@ -279,10 +285,8 @@ export const TrainingSessionForm: Component = () => {
           <select
             id="date"
             disabled={
-              ((selectedSession() === 'not-selected' ||
-                selectedSession() === undefined) &&
-                fromSession()) ||
-              (isUndefindOrEmpty(day()) && !fromSession())
+              selectedSession() === 'not-selected' ||
+              selectedSession() === undefined
             }
             classList={{
               'border-red-500 text-red': selectedDate() === undefined,
@@ -290,12 +294,19 @@ export const TrainingSessionForm: Component = () => {
             }}
             class="my-2 w-11/12 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
             onChange={(e) => {
-              const date = dates()[parseInt(e.target.value)]
+              const date = new Date(dates()[parseInt(e.target.value)])
               setSelectedDate(date)
-              setTraining('date', date)
+              const hours = parseInt(
+                (selectedSession() as Session).startTime.slice(0, 2)
+              )
+              const minutes = parseInt(
+                (selectedSession() as Session).startTime.slice(3) // start time is in format HH:MM
+              )
+              date.setHours(hours, minutes, 0)
+              setTraining('start', date)
             }}
           >
-            <option value="" disabled={training.date !== NullDate}>
+            <option value="" disabled={training.start !== NullDateTime}>
               <Trans key="select.date" />
             </option>
             <For each={dates()}>
@@ -303,8 +314,9 @@ export const TrainingSessionForm: Component = () => {
                 return (
                   <option
                     selected={
-                      training.date === dates()[i()] &&
-                      training.date !== NullDate
+                      training.start !== NullDateTime &&
+                      training.start.toDateString() ===
+                        dates()[i()].toDateString()
                     }
                     value={i()}
                   >

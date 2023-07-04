@@ -21,6 +21,7 @@ export const StartTimeMinutes = ['00', '15', '30', '45']
 
 export const SmallIntMax = 32767
 
-export const NullDate = new Date(0)
+export const NullDateTime = new Date(0)
 export const NullDay = '' as Day
 export const NullStartTime = '--:--'
+export const NotSelected = 'not-selected'
