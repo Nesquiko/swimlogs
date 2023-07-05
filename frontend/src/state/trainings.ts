@@ -17,7 +17,7 @@ const [details, { mutate }] = createResource(getTrainingsThisWeek)
 const useTrainingsDetails = () => [details]
 
 function addTrainingDetail(td: TrainingDetail) {
-  if (!isThisInThisWeek(td.date)) {
+  if (!isThisInThisWeek(td.start)) {
     return
   }
   const currentDetails = details()?.details ?? []
@@ -33,38 +33,24 @@ function isThisInThisWeek(date: Date): boolean {
 
   // get first date of week
   const firstDayOfWeek = new Date(todayObj.setDate(todayDate - todayDay))
+  firstDayOfWeek.setHours(0, 0, 0, 0)
 
   // get last date of week
   const lastDayOfWeek = new Date(firstDayOfWeek)
   lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6)
+  lastDayOfWeek.setHours(23, 59, 59, 999)
 
   // if date is equal or within the first and last dates of the week
   return date >= firstDayOfWeek && date <= lastDayOfWeek
 }
 
 function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
-  if (a.date < b.date) {
+  if (a.start < b.start) {
     return -1
-  } else if (a.date > b.date) {
+  } else if (a.start > b.start) {
     return 1
-  } else {
-    const [aHours, aMinutes] = a.startTime.split(':').map(Number)
-    const [bHours, bMinutes] = b.startTime.split(':').map(Number)
-
-    if (aHours < bHours) {
-      return -1
-    } else if (aHours > bHours) {
-      return 1
-    } else {
-      if (aMinutes < bMinutes) {
-        return -1
-      } else if (aMinutes > bMinutes) {
-        return 1
-      } else {
-        return 0
-      }
-    }
   }
+  return 0
 }
 
 export { trainingApi, useTrainingsDetails, addTrainingDetail }
