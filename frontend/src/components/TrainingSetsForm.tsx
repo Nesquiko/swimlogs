@@ -29,6 +29,7 @@ const TrainingSetsForm: Component = () => {
   const addNewSet = () => {
     const newSet = {
       repeat: 1,
+      setOrder: training.sets.length,
       distanceMeters: 100,
       startType: StartType.None,
       totalDistance: 100

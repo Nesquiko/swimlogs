@@ -20,6 +20,7 @@ const CreateTrainingPage: Component = () => {
     sets: [
       {
         repeat: 1,
+        setOrder: 0,
         distanceMeters: 100,
         totalDistance: 100,
         startType: StartType.None
