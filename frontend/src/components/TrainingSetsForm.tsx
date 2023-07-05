@@ -1,11 +1,14 @@
 import { Trans } from '@mbarzda/solid-i18next'
-import { batch, Component, For, Show } from 'solid-js'
+import { t } from 'i18next'
+import { batch, Component, createSignal, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import { useCreateTraining } from './context/CreateTrainingContextProvider'
+import MenuModal from './MenuModal'
 import SetForm from './SetForm'
+import plusSvg from '../assets/plus.svg'
 
 const TrainingSetsForm: Component = () => {
   const [
@@ -15,6 +18,8 @@ const TrainingSetsForm: Component = () => {
     ,
     [, setCurrentComponent]
   ] = useCreateTraining()
+
+  const [addMenuOpen, setAddMenuOpen] = createSignal({})
 
   const sumbit = () => {
     setInvalidTraining(validateTraining(training))
@@ -93,10 +98,10 @@ const TrainingSetsForm: Component = () => {
         </For>
       </Show>
       <button
-        class="float-right my-4 rounded bg-sky-500 p-2 font-bold text-white"
-        onClick={() => addNewSet()}
+        class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow"
+        onClick={() => setAddMenuOpen({})}
       >
-        <Trans key="add.set" />
+        <img src={plusSvg} />
       </button>
 
       <button
@@ -111,6 +116,11 @@ const TrainingSetsForm: Component = () => {
       >
         <Trans key="previous" />
       </button>
+
+      <MenuModal
+        open={addMenuOpen()}
+        items={[{ label: t('add.set', 'Add set'), action: () => addNewSet() }]}
+      />
     </div>
   )
 }
