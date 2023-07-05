@@ -1,10 +1,11 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
-import { Component, For, onMount, Show } from 'solid-js'
+import { Component, createSignal, For, Show } from 'solid-js'
 import { InvalidTrainingSet, NewTrainingSet, StartType } from '../generated'
 import { useCreateTraining } from './context/CreateTrainingContextProvider'
-import settings from '../assets/settings.svg'
 import { SmallIntMax } from '../lib/consts'
 import { isInvalidSetEmpty } from '../lib/validation'
+import MenuModal from './MenuModal'
+import settings from '../assets/settings.svg'
 
 interface SetFormProps {
   set: NewTrainingSet
@@ -18,6 +19,8 @@ interface SetFormProps {
 export const SetForm: Component<SetFormProps> = (props) => {
   const [{ setTraining }, { setInvalidTraining }, , , ,] = useCreateTraining()
   const [t] = useTransContext()
+
+  const [dialogOpen, setDialogOpen] = createSignal({})
 
   return (
     <div
@@ -97,13 +100,24 @@ export const SetForm: Component<SetFormProps> = (props) => {
             )
           }}
         />
-        <Dropdown
+        <img
+          src={settings}
+          width={32}
+          height={32}
+          class="float-right cursor-pointer"
+          onClick={() => setDialogOpen({})}
+        />
+        <MenuModal
+          open={dialogOpen()}
           items={[
             {
               label: t('duplicate', 'Duplicate'),
               action: () => props.onDuplicate()
             },
-            { label: t('delete', 'Delete'), action: () => props.onDelete() }
+            {
+              label: t('delete', 'Delete'),
+              action: () => props.onDelete()
+            }
           ]}
         />
       </div>
@@ -185,70 +199,6 @@ export const SetForm: Component<SetFormProps> = (props) => {
           />
         </Show>
       </div>
-    </div>
-  )
-}
-
-type DropdownItem = {
-  label: string
-  action: () => void
-}
-
-type DropdownProps = {
-  items: DropdownItem[]
-}
-
-const Dropdown: Component<DropdownProps> = (props) => {
-  let dialog: HTMLDialogElement
-
-  onMount(() => {
-    dialog.addEventListener('click', (e) => {
-      const dialogDimensions = dialog.getBoundingClientRect()
-      if (
-        e.clientX < dialogDimensions.left ||
-        e.clientX > dialogDimensions.right ||
-        e.clientY < dialogDimensions.top ||
-        e.clientY > dialogDimensions.bottom
-      ) {
-        dialog.close()
-      }
-    })
-  })
-
-  return (
-    <div class="float-right">
-      <img
-        src={settings}
-        width={32}
-        height={32}
-        class="cursor-pointer"
-        onClick={() => {
-          dialog.inert = true // disables auto focus when dialog is opened
-          dialog.showModal()
-          dialog.inert = false
-        }}
-      />
-      <dialog ref={dialog!} class="w-44 rounded-lg">
-        <ul class="text-md text-black">
-          <For each={props.items}>
-            {(item) => {
-              return (
-                <li>
-                  <p
-                    class="block cursor-pointer p-2 hover:bg-slate-200"
-                    onClick={() => {
-                      item.action()
-                      dialog.close()
-                    }}
-                  >
-                    {item.label}
-                  </p>
-                </li>
-              )
-            }}
-          </For>
-        </ul>
-      </dialog>
     </div>
   )
 }
