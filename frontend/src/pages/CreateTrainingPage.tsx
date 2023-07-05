@@ -56,7 +56,7 @@ const CreateTrainingPage: Component = () => {
   }
 
   const [currentComponent, setCurrentComponent] = createSignal(0)
-  const comps = [TrainingSetsForm, TrainingSessionForm, CreateTrainingPreview]
+  const comps = [TrainingSessionForm, TrainingSetsForm, CreateTrainingPreview]
 
   return (
     <div>

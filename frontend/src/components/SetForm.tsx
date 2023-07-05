@@ -1,10 +1,10 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
+import { Component, For, onMount, Show } from 'solid-js'
 import { InvalidTrainingSet, NewTrainingSet, StartType } from '../generated'
 import { useCreateTraining } from './context/CreateTrainingContextProvider'
-import copySkySvg from '../assets/copy-sky.svg'
-import binRedSvg from '../assets/bin-red.svg'
+import settings from '../assets/settings.svg'
 import { SmallIntMax } from '../lib/consts'
+import { isInvalidSetEmpty } from '../lib/validation'
 
 interface SetFormProps {
   set: NewTrainingSet
@@ -19,35 +19,15 @@ export const SetForm: Component<SetFormProps> = (props) => {
   const [{ setTraining }, { setInvalidTraining }, , , ,] = useCreateTraining()
   const [t] = useTransContext()
 
-  const isInvalid = (is: InvalidTrainingSet | undefined) => {
-    return (
-      is?.setOrder !== undefined ||
-      is?.subSetOrder !== undefined ||
-      is?.repeat !== undefined ||
-      is?.distanceMeters !== undefined ||
-      is?.startType !== undefined ||
-      is?.startSeconds !== undefined ||
-      is?.subSets !== undefined
-    )
-  }
-
   return (
     <div
       classList={{
-        'bg-sky-50': !isInvalid(props.invalidSet),
-        'bg-red-50': isInvalid(props.invalidSet)
+        'bg-sky-50': isInvalidSetEmpty(props.invalidSet),
+        'bg-red-50': !isInvalidSetEmpty(props.invalidSet)
       }}
       class="mx-auto my-2 rounded-lg border border-solid border-slate-300 px-2 shadow"
     >
-      <div class="my-2 flex items-center">
-        <img
-          src={copySkySvg}
-          class="mr-auto cursor-pointer"
-          title={t('duplicate.set', 'Duplicate set')}
-          width={36}
-          height={36}
-          onClick={() => props.onDuplicate()}
-        />
+      <div class="my-2">
         <input
           type="number"
           placeholder="1"
@@ -117,12 +97,14 @@ export const SetForm: Component<SetFormProps> = (props) => {
             )
           }}
         />
-        <img
-          src={binRedSvg}
-          width={48}
-          height={48}
-          class="ml-auto cursor-pointer"
-          onClick={() => props.onDelete()}
+        <Dropdown
+          items={[
+            {
+              label: t('duplicate', 'Duplicate'),
+              action: () => props.onDuplicate()
+            },
+            { label: t('delete', 'Delete'), action: () => props.onDelete() }
+          ]}
         />
       </div>
       <textarea
@@ -203,6 +185,70 @@ export const SetForm: Component<SetFormProps> = (props) => {
           />
         </Show>
       </div>
+    </div>
+  )
+}
+
+type DropdownItem = {
+  label: string
+  action: () => void
+}
+
+type DropdownProps = {
+  items: DropdownItem[]
+}
+
+const Dropdown: Component<DropdownProps> = (props) => {
+  let dialog: HTMLDialogElement
+
+  onMount(() => {
+    dialog.addEventListener('click', (e) => {
+      const dialogDimensions = dialog.getBoundingClientRect()
+      if (
+        e.clientX < dialogDimensions.left ||
+        e.clientX > dialogDimensions.right ||
+        e.clientY < dialogDimensions.top ||
+        e.clientY > dialogDimensions.bottom
+      ) {
+        dialog.close()
+      }
+    })
+  })
+
+  return (
+    <div class="float-right">
+      <img
+        src={settings}
+        width={32}
+        height={32}
+        class="cursor-pointer"
+        onClick={() => {
+          dialog.inert = true // disables auto focus when dialog is opened
+          dialog.showModal()
+          dialog.inert = false
+        }}
+      />
+      <dialog ref={dialog!} class="w-44 rounded-lg">
+        <ul class="text-md text-black">
+          <For each={props.items}>
+            {(item) => {
+              return (
+                <li>
+                  <p
+                    class="block cursor-pointer p-2 hover:bg-slate-200"
+                    onClick={() => {
+                      item.action()
+                      dialog.close()
+                    }}
+                  >
+                    {item.label}
+                  </p>
+                </li>
+              )
+            }}
+          </For>
+        </ul>
+      </dialog>
     </div>
   )
 }

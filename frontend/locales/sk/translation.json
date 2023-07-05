@@ -45,7 +45,8 @@
 	"pause": "Pauza",
 	"set.description.placeholder": "Kraul, Prsia, atď.",
 	"home": "Domov",
-	"duplicate.set": "Duplikuj sériu",
+	"duplicate": "Duplikovať",
+	"delete": "Vymazať",
 	"duplicate.block": "Duplikuj blok",
 	"session.not.selected": "Vyberte termín",
 	"total.distance.training": "Celková vzdialenosť v tréningu"

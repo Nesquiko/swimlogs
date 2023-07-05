@@ -1,8 +1,9 @@
-import { Trans, useTransContext } from '@mbarzda/solid-i18next'
+import { Trans } from '@mbarzda/solid-i18next'
 import { batch, Component, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
+import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import { useCreateTraining } from './context/CreateTrainingContextProvider'
 import SetForm from './SetForm'
 
@@ -14,9 +15,16 @@ const TrainingSetsForm: Component = () => {
     ,
     [, setCurrentComponent]
   ] = useCreateTraining()
-  const [t] = useTransContext()
 
-  const sumbit = () => {}
+  const sumbit = () => {
+    setInvalidTraining(validateTraining(training))
+
+    if (!isInvalidTrainingEmpty(invalidTraining)) {
+      return
+    }
+
+    setCurrentComponent((c) => c + 1)
+  }
 
   const addNewSet = () => {
     const newSet = {

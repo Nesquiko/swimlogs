@@ -45,7 +45,8 @@
 	"pause": "Pause",
 	"set.description.placeholder": "Freestyle, Breastroke, etc.",
 	"home": "Home",
-	"duplicate.set": "Duplicate set",
+	"duplicate": "Duplicate",
+	"delete": "Delete",
 	"duplicate.block": "Duplicate block",
 	"session.not.selected": "No session selected",
 	"total.distance.training": "Total distance in training"

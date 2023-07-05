@@ -6,9 +6,42 @@ import {
   StartType
 } from '../generated'
 
-export const validateTraining = (
-  t: NewTraining
-): InvalidTraining | undefined => {
+export const isInvalidTrainingEmpty = (it: InvalidTraining): boolean => {
+  const isTrainingDataValid =
+    it.durationMin === undefined && it.sets === undefined
+
+  if (!isTrainingDataValid) return false
+
+  let isValid = true
+  it.invalidSets?.forEach((is) => {
+    if (!isInvalidSetEmpty(is)) {
+      isValid = false
+    }
+
+    if (is.subSets !== undefined) {
+      is.subSets.forEach((sis) => {
+        if (!isInvalidSetEmpty(sis)) {
+          isValid = false
+        }
+      })
+    }
+  })
+  return isValid
+}
+
+export const isInvalidSetEmpty = (is: InvalidTrainingSet | undefined) => {
+  return (
+    is?.setOrder === undefined &&
+    is?.subSetOrder === undefined &&
+    is?.repeat === undefined &&
+    is?.distanceMeters === undefined &&
+    is?.startType === undefined &&
+    is?.startSeconds === undefined &&
+    is?.subSets === undefined
+  )
+}
+
+export const validateTraining = (t: NewTraining): InvalidTraining => {
   const invalidTraining: InvalidTraining = {}
 
   if (t.durationMin === undefined)
@@ -16,17 +49,18 @@ export const validateTraining = (
   else if (t.durationMin < 0)
     invalidTraining.durationMin = 'Duration must be positive'
 
+  if (t.sets.length === 0)
+    invalidTraining.sets = 'Training must have at least one set'
+
   const invalidSets = validateSets(t.sets)
   if (invalidSets) invalidTraining.invalidSets = invalidSets
-
-  if (Object.keys(invalidTraining).length === 0) return undefined
 
   return invalidTraining
 }
 
-function validateSets(
+export const validateSets = (
   sets: Array<NewTrainingSet>
-): Array<InvalidTrainingSet> | undefined {
+): Array<InvalidTrainingSet> | undefined => {
   const invalidSets: Array<InvalidTrainingSet> = []
 
   sets.forEach((set, index) => {
@@ -38,6 +72,10 @@ function validateSets(
 
     if (!isStartTypeValid(set)) {
       invalidSets[index].startSeconds = 'Seconds must be positive'
+    }
+
+    if (set.subSets !== undefined) {
+      invalidSets[index].subSets = validateSets(set.subSets)
     }
   })
 
