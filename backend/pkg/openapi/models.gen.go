@@ -42,6 +42,13 @@ type ErrorDetail struct {
 	Title string `json:"title"`
 }
 
+// InvalidSession defines model for InvalidSession.
+type InvalidSession struct {
+	Day         *string `json:"day,omitempty"`
+	DurationMin *string `json:"durationMin,omitempty"`
+	StartTime   *string `json:"startTime,omitempty"`
+}
+
 // InvalidTraining defines model for InvalidTraining.
 type InvalidTraining struct {
 	DurationMin *string               `json:"durationMin,omitempty"`
@@ -118,7 +125,7 @@ type Session struct {
 	Id          openapi_types.UUID `json:"id"`
 
 	// StartTime When does the session start during the day
-	StartTime StartTime `json:"startTime"`
+	StartTime string `json:"startTime"`
 }
 
 // StartType defines model for StartType.
@@ -177,7 +184,7 @@ type TrainingSet struct {
 }
 
 // InvalidSessionErrorResponse defines model for InvalidSessionErrorResponse.
-type InvalidSessionErrorResponse = ErrorDetail
+type InvalidSessionErrorResponse = InvalidSession
 
 // InvalidTrainingErrorResponse defines model for InvalidTrainingErrorResponse.
 type InvalidTrainingErrorResponse = InvalidTraining
@@ -259,7 +266,7 @@ type CreateSessionJSONBody struct {
 	DurationMin int `json:"durationMin"`
 
 	// StartTime When does the session start during the day
-	StartTime StartTime `json:"startTime"`
+	StartTime string `json:"startTime"`
 }
 
 // UpdateSessionJSONBody defines parameters for UpdateSession.
