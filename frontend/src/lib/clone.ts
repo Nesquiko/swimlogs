@@ -1,27 +1,14 @@
-import { NewBlock, NewTrainingSet } from '../generated'
-
-export function cloneBlock(b: NewBlock) {
-  const newBlock = {} as NewBlock
-  newBlock.num = b.num
-  newBlock.name = b.name
-  newBlock.repeat = b.repeat
-  newBlock.repeat = b.repeat
-  newBlock.sets = new Array(b.sets.length)
-
-  b.sets.forEach((s, i) => {
-    const newSet = cloneSet(s)
-    newBlock.sets[i] = newSet
-  })
-
-  return newBlock
-}
+import { NewTrainingSet } from '../generated'
 
 export function cloneSet(s: NewTrainingSet) {
   const newSet = {} as NewTrainingSet
   newSet.repeat = s.repeat
-  newSet.num = s.num
-  newSet.what = s.what
-  newSet.distance = s.distance
-  newSet.startingRule = Object.assign({}, s.startingRule)
+  newSet.setOrder = s.setOrder
+  newSet.subSets = s.subSets
+  newSet.startType = s.startType
+  newSet.description = s.description
+  newSet.startSeconds = s.startSeconds
+  newSet.distanceMeters = s.distanceMeters
+  newSet.totalDistance = s.totalDistance
   return newSet
 }

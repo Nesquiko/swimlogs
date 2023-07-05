@@ -10,6 +10,7 @@ import { useTransContext } from '@mbarzda/solid-i18next'
 import { CreateTrainingPreview } from '../components/CreateTrainingPreview'
 import { TrainingSessionForm } from '../components/TrainingSessionForm'
 import { openToast, ToastType } from '../components/Toast'
+import TrainingSetsForm from '../components/TrainingSetsForm'
 
 const CreateTrainingPage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
@@ -55,8 +56,7 @@ const CreateTrainingPage: Component = () => {
   }
 
   const [currentComponent, setCurrentComponent] = createSignal(0)
-  /* const comps = [TrainingSessionForm, BlocksForm, CreateTrainingPreview] */
-  const comps = [TrainingSessionForm, CreateTrainingPreview]
+  const comps = [TrainingSetsForm, TrainingSessionForm, CreateTrainingPreview]
 
   return (
     <div>

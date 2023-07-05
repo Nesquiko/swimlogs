@@ -6,7 +6,6 @@
 	"duration": "Duration",
 	"seconds": "Seconds",
 	"repeat": "Repeat",
-	"total": "Total",
 	"block": "Block",
 	"distance": "Distance",
 	"distance.in.training": "Distance in training",
@@ -31,7 +30,7 @@
 	"server.error": "Server error",
 	"training.not.found": "Training not found",
 	"add.set": "Add set",
-	"no.blocks.in.training": "No blocks in training",
+	"no.sets.in.training": "No sets in training",
 	"minutes": "60",
 	"block.name.placeholder": "Warm up",
 	"monday": "Monday",
@@ -44,9 +43,10 @@
 	"none": "None",
 	"interval": "Interval",
 	"pause": "Pause",
-	"set.what.placeholder": "Freestyle",
+	"set.description.placeholder": "Freestyle, Breastroke, etc.",
 	"home": "Home",
 	"duplicate.set": "Duplicate set",
 	"duplicate.block": "Duplicate block",
-	"session.not.selected": "No session selected"
+	"session.not.selected": "No session selected",
+	"total.distance.training": "Total distance in training"
 }
