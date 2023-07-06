@@ -2,13 +2,14 @@ import { Trans } from '@mbarzda/solid-i18next'
 import { t } from 'i18next'
 import { batch, Component, createSignal, For, Show } from 'solid-js'
 import { produce } from 'solid-js/store'
-import { NewTrainingSet, StartType } from '../generated'
+import { NewTrainingSet } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import { useCreateTraining } from './context/CreateTrainingContextProvider'
 import MenuModal from './MenuModal'
 import SetForm from './SetForm'
 import plusSvg from '../assets/plus.svg'
+import AddSetModal from './AddSetModal'
 
 const TrainingSetsForm: Component = () => {
   const [
@@ -20,6 +21,7 @@ const TrainingSetsForm: Component = () => {
   ] = useCreateTraining()
 
   const [addMenuOpen, setAddMenuOpen] = createSignal({})
+  const [addSetModalOpen, setAddSetModalOpen] = createSignal({})
 
   const sumbit = () => {
     setInvalidTraining(validateTraining(training))
@@ -31,15 +33,16 @@ const TrainingSetsForm: Component = () => {
     setCurrentComponent((c) => c + 1)
   }
 
-  const addNewSet = () => {
-    const newSet = {
-      repeat: 1,
-      setOrder: training.sets.length,
-      distanceMeters: 100,
-      startType: StartType.None,
-      totalDistance: 100
-    } as NewTrainingSet
-    addSet(newSet)
+  const addNewSet = (set: NewTrainingSet) => {
+    set.setOrder = training.sets.length
+    if (set.subSets !== undefined) {
+      set.subSets!.forEach((s) => {
+        /* set.subSets![i].setOrder = set.setOrder */
+        s.setOrder = set.setOrder
+      })
+    }
+    console.debug('addNewSet', set)
+    addSet(set)
   }
 
   const duplicateSet = (idx: number) => {
@@ -71,6 +74,7 @@ const TrainingSetsForm: Component = () => {
 
   return (
     <div class="m-4">
+      <AddSetModal open={addSetModalOpen()} onAddSet={addNewSet} />
       <p class="my-4 text-xl">
         <Trans key="total.distance.training" />{' '}
         {training.totalDistance.toLocaleString()}m
@@ -78,7 +82,7 @@ const TrainingSetsForm: Component = () => {
       <Show
         when={training.sets.length !== 0}
         fallback={
-          <div class="m-4 flex items-center justify-start rounded bg-blue-200 p-4 text-xl font-bold">
+          <div class="m-4 rounded-lg bg-sky-200 p-4 text-xl font-semibold">
             <Trans key="no.sets.in.training" />
           </div>
         }
@@ -119,7 +123,12 @@ const TrainingSetsForm: Component = () => {
 
       <MenuModal
         open={addMenuOpen()}
-        items={[{ label: t('add.set', 'Add set'), action: () => addNewSet() }]}
+        items={[
+          {
+            label: t('add.new.set', 'Add'),
+            action: () => setAddSetModalOpen({})
+          }
+        ]}
       />
     </div>
   )

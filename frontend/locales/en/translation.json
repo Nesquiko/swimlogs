@@ -29,8 +29,9 @@
 	"session.creation.error": "Error creating session",
 	"server.error": "Server error",
 	"training.not.found": "Training not found",
-	"add.set": "Add set",
-	"no.sets.in.training": "No sets in training",
+	"add": "Add",
+	"add.new.set": "Add new set",
+	"no.sets.in.training": "No sets in training. Add some!",
 	"minutes": "60",
 	"block.name.placeholder": "Warm up",
 	"monday": "Monday",
@@ -43,11 +44,13 @@
 	"none": "None",
 	"interval": "Interval",
 	"pause": "Pause",
+	"description": "Description",
 	"set.description.placeholder": "Freestyle, Breastroke, etc.",
 	"home": "Home",
 	"duplicate": "Duplicate",
 	"delete": "Delete",
 	"duplicate.block": "Duplicate block",
 	"session.not.selected": "No session selected",
-	"total.distance.training": "Total distance in training"
+	"total.distance.training": "Total distance in training",
+	"cancel": "Cancel"
 }
