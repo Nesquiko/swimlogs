@@ -1,6 +1,6 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createEffect, For, on, onMount } from 'solid-js'
-import { createStore, unwrap } from 'solid-js/store'
+import { createStore, reconcile } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
 
@@ -98,7 +98,7 @@ const SetModal: Component<SetModalProps> = (props) => {
               trainingSet.distanceMeters >= 1
           }}
           class="w-24 rounded-md border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.distanceMeters}
+          value={trainingSet.distanceMeters ?? '0'}
           onChange={(e) => {
             let dist = parseInt(e.target.value)
             if (Number.isNaN(dist) || dist < 1 || dist > SmallIntMax) {
@@ -199,9 +199,18 @@ const SetModal: Component<SetModalProps> = (props) => {
           <Trans key="cancel" />
         </button>
         <button
-          class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-600 focus:outline-none focus:ring"
+          class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
           onClick={() => {
-            props.onAddSet(unwrap(trainingSet))
+            // this modal only creates sets without subsets, so we can just shallow copy the object
+            props.onAddSet(Object.assign({}, trainingSet))
+            setTrainingSet(
+              reconcile({
+                repeat: 1,
+                distanceMeters: 100,
+                startType: StartType.None,
+                totalDistance: 100
+              })
+            )
             dialog.close()
           }}
         >
