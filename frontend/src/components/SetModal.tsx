@@ -4,14 +4,14 @@ import { createStore, unwrap } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
 
-type AddSetModalProps = {
+type SetModalProps = {
   // indicates that the dialog should be opened, since the dialog can close itself,
   // we only need to indicate when to open it
   open: {}
   onAddSet: (set: NewTrainingSet) => void
 }
 
-const AddSetModal: Component<AddSetModalProps> = (props) => {
+const SetModal: Component<SetModalProps> = (props) => {
   let dialog: HTMLDialogElement
 
   const [trainingSet, setTrainingSet] = createStore<NewTrainingSet>({
@@ -212,4 +212,4 @@ const AddSetModal: Component<AddSetModalProps> = (props) => {
   )
 }
 
-export default AddSetModal
+export default SetModal

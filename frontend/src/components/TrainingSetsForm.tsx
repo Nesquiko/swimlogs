@@ -9,7 +9,7 @@ import { useCreateTraining } from './context/CreateTrainingContextProvider'
 import MenuModal from './MenuModal'
 import SetForm from './SetForm'
 import plusSvg from '../assets/plus.svg'
-import AddSetModal from './AddSetModal'
+import SetModal from './SetModal'
 
 const TrainingSetsForm: Component = () => {
   const [
@@ -21,7 +21,8 @@ const TrainingSetsForm: Component = () => {
   ] = useCreateTraining()
 
   const [addMenuOpen, setAddMenuOpen] = createSignal({})
-  const [addSetModalOpen, setAddSetModalOpen] = createSignal({})
+  const [setModalOpen, setSetModalOpen] = createSignal({})
+  /* const [addSetModalOpen, setAddSetModalOpen] = createSignal({}) */
 
   const sumbit = () => {
     setInvalidTraining(validateTraining(training))
@@ -74,7 +75,7 @@ const TrainingSetsForm: Component = () => {
 
   return (
     <div class="m-4">
-      <AddSetModal open={addSetModalOpen()} onAddSet={addNewSet} />
+      <SetModal open={setModalOpen()} onAddSet={addNewSet} />
       <p class="my-4 text-xl">
         <Trans key="total.distance.training" />{' '}
         {training.totalDistance.toLocaleString()}m
@@ -126,7 +127,7 @@ const TrainingSetsForm: Component = () => {
         items={[
           {
             label: t('add.new.set', 'Add'),
-            action: () => setAddSetModalOpen({})
+            action: () => setSetModalOpen({})
           }
         ]}
       />
