@@ -1,4 +1,4 @@
-import { Component, Show } from 'solid-js'
+import { Component, For, Match, Show, Switch } from 'solid-js'
 import { NewTrainingSet } from '../generated'
 import settings from '../assets/settings.svg'
 import { Trans } from '@mbarzda/solid-i18next'
@@ -9,29 +9,93 @@ type SetCardProps = {
 }
 
 const SetCard: Component<SetCardProps> = (props) => {
+  const setLayout = (set: NewTrainingSet) => {
+    const repeat = set.repeat > 1 ? `${set.repeat} x ` : ''
+
+    return (
+      <div>
+        <div class="rounded-t-lg bg-sky-300 p-2">
+          <span class="inline-block w-10 text-xl">
+            {(set.setOrder ?? 0) + 1}.
+          </span>
+          <span class="inline-block w-10 text-xl">{repeat}</span>
+          <span class="mr-4 text-xl">{set.distanceMeters}m</span>
+          <Show when={set.startType !== 'None'}>
+            <span class="text-xl">
+              <Trans key={set.startType.toLowerCase()} />:{' '}
+            </span>
+            <span class="text-xl">{set.startSeconds}"</span>
+          </Show>
+          <img
+            src={settings}
+            width={32}
+            height={32}
+            class="float-right inline-block cursor-pointer"
+            onClick={() => props.onSettingsClick(props.set)}
+          />
+        </div>
+        <p class="whitespace-pre-wrap p-2 text-lg">{set.description}</p>
+      </div>
+    )
+  }
+
+  const superSetLayout = (superSet: NewTrainingSet) => {
+    const repeat = superSet.repeat > 1 ? `${superSet.repeat} x ` : ''
+
+    return (
+      <div>
+        <div class="rounded-t-lg bg-sky-300 p-2">
+          <span class="inline-block w-10 text-xl">
+            {(superSet.setOrder ?? 0) + 1}.
+          </span>
+          <span class="inline-block w-10 text-xl">{repeat}</span>
+          <img
+            src={settings}
+            width={32}
+            height={32}
+            class="float-right inline-block cursor-pointer"
+            onClick={() => props.onSettingsClick(props.set)}
+          />
+        </div>
+
+        <For each={superSet.subSets}>
+          {(subSet, idx) => {
+            const repeatSubSet = subSet.repeat > 1 ? `${subSet.repeat} x ` : ''
+            return (
+              <div class="ml-12 p-2">
+                <span class="inline-block w-10 text-xl">
+                  {(subSet.subSetOrder ?? 0) + 1}.
+                </span>
+                <span class="inline-block w-10 text-xl">{repeatSubSet}</span>
+                <span class="mr-4 text-xl">{subSet.distanceMeters}m</span>
+                <Show when={subSet.startType !== 'None'}>
+                  <span class="text-xl">
+                    <Trans key={subSet.startType.toLowerCase()} />:{' '}
+                  </span>
+                  <span class="text-xl">{subSet.startSeconds}"</span>
+                </Show>
+                <p class="ml-10 whitespace-pre-wrap text-lg">
+                  {subSet.description}
+                </p>
+                <Show when={idx() !== superSet.subSets!.length - 1}>
+                  <hr class="mt-2 rounded-lg border-2 border-slate-500" />
+                </Show>
+              </div>
+            )
+          }}
+        </For>
+      </div>
+    )
+  }
+
   return (
-    <div class="my-2 rounded-lg border border-solid border-slate-300 bg-sky-100 p-2 shadow">
-      <span class="inline-block w-10 text-xl">
-        {(props.set.subSetOrder ?? 0) + 1}.
-      </span>
-      <Show when={props.set.repeat > 1}>
-        <span class="text-xl">{props.set.repeat} x </span>
-      </Show>
-      <span class="mr-4 text-xl">{props.set.distanceMeters}m</span>
-      <Show when={props.set.startType !== 'None'}>
-        <span class="text-xl">
-          <Trans key={props.set.startType.toLowerCase()} />:{' '}
-        </span>
-        <span class="text-xl">{props.set.startSeconds}"</span>
-      </Show>
-      <img
-        src={settings}
-        width={32}
-        height={32}
-        class="float-right cursor-pointer"
-        onClick={() => props.onSettingsClick(props.set)}
-      />
-      <p class="mx-6 whitespace-pre-wrap text-xl">{props.set.description}</p>
+    <div class="my-2 rounded-lg border border-solid border-slate-300 shadow">
+      <Switch>
+        <Match when={props.set.subSets && props.set.subSets?.length > 0}>
+          {superSetLayout(props.set)}
+        </Match>
+        <Match when={!props.set.subSets}>{setLayout(props.set)}</Match>
+      </Switch>
     </div>
   )
 }
