@@ -12,7 +12,7 @@ import { TrainingSessionForm } from './TrainingSessionForm'
 import { TrainingCreatePreviewPage } from './TrainingCreatePreviewPage'
 import { CreateTrainingContextProvider } from '../components/CreateTrainingContextProvider'
 
-const CreateTrainingPage: Component = () => {
+const TrainingCreatePage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
     start: NullDateTime,
     durationMin: 60,
@@ -76,4 +76,4 @@ const CreateTrainingPage: Component = () => {
   )
 }
 
-export default CreateTrainingPage
+export default TrainingCreatePage

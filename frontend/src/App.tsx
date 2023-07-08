@@ -6,7 +6,7 @@ import Topbar from './components/Topbar'
 import Home from './pages/Home'
 import TrainingPage from './pages/TrainingPage'
 
-const CreateTrainingPage = lazy(() => import('./pages/CreateTrainingPage'))
+const TrainingCreatePage = lazy(() => import('./pages/TrainingCreatePage'))
 const SessionCreatePage = lazy(() => import('./pages/SessionCreatePage'))
 
 const App: Component = () => {
@@ -16,7 +16,7 @@ const App: Component = () => {
       <Drawer />
       <Routes>
         <Route path="/" component={Home} />
-        <Route path="/training/create" component={CreateTrainingPage} />
+        <Route path="/training/create" component={TrainingCreatePage} />
         <Route path="/training/:id" component={TrainingPage} />
         <Route path="/session/create" component={SessionCreatePage} />
       </Routes>
