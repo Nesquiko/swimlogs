@@ -1,33 +1,19 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { t } from 'i18next'
-import {
-  batch,
-  Component,
-  createSignal,
-  For,
-  Match,
-  Show,
-  Switch
-} from 'solid-js'
+import { Component, createSignal, For, Match, Show, Switch } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { cloneSet } from '../lib/clone'
 import plusSvg from '../assets/plus.svg'
 import { useCreateTraining } from '../components/CreateTrainingContextProvider'
 import { NewTrainingSet } from '../generated'
-import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
 import SuperSetEditPage from './SuperSetEditPage'
 import SetCard from '../components/SetCard'
 
 const TrainingSetsForm: Component = () => {
-  const [
-    { training, setTraining },
-    { invalidTraining, setInvalidTraining },
-    ,
-    ,
-    [, setCurrentComponent]
-  ] = useCreateTraining()
+  const [{ training, setTraining }, {}, , , [, setCurrentComponent]] =
+    useCreateTraining()
 
   const [addMenuModalOpen, setAddMenuModalOpen] = createSignal({})
 
@@ -36,16 +22,6 @@ const TrainingSetsForm: Component = () => {
 
   const [setModalOpen, setSetModalOpen] = createSignal({})
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
-
-  const sumbit = () => {
-    setInvalidTraining(validateTraining(training))
-
-    if (!isInvalidTrainingEmpty(invalidTraining)) {
-      return
-    }
-
-    setCurrentComponent((c) => c + 1)
-  }
 
   const addNewSet = (set: NewTrainingSet) => {
     set.setOrder = training.sets.length
@@ -61,27 +37,16 @@ const TrainingSetsForm: Component = () => {
   }
 
   const addSet = (s: NewTrainingSet) => {
-    batch(() => {
-      setTraining(
-        'sets',
-        produce((sets) => sets.push(s))
-      )
-      setInvalidTraining(
-        'invalidSets',
-        produce((sets) => sets?.push({}))
-      )
-    })
+    setTraining(
+      'sets',
+      produce((sets) => sets.push(s))
+    )
   }
 
   const deleteSet = (idx: number) => {
-    batch(() => {
-      setTraining('sets', (sets) =>
-        sets.filter((_, i) => i !== idx).map((s, i) => ({ ...s, setOrder: i }))
-      )
-      setInvalidTraining('invalidSets', (sets) =>
-        sets?.filter((_, i) => i !== idx)
-      )
-    })
+    setTraining('sets', (sets) =>
+      sets.filter((_, i) => i !== idx).map((s, i) => ({ ...s, setOrder: i }))
+    )
   }
 
   return (
@@ -131,10 +96,6 @@ const TrainingSetsForm: Component = () => {
             header={t('set', 'Set') + ' ' + (menuSetIdx() + 1)}
           />
 
-          <p class="my-4 text-xl">
-            <Trans key="total.distance.training" />{' '}
-            {training.totalDistance.toLocaleString()}m
-          </p>
           <Show
             when={training.sets.length !== 0}
             fallback={
@@ -157,16 +118,21 @@ const TrainingSetsForm: Component = () => {
               }}
             </For>
           </Show>
+          <p class="my-4 text-xl">
+            <Trans key="total.distance.training" />{' '}
+            {training.totalDistance.toLocaleString()}m
+          </p>
           <button
             class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow"
             onClick={() => setAddMenuModalOpen({})}
           >
             <img src={plusSvg} />
           </button>
+          <div class="h-32 w-full"></div>
 
           <button
             class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
-            onClick={() => sumbit()}
+            onClick={() => setCurrentComponent((c) => c + 1)}
           >
             <Trans key="next" />
           </button>
