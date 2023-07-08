@@ -48,6 +48,29 @@ const SetModal: Component<SetModalProps> = (props) => {
     })
   })
 
+  const isSetValid = (): boolean => {
+    if (trainingSet.repeat < 1) {
+      return false
+    }
+
+    if (
+      trainingSet.distanceMeters === undefined ||
+      trainingSet.distanceMeters < 1
+    ) {
+      return false
+    }
+
+    if (
+      trainingSet.startType !== StartType.None &&
+      trainingSet.startSeconds !== undefined &&
+      trainingSet.startSeconds < 1
+    ) {
+      return false
+    }
+
+    return true
+  }
+
   return (
     <dialog ref={dialog!} class="h-screen w-11/12 rounded-lg">
       <p class="text-center text-2xl">
@@ -152,7 +175,7 @@ const SetModal: Component<SetModalProps> = (props) => {
               trainingSet.startSeconds >= 1
           }}
           class="w-24 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          value={trainingSet.startSeconds}
+          value={trainingSet.startSeconds ?? ''}
           onChange={(e) => {
             const val = e.target.value
             let seconds = parseInt(val)
@@ -201,6 +224,8 @@ const SetModal: Component<SetModalProps> = (props) => {
         <button
           class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
           onClick={() => {
+            if (!isSetValid()) return
+
             // this modal only creates sets without subsets, so we can just shallow copy the object
             props.onAddSet(Object.assign({}, trainingSet))
             setTrainingSet(
