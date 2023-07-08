@@ -30,8 +30,11 @@
 	"server.error": "Server error",
 	"training.not.found": "Training not found",
 	"add": "Add",
+	"add.set": "Add set",
 	"add.new.set": "Add new set",
+	"add.new.super.set": "Add new super set",
 	"no.sets.in.training": "No sets in training. Add some!",
+	"no.sets.in.superset": "No sets in super set. Add some!",
 	"minutes": "60",
 	"block.name.placeholder": "Warm up",
 	"monday": "Monday",
@@ -52,5 +55,6 @@
 	"duplicate.block": "Duplicate block",
 	"session.not.selected": "No session selected",
 	"total.distance.training": "Total distance in training",
-	"cancel": "Cancel"
+	"cancel": "Cancel",
+	"add.at.least.one.set": "Add at least one set"
 }

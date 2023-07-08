@@ -5,7 +5,7 @@
 	"start": "Štart",
 	"duration": "Trvanie",
 	"seconds": "Sekundy",
-	"repeat": "Opakovať",
+	"repeat": "Opakovaní",
 	"block": "Blok",
 	"distance": "Vzdialenosť",
 	"distance.in.training": "Vzdialenosť",
@@ -30,8 +30,11 @@
 	"server.error": "Chyba servera",
 	"training.not.found": "Tréning nenájdený",
 	"add": "Pridať",
+	"add.set": "Pridaj sériu",
 	"add.new.set": "Pridaj novú sériu",
+	"add.new.super.set": "Pridaj novú supersériu",
 	"no.sets.in.training": "Tréning neobsahuje žiadne série. Pridaj novú sériu!",
+	"no.sets.in.superset": "Superséria neobsahuje žiadne série. Pridaj novú sériu!",
 	"minutes": "60",
 	"block.name.placeholder": "Rozplavanie",
 	"monday": "Pondelok",
@@ -52,5 +55,6 @@
 	"duplicate.block": "Duplikuj blok",
 	"session.not.selected": "Vyberte termín",
 	"total.distance.training": "Celková vzdialenosť v tréningu",
-	"cancel": "Zrušiť"
+	"cancel": "Zrušiť",
+	"add.at.least.one.set": "Pridaj aspoň jednu sériu"
 }
