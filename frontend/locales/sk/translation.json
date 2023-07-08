@@ -56,5 +56,6 @@
 	"session.not.selected": "Vyberte termín",
 	"total.distance.training": "Celková vzdialenosť v tréningu",
 	"cancel": "Zrušiť",
-	"add.at.least.one.set": "Pridaj aspoň jednu sériu"
+	"add.at.least.one.set": "Pridaj aspoň jednu sériu",
+	"set": "Séria"
 }

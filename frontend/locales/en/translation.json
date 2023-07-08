@@ -56,5 +56,6 @@
 	"session.not.selected": "No session selected",
 	"total.distance.training": "Total distance in training",
 	"cancel": "Cancel",
-	"add.at.least.one.set": "Add at least one set"
+	"add.at.least.one.set": "Add at least one set",
+	"set": "Set"
 }

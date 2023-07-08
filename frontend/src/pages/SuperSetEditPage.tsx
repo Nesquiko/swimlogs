@@ -220,7 +220,6 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
       >
         <Trans key="add.set" />
       </button>
-      {/* Add space at the bottom, so the buttons dont hide block form */}
       <div class="h-32 w-full"></div>
       <div class="fixed bottom-4 left-8 right-8 flex justify-between">
         <button

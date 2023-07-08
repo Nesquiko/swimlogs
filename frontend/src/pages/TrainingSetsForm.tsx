@@ -17,8 +17,8 @@ import { NewTrainingSet } from '../generated'
 import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
-import SetForm from '../components/SetForm'
 import SuperSetEditPage from './SuperSetEditPage'
+import SetCard from '../components/SetCard'
 
 const TrainingSetsForm: Component = () => {
   const [
@@ -29,7 +29,11 @@ const TrainingSetsForm: Component = () => {
     [, setCurrentComponent]
   ] = useCreateTraining()
 
-  const [addMenuOpen, setAddMenuOpen] = createSignal({})
+  const [addMenuModalOpen, setAddMenuModalOpen] = createSignal({})
+
+  const [setMenuOpen, setSetMenuOpen] = createSignal({})
+  const [menuSetIdx, setMenuSetIdx] = createSignal(-1)
+
   const [setModalOpen, setSetModalOpen] = createSignal({})
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
 
@@ -96,7 +100,7 @@ const TrainingSetsForm: Component = () => {
           <SetModal open={setModalOpen()} onAddSet={addNewSet} />
           <MenuModal
             widthRem="15"
-            open={addMenuOpen()}
+            open={addMenuModalOpen()}
             items={[
               {
                 label: t('add.new.set', 'Add new set'),
@@ -107,6 +111,24 @@ const TrainingSetsForm: Component = () => {
                 action: () => setSuperSetFormOpen(true)
               }
             ]}
+          />
+          <MenuModal
+            open={setMenuOpen()}
+            items={[
+              {
+                label: t('duplicate', 'Duplicate'),
+                action: () => {
+                  duplicateSet(menuSetIdx())
+                }
+              },
+              {
+                label: t('delete', 'Delete'),
+                action: () => {
+                  deleteSet(menuSetIdx())
+                }
+              }
+            ]}
+            header={t('set', 'Set') + ' ' + (menuSetIdx() + 1)}
           />
 
           <p class="my-4 text-xl">
@@ -124,12 +146,12 @@ const TrainingSetsForm: Component = () => {
             <For each={training.sets}>
               {(set, setIdx) => {
                 return (
-                  <SetForm
+                  <SetCard
                     set={set}
-                    setIdx={setIdx()}
-                    invalidSet={invalidTraining.invalidSets![setIdx()]}
-                    onDelete={() => deleteSet(setIdx())}
-                    onDuplicate={() => duplicateSet(setIdx())}
+                    onSettingsClick={() => {
+                      setMenuSetIdx(setIdx())
+                      setSetMenuOpen({})
+                    }}
                   />
                 )
               }}
@@ -137,7 +159,7 @@ const TrainingSetsForm: Component = () => {
           </Show>
           <button
             class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow"
-            onClick={() => setAddMenuOpen({})}
+            onClick={() => setAddMenuModalOpen({})}
           >
             <img src={plusSvg} />
           </button>
