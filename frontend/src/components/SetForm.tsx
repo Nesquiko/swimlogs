@@ -1,7 +1,7 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createSignal, For, Show } from 'solid-js'
 import { InvalidTrainingSet, NewTrainingSet, StartType } from '../generated'
-import { useCreateTraining } from './context/CreateTrainingContextProvider'
+import { useCreateTraining } from './CreateTrainingContextProvider'
 import { SmallIntMax } from '../lib/consts'
 import { isInvalidSetEmpty } from '../lib/validation'
 import MenuModal from './MenuModal'

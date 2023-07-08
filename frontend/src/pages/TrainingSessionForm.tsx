@@ -1,5 +1,7 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
+import { useCreateTraining } from '../components/CreateTrainingContextProvider'
+import SessionPicker from '../components/SessionPicker'
 import { Day, Session } from '../generated'
 import {
   NullDateTime,
@@ -10,8 +12,6 @@ import {
   StartTimeMinutes
 } from '../lib/consts'
 import { formatDate } from '../lib/datetime'
-import { useCreateTraining } from './context/CreateTrainingContextProvider'
-import SessionPicker from './SessionPicker'
 
 export const TrainingSessionForm: Component = () => {
   const [

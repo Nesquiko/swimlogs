@@ -17,14 +17,9 @@ import {
   NewTraining,
   ResponseError,
   Session
-} from '../../generated'
-import {
-  NullDateTime,
-  NullDay,
-  NullStartTime,
-  PAGE_SIZE
-} from '../../lib/consts'
-import { sessionApi } from '../../state/session'
+} from '../generated'
+import { NullDateTime, NullDay, NullStartTime, PAGE_SIZE } from '../lib/consts'
+import { sessionApi } from '../state/session'
 
 const makeTrainingContext = (
   newTraining: NewTraining,

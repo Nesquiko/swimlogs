@@ -4,13 +4,13 @@ import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
 import { NewTraining, ResponseError, StartType } from '../generated'
 import { addTrainingDetail, trainingApi } from '../state/trainings'
-import { CreateTrainingContextProvider } from '../components/context/CreateTrainingContextProvider'
 import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
-import { CreateTrainingPreview } from '../components/CreateTrainingPreview'
-import { TrainingSessionForm } from '../components/TrainingSessionForm'
 import { openToast, ToastType } from '../components/Toast'
-import TrainingSetsForm from '../components/TrainingSetsForm'
+import TrainingSetsForm from './TrainingSetsForm'
+import { TrainingSessionForm } from './TrainingSessionForm'
+import { TrainingCreatePreviewPage } from './TrainingCreatePreviewPage'
+import { CreateTrainingContextProvider } from '../components/CreateTrainingContextProvider'
 
 const CreateTrainingPage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
@@ -57,7 +57,11 @@ const CreateTrainingPage: Component = () => {
   }
 
   const [currentComponent, setCurrentComponent] = createSignal(0)
-  const comps = [TrainingSessionForm, TrainingSetsForm, CreateTrainingPreview]
+  const comps = [
+    TrainingSessionForm,
+    TrainingSetsForm,
+    TrainingCreatePreviewPage
+  ]
 
   return (
     <div>

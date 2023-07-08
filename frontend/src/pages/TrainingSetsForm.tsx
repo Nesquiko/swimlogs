@@ -10,15 +10,15 @@ import {
   Switch
 } from 'solid-js'
 import { produce } from 'solid-js/store'
-import { NewTrainingSet } from '../generated'
 import { cloneSet } from '../lib/clone'
-import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
-import { useCreateTraining } from './context/CreateTrainingContextProvider'
-import MenuModal from './MenuModal'
-import SetForm from './SetForm'
 import plusSvg from '../assets/plus.svg'
-import SetModal from './SetModal'
+import { useCreateTraining } from '../components/CreateTrainingContextProvider'
+import { NewTrainingSet } from '../generated'
+import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
 import SuperSetFormPage from './SuperSetFormPage'
+import SetModal from '../components/SetModal'
+import MenuModal from '../components/MenuModal'
+import SetForm from '../components/SetForm'
 
 const TrainingSetsForm: Component = () => {
   const [

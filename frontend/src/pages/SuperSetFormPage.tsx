@@ -4,10 +4,10 @@ import { createStore, produce, unwrap } from 'solid-js/store'
 import MenuModal from '../components/MenuModal'
 import SetCard from '../components/SetCard'
 import SetModal from '../components/SetModal'
+import { openToast, ToastType } from '../components/Toast'
 import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { SmallIntMax } from '../lib/consts'
-import { openToast, ToastType } from './Toast'
 
 type SuperSetFormPage = {
   onAddSet: (set: NewTrainingSet) => void
