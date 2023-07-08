@@ -10,10 +10,13 @@ type MenuModalProps = {
   // indicates that the dialog should be opened, since the dialog can close itself,
   // we only need to indicate when to open it
   open: {}
+  widthRem?: string
+  header?: string
 }
 
-const MenuModal: Component<MenuModalProps> = (props) => {
+const MenuModal: Component<MenuModalProps> = (props: MenuModalProps) => {
   let dialog: HTMLDialogElement
+  const widthRem = props.widthRem ? props.widthRem + 'rem' : '11rem'
 
   createEffect(
     on(
@@ -42,8 +45,9 @@ const MenuModal: Component<MenuModalProps> = (props) => {
   })
 
   return (
-    <dialog ref={dialog!} class="w-44 rounded-lg">
-      <ul class="text-md text-black">
+    <dialog style={{ width: widthRem }} ref={dialog!} class="rounded-lg">
+      <p class="text-xl">{props.header}</p>
+      <ul class="text-base text-black">
         <For each={props.items}>
           {(item) => {
             return (
