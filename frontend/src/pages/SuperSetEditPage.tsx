@@ -9,12 +9,12 @@ import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { SmallIntMax } from '../lib/consts'
 
-type SuperSetFormPage = {
+type SuperSetEditPage = {
   onAddSet: (set: NewTrainingSet) => void
   onClose: () => void
 }
 
-const SuperSetFormPage: Component<SuperSetFormPage> = (props) => {
+const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
   const [trainingSet, setTrainingSet] = createStore<NewTrainingSet>({
     repeat: 1,
     distanceMeters: 100,
@@ -244,4 +244,4 @@ const SuperSetFormPage: Component<SuperSetFormPage> = (props) => {
   )
 }
 
-export default SuperSetFormPage
+export default SuperSetEditPage

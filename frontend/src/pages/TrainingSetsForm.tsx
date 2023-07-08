@@ -15,10 +15,10 @@ import plusSvg from '../assets/plus.svg'
 import { useCreateTraining } from '../components/CreateTrainingContextProvider'
 import { NewTrainingSet } from '../generated'
 import { isInvalidTrainingEmpty, validateTraining } from '../lib/validation'
-import SuperSetFormPage from './SuperSetFormPage'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
 import SetForm from '../components/SetForm'
+import SuperSetEditPage from './SuperSetEditPage'
 
 const TrainingSetsForm: Component = () => {
   const [
@@ -84,7 +84,7 @@ const TrainingSetsForm: Component = () => {
     <div class="m-4">
       <Switch>
         <Match when={superSetFormOpen()}>
-          <SuperSetFormPage
+          <SuperSetEditPage
             onAddSet={(set) => {
               addNewSet(set)
               setSuperSetFormOpen(false)
