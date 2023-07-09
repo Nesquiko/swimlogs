@@ -24,8 +24,18 @@ const TrainingSetsForm: Component = () => {
     }
   }
 
+  const newSuperSet = (): NewTrainingSet => {
+    return {
+      repeat: 1,
+      distanceMeters: 100,
+      startType: StartType.None,
+      totalDistance: 100,
+      subSets: []
+    }
+  }
+
   const [addMenuModalOpener, setAddMenuModalOpener] = createSignal({})
-  const [setSettingsOpener, setSetSettingOpener] = createSignal({ idx: -1 })
+  const [setSettingsOpener, setSetSettingsOpener] = createSignal({ idx: -1 })
 
   const [addModalOpener, setAddModalOpener] = createSignal({
     set: newSet()
@@ -75,7 +85,8 @@ const TrainingSetsForm: Component = () => {
       <Switch>
         <Match when={superSetFormOpen()}>
           <SuperSetEditPage
-            onAddSet={(set) => {
+            superSet={newSuperSet()}
+            onSubmitSuperSet={(set) => {
               addNewSet(set)
               setSuperSetFormOpen(false)
             }}
@@ -141,7 +152,7 @@ const TrainingSetsForm: Component = () => {
                     set={set}
                     setNumber={setIdx() + 1}
                     onSettingsClick={() =>
-                      setSetSettingOpener({ idx: setIdx() })
+                      setSetSettingsOpener({ idx: setIdx() })
                     }
                   />
                 )

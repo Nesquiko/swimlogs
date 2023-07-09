@@ -9,43 +9,63 @@ import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { SmallIntMax } from '../lib/consts'
 
-type SuperSetEditPage = {
-  onAddSet: (set: NewTrainingSet) => void
+type SuperSetEditPageProps = {
+  superSet: NewTrainingSet
+  onSubmitSuperSet: (set: NewTrainingSet) => void
   onClose: () => void
 }
 
-const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
-  const [trainingSet, setTrainingSet] = createStore<NewTrainingSet>({
-    repeat: 1,
-    distanceMeters: 100,
-    startType: StartType.None,
-    totalDistance: 100,
-    subSets: []
-  })
+const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
+  const [superSet, setSuperSet] = createStore<NewTrainingSet>(props.superSet)
 
-  const [setMenuOpen, setSetMenuOpen] = createSignal({})
-  const [setModalOpen, setSetModalOpen] = createSignal({})
-  const [setToEditIdx, setSetToEditIdx] = createSignal(-1)
+  const newSubSet = (): NewTrainingSet => {
+    return {
+      repeat: 1,
+      distanceMeters: 100,
+      startType: StartType.None,
+      totalDistance: 100
+    }
+  }
+
+  const [setModalOpener, setSetModalOpener] = createSignal({
+    set: newSubSet()
+  })
+  const [setSettingsOpener, setSetSettingsOpener] = createSignal({ idx: -1 })
+  const [editModalOpener, setEditModalOpener] = createSignal(
+    {
+      set: newSubSet(),
+      idx: -1
+    },
+    { equals: false }
+  )
 
   const [t] = useTransContext()
 
   const addNewSubSet = (set: NewTrainingSet) => {
-    set.setOrder = trainingSet.setOrder
-    set.subSetOrder = trainingSet.subSets?.length
+    set.setOrder = superSet.setOrder
+    set.subSetOrder = superSet.subSets?.length
 
-    setTrainingSet(
+    setSuperSet(
       'subSets',
       produce((subSets) => subSets?.push(set))
     )
   }
 
+  const editSubSet = (subSet: NewTrainingSet, idx: number) => {
+    setSuperSet(
+      'subSets',
+      produce((subSets) => (subSets![idx] = subSet))
+    )
+  }
+
   const duplicateSubSet = (idx: number) => {
-    const newSet = cloneSet(trainingSet.subSets![idx])
+    const newSet = cloneSet(superSet.subSets![idx])
+    newSet.subSetOrder = superSet.subSets?.length
     addNewSubSet(newSet)
   }
 
   const deleteSet = (idx: number) => {
-    setTrainingSet('subSets', (subsets) =>
+    setSuperSet('subSets', (subsets) =>
       subsets
         ?.filter((_, i) => i !== idx)
         .map((s, i) => ({ ...s, subSetOrder: i }))
@@ -53,19 +73,19 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
   }
 
   const isSetValid = (): boolean => {
-    if (trainingSet.repeat < 1) {
+    if (superSet.repeat < 1) {
       return false
     }
 
     if (
-      trainingSet.startType !== StartType.None &&
-      trainingSet.startSeconds !== undefined &&
-      trainingSet.startSeconds < 1
+      superSet.startType !== StartType.None &&
+      superSet.startSeconds !== undefined &&
+      superSet.startSeconds < 1
     ) {
       return false
     }
 
-    if (trainingSet.subSets?.length === 0) {
+    if (superSet.subSets?.length === 0) {
       openToast(
         t('add.at.least.one.set', 'Add at least one set'),
         ToastType.ERROR
@@ -78,24 +98,34 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
 
   return (
     <div class="h-full w-full rounded-lg">
-      <SetModal opener={setModalOpen()} onSubmitSet={addNewSubSet} />
-      <MenuModal
-        opener={setMenuOpen()}
+      <SetModal opener={setModalOpener()} onSubmitSet={addNewSubSet} />
+      <SetModal
+        opener={editModalOpener()}
+        onSubmitSet={(set, idx) => editSubSet(set, idx!)}
+        submitBtnLabelKey="edit"
+      />
+      <MenuModal<{ idx: number }>
+        opener={setSettingsOpener()}
         items={[
           {
-            label: t('duplicate', 'Duplicate'),
-            action: () => {
-              duplicateSubSet(setToEditIdx())
+            label: t('edit', 'Edit'),
+            action: (o) => {
+              setEditModalOpener({
+                set: superSet.subSets![o.idx],
+                idx: o.idx
+              })
             }
           },
           {
+            label: t('duplicate', 'Duplicate'),
+            action: (o) => duplicateSubSet(o.idx)
+          },
+          {
             label: t('delete', 'Delete'),
-            action: () => {
-              deleteSet(setToEditIdx())
-            }
+            action: (o) => deleteSet(o.idx)
           }
         ]}
-        header={t('set', 'Set') + ' ' + (setToEditIdx() + 1)}
+        header={(o) => t('set', 'Set') + ' ' + (o.idx + 1)}
       />
 
       <p class="text-center text-2xl">
@@ -111,24 +141,24 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
           type="number"
           placeholder="1"
           classList={{
-            'border-red-500 text-red-500': trainingSet.repeat < 1,
-            'border-slate-300': trainingSet.repeat >= 1
+            'border-red-500 text-red-500': superSet.repeat < 1,
+            'border-slate-300': superSet.repeat >= 1
           }}
           class="w-24 rounded-md border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.repeat}
+          value={superSet.repeat}
           onChange={(e) => {
             let repeat = parseInt(e.target.value)
             if (Number.isNaN(repeat) || repeat < 1 || repeat > SmallIntMax) {
               repeat = 0
             }
-            setTrainingSet('repeat', repeat)
+            setSuperSet('repeat', repeat)
 
             const subSetsDist =
-              trainingSet.subSets?.reduce((acc, subSet) => {
+              superSet.subSets?.reduce((acc, subSet) => {
                 return acc + subSet.totalDistance
               }, 0) || 0
 
-            setTrainingSet('totalDistance', repeat * subSetsDist)
+            setSuperSet('totalDistance', repeat * subSetsDist)
           }}
         />
       </div>
@@ -140,12 +170,12 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
           id="start"
           class="w-32 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
           onChange={(e) => {
-            setTrainingSet('startType', e.target.value as StartType)
+            setSuperSet('startType', e.target.value as StartType)
           }}
         >
           <For each={Object.keys(StartType)}>
             {(typ) => (
-              <option selected={typ === trainingSet.startType} value={typ}>
+              <option selected={typ === superSet.startType} value={typ}>
                 <Trans key={typ.toLowerCase()} />
               </option>
             )}
@@ -154,8 +184,8 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
       </div>
       <div
         classList={{
-          visible: trainingSet.startType !== StartType.None,
-          invisible: trainingSet.startType === StartType.None
+          visible: superSet.startType !== StartType.None,
+          invisible: superSet.startType === StartType.None
         }}
         class="my-2 flex items-center justify-between"
       >
@@ -168,26 +198,24 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
           placeholder="20"
           classList={{
             'border-red-500 text-red-500':
-              trainingSet.startSeconds !== undefined &&
-              trainingSet.startSeconds < 1,
+              superSet.startSeconds !== undefined && superSet.startSeconds < 1,
             'border-slate-300':
-              trainingSet.startSeconds === undefined ||
-              trainingSet.startSeconds >= 1
+              superSet.startSeconds === undefined || superSet.startSeconds >= 1
           }}
           class="w-24 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          value={trainingSet.startSeconds}
+          value={superSet.startSeconds}
           onChange={(e) => {
             const val = e.target.value
             let seconds = parseInt(val)
             if (Number.isNaN(seconds) || seconds < 1 || seconds > SmallIntMax) {
               seconds = 0
             }
-            setTrainingSet('startSeconds', seconds)
+            setSuperSet('startSeconds', seconds)
           }}
         >
           <For each={Object.keys(StartType)}>
             {(typ) => (
-              <option selected={typ === trainingSet.startType} value={typ}>
+              <option selected={typ === superSet.startType} value={typ}>
                 <Trans key={typ.toLowerCase()} />
               </option>
             )}
@@ -195,29 +223,26 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
         </input>
       </div>
 
-      <For each={trainingSet.subSets}>
+      <For each={superSet.subSets}>
         {(subSet, idx) => {
           return (
             <SetCard
               set={subSet}
-              onSettingsClick={() => {
-                setSetToEditIdx(idx())
-                setSetMenuOpen({})
-              }}
               setNumber={idx() + 1}
+              onSettingsClick={() => setSetSettingsOpener({ idx: idx() })}
             />
           )
         }}
       </For>
 
-      <Show when={trainingSet.subSets?.length === 0}>
+      <Show when={superSet.subSets?.length === 0}>
         <div class="m-4 rounded-lg bg-sky-200 p-4 text-xl font-semibold">
           <Trans key="no.sets.in.superset" />
         </div>
       </Show>
       <button
         class="float-right my-4 rounded-lg bg-sky-500 p-2 text-xl text-white shadow focus:outline-none focus:ring focus:ring-sky-300"
-        onClick={() => setSetModalOpen({})}
+        onClick={() => setSetModalOpener({ set: newSubSet() })}
       >
         <Trans key="add.set" />
       </button>
@@ -234,7 +259,7 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
           onClick={() => {
             if (!isSetValid()) return
 
-            props.onAddSet(unwrap(trainingSet))
+            props.onSubmitSuperSet(unwrap(superSet))
           }}
         >
           <Trans key="add" />
