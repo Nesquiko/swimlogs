@@ -2,7 +2,7 @@ import { useNavigate } from '@solidjs/router'
 import { Component, createEffect, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
-import { NewTraining, ResponseError, StartType } from '../generated'
+import { NewTraining, ResponseError } from '../generated'
 import { addTrainingDetail, trainingApi } from '../state/trainings'
 import { NullDateTime } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
@@ -17,15 +17,7 @@ const TrainingCreatePage: Component = () => {
     start: NullDateTime,
     durationMin: 60,
     totalDistance: 100,
-    sets: [
-      {
-        repeat: 1,
-        setOrder: 0,
-        distanceMeters: 100,
-        totalDistance: 100,
-        startType: StartType.None
-      }
-    ]
+    sets: []
   })
 
   createEffect(() => {

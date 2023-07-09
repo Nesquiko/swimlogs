@@ -44,6 +44,10 @@ const TrainingSetsForm: Component = () => {
     set: newSet(),
     idx: -1
   })
+  const [superSetEditOpener, setSuperSetEditOpener] = createSignal({
+    superSet: newSuperSet(),
+    idx: -1
+  })
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
 
   const addNewSet = (set: NewTrainingSet) => {
@@ -85,12 +89,22 @@ const TrainingSetsForm: Component = () => {
       <Switch>
         <Match when={superSetFormOpen()}>
           <SuperSetEditPage
-            superSet={newSuperSet()}
+            superSet={superSetEditOpener().superSet}
             onSubmitSuperSet={(set) => {
-              addNewSet(set)
+              if (superSetEditOpener().idx === -1) {
+                addNewSet(set)
+              } else {
+                editSet(set, superSetEditOpener().idx)
+              }
               setSuperSetFormOpen(false)
             }}
             onClose={() => setSuperSetFormOpen(false)}
+            headerKey={
+              superSetEditOpener().idx === -1
+                ? 'add.new.super.set'
+                : 'edit.super.set'
+            }
+            submitBtnLabelKey={superSetEditOpener().idx === -1 ? 'add' : 'edit'}
           />
         </Match>
         <Match when={!superSetFormOpen()}>
@@ -110,7 +124,10 @@ const TrainingSetsForm: Component = () => {
               },
               {
                 label: t('add.new.super.set', 'Add new superset'),
-                action: () => setSuperSetFormOpen(true)
+                action: () => {
+                  setSuperSetEditOpener({ superSet: newSuperSet(), idx: -1 })
+                  setSuperSetFormOpen(true)
+                }
               }
             ]}
           />
@@ -119,11 +136,15 @@ const TrainingSetsForm: Component = () => {
             items={[
               {
                 label: t('edit', 'Edit'),
-                action: (o) =>
-                  setEditModalOpener({
-                    set: training.sets[o.idx],
-                    idx: o.idx
-                  })
+                action: (o) => {
+                  const set = training.sets[o.idx]
+                  if (set.subSets) {
+                    setSuperSetEditOpener({ superSet: set, idx: o.idx })
+                    setSuperSetFormOpen(true)
+                  } else {
+                    setEditModalOpener({ set: set, idx: o.idx })
+                  }
+                }
               },
               {
                 label: t('duplicate', 'Duplicate'),

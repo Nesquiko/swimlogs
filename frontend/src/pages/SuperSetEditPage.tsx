@@ -13,6 +13,8 @@ type SuperSetEditPageProps = {
   superSet: NewTrainingSet
   onSubmitSuperSet: (set: NewTrainingSet) => void
   onClose: () => void
+  headerKey?: string
+  submitBtnLabelKey?: string
 }
 
 const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
@@ -40,6 +42,20 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
   )
 
   const [t] = useTransContext()
+  const submitLabel = props.submitBtnLabelKey
+    ? t(props.submitBtnLabelKey)
+    : t('add', 'Add')
+  const header = props.headerKey
+    ? t(props.headerKey)
+    : t('add.new.super.set', 'Add new super set')
+
+  const recalculateTotalDistance = () => {
+    const totalDistance = superSet.subSets!.reduce(
+      (acc, s) => acc + s.totalDistance,
+      0
+    )
+    setSuperSet('totalDistance', superSet.repeat * totalDistance)
+  }
 
   const addNewSubSet = (set: NewTrainingSet) => {
     set.setOrder = superSet.setOrder
@@ -49,6 +65,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
       'subSets',
       produce((subSets) => subSets?.push(set))
     )
+    recalculateTotalDistance()
   }
 
   const editSubSet = (subSet: NewTrainingSet, idx: number) => {
@@ -56,6 +73,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
       'subSets',
       produce((subSets) => (subSets![idx] = subSet))
     )
+    recalculateTotalDistance()
   }
 
   const duplicateSubSet = (idx: number) => {
@@ -70,6 +88,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
         ?.filter((_, i) => i !== idx)
         .map((s, i) => ({ ...s, subSetOrder: i }))
     )
+    recalculateTotalDistance()
   }
 
   const isSetValid = (): boolean => {
@@ -128,9 +147,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
         header={(o) => t('set', 'Set') + ' ' + (o.idx + 1)}
       />
 
-      <p class="text-center text-2xl">
-        <Trans key="add.new.super.set" />
-      </p>
+      <p class="text-center text-2xl">{header}</p>
       <hr class="my-2 rounded-lg border-2 border-slate-500" />
       <div class="my-2 flex items-center justify-between">
         <label class="text-xl" for="repeat">
@@ -262,7 +279,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
             props.onSubmitSuperSet(unwrap(superSet))
           }}
         >
-          <Trans key="add" />
+          {submitLabel}
         </button>
       </div>
     </div>

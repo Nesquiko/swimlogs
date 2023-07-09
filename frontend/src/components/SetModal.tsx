@@ -147,7 +147,7 @@ function SetModal(props: SetModalProps): JSX.Element {
         </label>
         <select
           id="start"
-          class="w-32 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
+          class="w-32 rounded-md border border-solid border-slate-300 bg-white p-2 text-start text-lg focus:border-sky-500 focus:outline-none focus:ring"
           onChange={(e) => {
             setTrainingSet('startType', e.target.value as StartType)
           }}
