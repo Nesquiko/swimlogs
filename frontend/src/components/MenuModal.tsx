@@ -1,26 +1,19 @@
-import { Component, createEffect, For, on, onMount } from 'solid-js'
+import { createEffect, For, JSX, on, onMount } from 'solid-js'
 
-type MenuItem = {
-  label: string
-  action: () => void
-}
-
-type MenuModalProps = {
-  items: MenuItem[]
-  // indicates that the dialog should be opened, since the dialog can close itself,
-  // we only need to indicate when to open it
-  open: {}
+type MenuModalProps<O> = {
+  opener: O
+  items: { label: string; action: (o: O) => void }[]
   widthRem?: string
-  header?: string
+  header?: (o: O) => string
 }
 
-const MenuModal: Component<MenuModalProps> = (props: MenuModalProps) => {
+function MenuModal<O = {}>(props: MenuModalProps<O>): JSX.Element {
   let dialog: HTMLDialogElement
   const widthRem = props.widthRem ? props.widthRem + 'rem' : '11rem'
 
   createEffect(
     on(
-      () => props.open,
+      () => props.opener,
       () => {
         dialog.inert = true // disables auto focus when dialog is opened
         dialog.showModal()
@@ -46,7 +39,7 @@ const MenuModal: Component<MenuModalProps> = (props: MenuModalProps) => {
 
   return (
     <dialog style={{ width: widthRem }} ref={dialog!} class="rounded-lg">
-      <p class="text-xl">{props.header}</p>
+      <p class="text-xl">{props.header?.(props.opener)}</p>
       <ul class="text-base text-black">
         <For each={props.items}>
           {(item) => {
@@ -55,7 +48,7 @@ const MenuModal: Component<MenuModalProps> = (props: MenuModalProps) => {
                 <p
                   class="block cursor-pointer p-2 hover:bg-slate-200"
                   onClick={() => {
-                    item.action()
+                    item.action(props.opener)
                     dialog.close()
                   }}
                 >

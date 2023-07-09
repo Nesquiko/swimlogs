@@ -80,7 +80,7 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
     <div class="h-full w-full rounded-lg">
       <SetModal open={setModalOpen()} onAddSet={addNewSubSet} />
       <MenuModal
-        open={setMenuOpen()}
+        opener={setMenuOpen()}
         items={[
           {
             label: t('duplicate', 'Duplicate'),

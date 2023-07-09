@@ -108,7 +108,7 @@ export const SetForm: Component<SetFormProps> = (props) => {
           onClick={() => setDialogOpen({})}
         />
         <MenuModal
-          open={dialogOpen()}
+          opener={dialogOpen()}
           items={[
             {
               label: t('duplicate', 'Duplicate'),

@@ -15,10 +15,8 @@ const TrainingSetsForm: Component = () => {
   const [{ training, setTraining }, {}, , , [, setCurrentComponent]] =
     useCreateTraining()
 
-  const [addMenuModalOpen, setAddMenuModalOpen] = createSignal({})
-
-  const [setMenuOpen, setSetMenuOpen] = createSignal({})
-  const [menuSetIdx, setMenuSetIdx] = createSignal(-1)
+  const [addMenuModalOpener, setAddMenuModalOpener] = createSignal({})
+  const [setSettingsOpener, setSetSettingOpener] = createSignal({ idx: -1 })
 
   const [setModalOpen, setSetModalOpen] = createSignal({})
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
@@ -65,7 +63,7 @@ const TrainingSetsForm: Component = () => {
           <SetModal open={setModalOpen()} onAddSet={addNewSet} />
           <MenuModal
             widthRem="15"
-            open={addMenuModalOpen()}
+            opener={addMenuModalOpener()}
             items={[
               {
                 label: t('add.new.set', 'Add new set'),
@@ -77,23 +75,19 @@ const TrainingSetsForm: Component = () => {
               }
             ]}
           />
-          <MenuModal
-            open={setMenuOpen()}
+          <MenuModal<{ idx: number }>
+            opener={setSettingsOpener()}
             items={[
               {
                 label: t('duplicate', 'Duplicate'),
-                action: () => {
-                  duplicateSet(menuSetIdx())
-                }
+                action: (o) => duplicateSet(o.idx)
               },
               {
                 label: t('delete', 'Delete'),
-                action: () => {
-                  deleteSet(menuSetIdx())
-                }
+                action: (o) => deleteSet(o.idx)
               }
             ]}
-            header={t('set', 'Set') + ' ' + (menuSetIdx() + 1)}
+            header={(o) => t('set', 'Set') + ' ' + (o.idx + 1)}
           />
 
           <Show
@@ -109,10 +103,9 @@ const TrainingSetsForm: Component = () => {
                 return (
                   <SetCard
                     set={set}
-                    onSettingsClick={() => {
-                      setMenuSetIdx(setIdx())
-                      setSetMenuOpen({})
-                    }}
+                    onSettingsClick={() =>
+                      setSetSettingOpener({ idx: setIdx() })
+                    }
                   />
                 )
               }}
@@ -124,7 +117,7 @@ const TrainingSetsForm: Component = () => {
           </p>
           <button
             class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow"
-            onClick={() => setAddMenuModalOpen({})}
+            onClick={() => setAddMenuModalOpener({})}
           >
             <img src={plusSvg} />
           </button>
