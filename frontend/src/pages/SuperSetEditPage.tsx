@@ -78,7 +78,7 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
 
   return (
     <div class="h-full w-full rounded-lg">
-      <SetModal open={setModalOpen()} onAddSet={addNewSubSet} />
+      <SetModal opener={setModalOpen()} onSubmitSet={addNewSubSet} />
       <MenuModal
         opener={setMenuOpen()}
         items={[

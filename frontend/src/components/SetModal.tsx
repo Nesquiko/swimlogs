@@ -1,30 +1,39 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
-import { Component, createEffect, For, on, onMount } from 'solid-js'
+import { createEffect, For, JSX, on, onMount } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
 
 type SetModalProps = {
-  // indicates that the dialog should be opened, since the dialog can close itself,
-  // we only need to indicate when to open it
-  open: {}
-  onAddSet: (set: NewTrainingSet) => void
+  opener: { set: NewTrainingSet; idx?: number }
+  onSubmitSet: (set: NewTrainingSet, idx?: number) => void
+
+  submitBtnLabelKey?: string
 }
 
-const SetModal: Component<SetModalProps> = (props) => {
+function SetModal(props: SetModalProps): JSX.Element {
   let dialog: HTMLDialogElement
-
-  const [trainingSet, setTrainingSet] = createStore<NewTrainingSet>({
-    repeat: 1,
-    distanceMeters: 100,
-    startType: StartType.None,
-    totalDistance: 100
-  })
-  const [t] = useTransContext()
 
   createEffect(
     on(
-      () => props.open,
+      () => props.opener,
+      () => setTrainingSet(reconcile(props.opener.set)),
+      { defer: true }
+    )
+  )
+
+  const [trainingSet, setTrainingSet] = createStore<NewTrainingSet>(
+    props.opener.set
+  )
+
+  const [t] = useTransContext()
+  const submitLabel = props.submitBtnLabelKey
+    ? t(props.submitBtnLabelKey)
+    : t('add', 'Add')
+
+  createEffect(
+    on(
+      () => props.opener,
       () => {
         dialog.inert = true // disables auto focus when dialog is opened
         dialog.showModal()
@@ -225,21 +234,12 @@ const SetModal: Component<SetModalProps> = (props) => {
           class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
           onClick={() => {
             if (!isSetValid()) return
-
             // this modal only creates sets without subsets, so we can just shallow copy the object
-            props.onAddSet(Object.assign({}, trainingSet))
-            setTrainingSet(
-              reconcile({
-                repeat: 1,
-                distanceMeters: 100,
-                startType: StartType.None,
-                totalDistance: 100
-              })
-            )
+            props.onSubmitSet(Object.assign({}, trainingSet), props.opener.idx)
             dialog.close()
           }}
         >
-          <Trans key="add" />
+          {submitLabel}
         </button>
       </div>
     </dialog>

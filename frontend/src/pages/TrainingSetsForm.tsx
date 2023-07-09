@@ -5,7 +5,7 @@ import { produce } from 'solid-js/store'
 import { cloneSet } from '../lib/clone'
 import plusSvg from '../assets/plus.svg'
 import { useCreateTraining } from '../components/CreateTrainingContextProvider'
-import { NewTrainingSet } from '../generated'
+import { NewTrainingSet, StartType } from '../generated'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
 import SuperSetEditPage from './SuperSetEditPage'
@@ -15,10 +15,25 @@ const TrainingSetsForm: Component = () => {
   const [{ training, setTraining }, {}, , , [, setCurrentComponent]] =
     useCreateTraining()
 
+  const newSet = (): NewTrainingSet => {
+    return {
+      repeat: 1,
+      distanceMeters: 100,
+      startType: StartType.None,
+      totalDistance: 100
+    }
+  }
+
   const [addMenuModalOpener, setAddMenuModalOpener] = createSignal({})
   const [setSettingsOpener, setSetSettingOpener] = createSignal({ idx: -1 })
 
-  const [setModalOpen, setSetModalOpen] = createSignal({})
+  const [addModalOpener, setAddModalOpener] = createSignal({
+    set: newSet()
+  })
+  const [editModalOpener, setEditModalOpener] = createSignal({
+    set: newSet(),
+    idx: -1
+  })
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
 
   const addNewSet = (set: NewTrainingSet) => {
@@ -35,9 +50,17 @@ const TrainingSetsForm: Component = () => {
   }
 
   const addSet = (s: NewTrainingSet) => {
+    s.setOrder = training.sets.length
     setTraining(
       'sets',
       produce((sets) => sets.push(s))
+    )
+  }
+
+  const editSet = (set: NewTrainingSet, idx: number) => {
+    setTraining(
+      'sets',
+      produce((sets) => (sets[idx] = set))
     )
   }
 
@@ -60,14 +83,19 @@ const TrainingSetsForm: Component = () => {
           />
         </Match>
         <Match when={!superSetFormOpen()}>
-          <SetModal open={setModalOpen()} onAddSet={addNewSet} />
+          <SetModal opener={addModalOpener()} onSubmitSet={addNewSet} />
+          <SetModal
+            opener={editModalOpener()}
+            onSubmitSet={(set, idx) => editSet(set, idx!)}
+            submitBtnLabelKey="edit"
+          />
           <MenuModal
             widthRem="15"
             opener={addMenuModalOpener()}
             items={[
               {
                 label: t('add.new.set', 'Add new set'),
-                action: () => setSetModalOpen({})
+                action: () => setAddModalOpener({ set: newSet() })
               },
               {
                 label: t('add.new.super.set', 'Add new superset'),
@@ -78,6 +106,14 @@ const TrainingSetsForm: Component = () => {
           <MenuModal<{ idx: number }>
             opener={setSettingsOpener()}
             items={[
+              {
+                label: t('edit', 'Edit'),
+                action: (o) =>
+                  setEditModalOpener({
+                    set: training.sets[o.idx],
+                    idx: o.idx
+                  })
+              },
               {
                 label: t('duplicate', 'Duplicate'),
                 action: (o) => duplicateSet(o.idx)
