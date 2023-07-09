@@ -5,19 +5,18 @@ import { Trans } from '@mbarzda/solid-i18next'
 
 type SetCardProps = {
   set: NewTrainingSet
+  setNumber: number
   onSettingsClick: (set: NewTrainingSet) => void
 }
 
 const SetCard: Component<SetCardProps> = (props) => {
-  const setLayout = (set: NewTrainingSet) => {
+  const setLayout = (setNum: number, set: NewTrainingSet) => {
     const repeat = set.repeat > 1 ? `${set.repeat} x ` : ''
 
     return (
       <div>
         <div class="rounded-t-lg bg-sky-300 p-2">
-          <span class="inline-block w-10 text-xl">
-            {(set.setOrder ?? 0) + 1}.
-          </span>
+          <span class="inline-block w-10 text-xl">{setNum}.</span>
           <span class="inline-block w-10 text-xl">{repeat}</span>
           <span class="mr-4 text-xl">{set.distanceMeters}m</span>
           <Show when={set.startType !== 'None'}>
@@ -39,15 +38,13 @@ const SetCard: Component<SetCardProps> = (props) => {
     )
   }
 
-  const superSetLayout = (superSet: NewTrainingSet) => {
+  const superSetLayout = (setNum: number, superSet: NewTrainingSet) => {
     const repeat = superSet.repeat > 1 ? `${superSet.repeat} x ` : ''
 
     return (
       <div>
         <div class="rounded-t-lg bg-sky-300 p-2">
-          <span class="inline-block w-10 text-xl">
-            {(superSet.setOrder ?? 0) + 1}.
-          </span>
+          <span class="inline-block w-10 text-xl">{setNum}.</span>
           <span class="inline-block w-10 text-xl">{repeat}</span>
           <img
             src={settings}
@@ -92,9 +89,11 @@ const SetCard: Component<SetCardProps> = (props) => {
     <div class="my-2 rounded-lg border border-solid border-slate-300 shadow">
       <Switch>
         <Match when={props.set.subSets && props.set.subSets?.length > 0}>
-          {superSetLayout(props.set)}
+          {superSetLayout(props.setNumber, props.set)}
         </Match>
-        <Match when={!props.set.subSets}>{setLayout(props.set)}</Match>
+        <Match when={!props.set.subSets}>
+          {setLayout(props.setNumber, props.set)}
+        </Match>
       </Switch>
     </div>
   )

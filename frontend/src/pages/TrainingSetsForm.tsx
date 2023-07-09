@@ -139,6 +139,7 @@ const TrainingSetsForm: Component = () => {
                 return (
                   <SetCard
                     set={set}
+                    setNumber={setIdx() + 1}
                     onSettingsClick={() =>
                       setSetSettingOpener({ idx: setIdx() })
                     }

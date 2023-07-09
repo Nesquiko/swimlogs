@@ -204,6 +204,7 @@ const SuperSetEditPage: Component<SuperSetEditPage> = (props) => {
                 setSetToEditIdx(idx())
                 setSetMenuOpen({})
               }}
+              setNumber={idx() + 1}
             />
           )
         }}
