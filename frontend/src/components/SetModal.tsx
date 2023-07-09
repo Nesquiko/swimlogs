@@ -1,4 +1,5 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
+import { document } from 'postcss'
 import { createEffect, For, JSX, on, onMount } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
 import { NewTrainingSet, StartType } from '../generated'
@@ -225,7 +226,7 @@ function SetModal(props: SetModalProps): JSX.Element {
       />
       <div class="absolute bottom-4 left-8 right-8 flex justify-between">
         <button
-          class="rounded-lg bg-red-500 px-4 py-2 font-bold text-white hover:bg-sky-600 focus:outline-none focus:ring focus:ring-red-300"
+          class="rounded-lg bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300"
           onClick={() => dialog.close()}
         >
           <Trans key="cancel" />

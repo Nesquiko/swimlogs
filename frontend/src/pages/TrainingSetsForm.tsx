@@ -166,26 +166,29 @@ const TrainingSetsForm: Component = () => {
               </div>
             }
           >
-            <For each={training.sets}>
-              {(set, setIdx) => {
-                return (
-                  <SetCard
-                    set={set}
-                    setNumber={setIdx() + 1}
-                    onSettingsClick={() =>
-                      setSetSettingsOpener({ idx: setIdx() })
-                    }
-                  />
-                )
-              }}
-            </For>
+            <div class="m-2 space-y-4">
+              <For each={training.sets}>
+                {(set, setIdx) => {
+                  return (
+                    <SetCard
+                      set={set}
+                      setNumber={setIdx() + 1}
+                      showSettings={true}
+                      onSettingsClick={() =>
+                        setSetSettingsOpener({ idx: setIdx() })
+                      }
+                    />
+                  )
+                }}
+              </For>
+            </div>
           </Show>
           <p class="my-4 text-xl">
             <Trans key="total.distance.training" />{' '}
             {training.totalDistance.toLocaleString()}m
           </p>
           <button
-            class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow"
+            class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-green-300"
             onClick={() => setAddMenuModalOpener({})}
           >
             <img src={plusSvg} />
@@ -194,7 +197,12 @@ const TrainingSetsForm: Component = () => {
 
           <button
             class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
-            onClick={() => setCurrentComponent((c) => c + 1)}
+            onClick={() => {
+              if (training.sets.length === 0) {
+                return
+              }
+              setCurrentComponent((c) => c + 1)
+            }}
           >
             <Trans key="next" />
           </button>

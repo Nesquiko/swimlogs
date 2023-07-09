@@ -6,7 +6,9 @@ import { Trans } from '@mbarzda/solid-i18next'
 type SetCardProps = {
   set: NewTrainingSet
   setNumber: number
-  onSettingsClick: (set: NewTrainingSet) => void
+  showSettings: boolean
+
+  onSettingsClick?: (set: NewTrainingSet) => void
 }
 
 const SetCard: Component<SetCardProps> = (props) => {
@@ -25,13 +27,15 @@ const SetCard: Component<SetCardProps> = (props) => {
             </span>
             <span class="text-xl">{set.startSeconds}"</span>
           </Show>
-          <img
-            src={settings}
-            width={32}
-            height={32}
-            class="float-right inline-block cursor-pointer"
-            onClick={() => props.onSettingsClick(props.set)}
-          />
+          <Show when={props.showSettings}>
+            <img
+              src={settings}
+              width={32}
+              height={32}
+              class="float-right inline-block cursor-pointer"
+              onClick={() => props.onSettingsClick?.(props.set)}
+            />
+          </Show>
         </div>
         <p class="whitespace-pre-wrap p-2 text-lg">{set.description}</p>
       </div>
@@ -46,13 +50,15 @@ const SetCard: Component<SetCardProps> = (props) => {
         <div class="rounded-t-lg bg-sky-300 p-2">
           <span class="inline-block w-10 text-xl">{setNum}.</span>
           <span class="inline-block w-10 text-xl">{repeat}</span>
-          <img
-            src={settings}
-            width={32}
-            height={32}
-            class="float-right inline-block cursor-pointer"
-            onClick={() => props.onSettingsClick(props.set)}
-          />
+          <Show when={props.showSettings}>
+            <img
+              src={settings}
+              width={32}
+              height={32}
+              class="float-right inline-block cursor-pointer"
+              onClick={() => props.onSettingsClick?.(props.set)}
+            />
+          </Show>
         </div>
 
         <For each={superSet.subSets}>
@@ -86,7 +92,7 @@ const SetCard: Component<SetCardProps> = (props) => {
   }
 
   return (
-    <div class="my-2 rounded-lg border border-solid border-slate-300 shadow">
+    <div class="rounded-lg border border-solid border-slate-300 shadow">
       <Switch>
         <Match when={props.set.subSets && props.set.subSets?.length > 0}>
           {superSetLayout(props.setNumber, props.set)}

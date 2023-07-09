@@ -240,17 +240,20 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
         </input>
       </div>
 
-      <For each={superSet.subSets}>
-        {(subSet, idx) => {
-          return (
-            <SetCard
-              set={subSet}
-              setNumber={idx() + 1}
-              onSettingsClick={() => setSetSettingsOpener({ idx: idx() })}
-            />
-          )
-        }}
-      </For>
+      <div class="m-2 space-y-4">
+        <For each={superSet.subSets}>
+          {(subSet, idx) => {
+            return (
+              <SetCard
+                set={subSet}
+                setNumber={idx() + 1}
+                showSettings={true}
+                onSettingsClick={() => setSetSettingsOpener({ idx: idx() })}
+              />
+            )
+          }}
+        </For>
+      </div>
 
       <Show when={superSet.subSets?.length === 0}>
         <div class="m-4 rounded-lg bg-sky-200 p-4 text-xl font-semibold">
