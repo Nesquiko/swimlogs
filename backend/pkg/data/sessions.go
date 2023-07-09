@@ -3,79 +3,74 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/Nesquiko/swimlogs/pkg/openapi"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
+type Session struct {
+	Id          uuid.UUID
+	Day         string
+	StartTime   time.Time
+	DurationMin int
+
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+}
+
 var insertSession = `
-insert into sessions (day, start_time, duration, created_at, modified_at)
-values ($1::day, $2, $3, now(), now())
-returning id, day, start_time, duration
+insert into sessions (day, start_time, duration_min, created_at, modified_at)
+values ($1::day, $2, $3, $4, $4)
+returning id, day, start_time, duration_min, created_at, modified_at
 `
 
-func (db *PostgresDbConn) SaveSession(
-	session openapi.CreateSessionJSONBody,
-) (openapi.Session, error) {
-	var s openapi.Session
+func (db *PostgresDbConn) SaveSession(session Session) (Session, error) {
+	var s Session
 
-	err := db.QueryRow(
-		insertSession,
-		session.Day,
-		session.StartTime,
-		session.DurationMin,
-	).Scan(
-		&s.Id,
-		&s.Day,
-		&s.StartTime,
-		&s.DurationMin,
-	)
+	err := db.QueryRow(insertSession, session.Day, session.StartTime, session.DurationMin, time.Now()).
+		Scan(&s.Id, &s.Day, &s.StartTime, &s.DurationMin, &s.CreatedAt, &s.ModifiedAt)
+
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Code {
 		case CheckViolationCode:
-			return openapi.Session{}, ErrCheckViolation
+			return Session{}, ErrCheckViolation
 		case UniqueViolationCode:
-			return openapi.Session{}, ErrUniqueViolation
+			return Session{}, ErrUniqueViolation
 		case InvalidEnumTypeCode:
-			return openapi.Session{}, ErrInvalidEnumType
+			return Session{}, ErrInvalidEnumType
 		default:
-			return openapi.Session{}, fmt.Errorf("SaveSession: %w", err)
+			return Session{}, fmt.Errorf("SaveSession: %w", err)
 		}
 	} else if err != nil {
-		return openapi.Session{}, fmt.Errorf("SaveSession: %w", err)
+		return Session{}, fmt.Errorf("SaveSession: %w", err)
 	}
 
 	return s, nil
 }
 
 var selectSessions = `
-select
-    id,
-    day,
-    start_time,
-    duration,
-    count(*) over ()
+select id, day, start_time, duration_min, count(*) over ()
 from sessions
-order by day::day, start_time, duration
+order by day::day, start_time, duration_min
 limit $1 offset $2
 `
 
-// GetSessions returns a paginated list of sessions, page starts at 0
-func (db *PostgresDbConn) GetSessions(
-	page, pageSize int,
-) ([]openapi.Session, openapi.Pagination, error) {
-	sessions := make([]openapi.Session, 0)
+// GetSessions returns a paginated list of sessions and total count of sessions.
+// Page starts at 0
+func (db *PostgresDbConn) GetSessions(page, pageSize int) ([]Session, int, error) {
+	sessions := make([]Session, 0)
 
 	rows, err := db.Query(selectSessions, pageSize, page*pageSize)
 	if err != nil {
-		return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
+		return nil, 0, fmt.Errorf("GetAllSessions: %w", err)
 	}
 	defer rows.Close()
 
 	total := 0
 	for rows.Next() {
-		var session openapi.Session
+		var session Session
 		err := rows.Scan(
 			&session.Id,
 			&session.Day,
@@ -84,21 +79,21 @@ func (db *PostgresDbConn) GetSessions(
 			&total,
 		)
 		if err != nil {
-			return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
+			return nil, 0, fmt.Errorf("GetAllSessions: %w", err)
 		}
 		sessions = append(sessions, session)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, openapi.Pagination{}, fmt.Errorf("GetAllSessions: %w", err)
+		return nil, 0, fmt.Errorf("GetAllSessions: %w", err)
 	}
 
-	return sessions, openapi.Pagination{Page: page, PageSize: len(sessions), Total: total}, nil
+	return sessions, total, nil
 }
 
-var DeleteSession = "delete from sessions where id = $1"
+var deleteSession = "delete from sessions where id = $1"
 
 func (db *PostgresDbConn) DeleteSessionById(id uuid.UUID) error {
-	res, err := db.Exec(DeleteSession, id)
+	res, err := db.Exec(deleteSession, id)
 	if err != nil {
 		return fmt.Errorf("DeleteSession: %w", err)
 	}
@@ -109,11 +104,11 @@ func (db *PostgresDbConn) DeleteSessionById(id uuid.UUID) error {
 	return nil
 }
 
-var SessionExists = "select count(1) from session where id = $1"
+var sessionExists = "select count(1) from session where id = $1"
 
 func (psql *PostgresDbConn) SessionExists(id uuid.UUID) (bool, error) {
 	var exists int
-	err := psql.QueryRow(SessionExists, id).Scan(&exists)
+	err := psql.QueryRow(sessionExists, id).Scan(&exists)
 	if err != nil {
 		return false, err
 	}

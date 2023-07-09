@@ -8,7 +8,7 @@ interface DetailProps {
 }
 
 const DetailCard: Component<DetailProps> = (props) => {
-  const day = props.detail.date
+  const day = props.detail.start
     .toLocaleString('en', { weekday: 'long' })
     .toLowerCase()
   return (
@@ -17,10 +17,9 @@ const DetailCard: Component<DetailProps> = (props) => {
         <b class="w-1/3">
           <Trans key={day} />
         </b>
-        <p>{formatDate(props.detail.date)}</p>
+        <p>{formatDate(props.detail.start)}</p>
       </h2>
       <div class="flex justify-between">
-        <p>{props.detail.startTime}</p>
         <p class="text-base">{props.detail.durationMin} min</p>
         <p class="text-base">{props.detail.totalDistance}m</p>
       </div>

@@ -5,32 +5,28 @@ import (
 	"time"
 
 	"github.com/Nesquiko/swimlogs/pkg/data"
-	"github.com/Nesquiko/swimlogs/pkg/openapi"
 	"github.com/Nesquiko/swimlogs/tests/it"
-	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetTrainingDetailsForThisWeekSuccessfully(t *testing.T) {
+func TestGetTrainingDetailsForWeekSuccessfully(t *testing.T) {
 	it.TestFilter(t)
 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
 
-	newTraining := newTraining()
-	newTraining.Date = types.Date{Time: time.Now()}
-	saved, err := PostgresDbConn.SaveTraining(newTraining)
-	require.Nil(t, err)
+	weekTime := time.Date(2023, 8, 24, 12, 0, 0, 0, time.UTC) // Thursday
+	for i := 0; i < 7; i++ {
+		newTraining := newTraining()
+		newTraining.Start = weekTime.AddDate(0, 0, -i)
+		_, err := PostgresDbConn.SaveTraining(newTraining)
+		require.Nil(t, err)
+	}
 
-	trainings, err := PostgresDbConn.GetTrainingDetailsForThisWeek()
+	expectedCount := 4
+	trainings, err := PostgresDbConn.GetTrainingDetailsInWeek(weekTime)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(trainings))
-
-	assert := assert.New(t)
-	assert.Equal(saved.Id, trainings[0].Id)
-	assert.Equal(saved.StartTime, trainings[0].StartTime)
-	assert.Equal(saved.DurationMin, trainings[0].DurationMin)
-	assert.Equal(saved.TotalDistance, trainings[0].TotalDistance)
+	assert.Equal(t, expectedCount, len(trainings))
 }
 
 func TestGetTrainingByIdNotFound(t *testing.T) {
@@ -54,9 +50,10 @@ func TestGetTrainingByIdSuccessfully(t *testing.T) {
 
 	assert := assert.New(t)
 	assert.Equal(saved.Id, training.Id)
-	assert.Equal(saved.StartTime, training.StartTime)
+	assert.Equal(saved.Start, training.Start)
 	assert.Equal(saved.DurationMin, training.DurationMin)
 	assert.Equal(saved.TotalDistance, training.TotalDistance)
+	assert.Equal(len(saved.Sets), len(training.Sets))
 }
 
 func TestSaveTrainingSuccessfully(t *testing.T) {
@@ -64,6 +61,7 @@ func TestSaveTrainingSuccessfully(t *testing.T) {
 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
 
 	newTraining := newTraining()
+	expectedSetCount := len(newTraining.Sets)
 
 	_, err := PostgresDbConn.SaveTraining(newTraining)
 	require.Nil(t, err)
@@ -76,82 +74,134 @@ func TestSaveTrainingSuccessfully(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(1, traininCount)
 
-	blockCount, err := data.SqlWithResult[int](
-		PostgresDbConn.DB,
-		"select count(*) from blocks",
-	)
-	require.Nil(t, err)
-	assert.Equal(2, blockCount)
-
 	setCount, err := data.SqlWithResult[int](
 		PostgresDbConn.DB,
 		"select count(*) from sets",
 	)
 	require.Nil(t, err)
-	assert.Equal(4, setCount)
+	assert.Equal(expectedSetCount, setCount)
 }
 
-func newTraining() openapi.NewTraining {
-	seconds := 30
-	newTraining := openapi.NewTraining{
-		Date:          types.Date{Time: time.Date(2023, 5, 1, 0, 0, 0, 0, time.UTC)},
-		StartTime:     "10:00",
-		DurationMin:   60,
-		TotalDistance: 2200,
-		Blocks: []openapi.NewBlock{
+func newTraining() data.Training {
+	trainingId := uuid.New()
+	superSet1Id := uuid.New()
+	superSet2Id := uuid.New()
+
+	return data.Training{
+		Id:            trainingId,
+		Start:         time.Now(),
+		DurationMin:   90,
+		TotalDistance: 1900,
+		Sets: []data.TrainingSet{
 			{
-				Name:          "Warmup",
-				Num:           0,
-				Repeat:        1,
-				TotalDistance: 1000,
-				Sets: []openapi.NewTrainingSet{
+				Id:             uuid.New(),
+				TrainingId:     trainingId,
+				SetOrder:       0,
+				TotalDistance:  400,
+				Repeat:         1,
+				DistanceMeters: asPtr(400),
+				Description:    asPtr("warm up freestyle"),
+				StartType:      data.NoneStartType,
+			},
+			{
+				Id:             uuid.New(),
+				TrainingId:     trainingId,
+				SetOrder:       1,
+				TotalDistance:  600,
+				Repeat:         3,
+				DistanceMeters: asPtr(200),
+				Description:    asPtr("drills"),
+				StartType:      data.PauseStartType,
+				StartSeconds:   asPtr(20),
+			},
+			{
+				Id:            superSet1Id,
+				TrainingId:    trainingId,
+				SetOrder:      2,
+				TotalDistance: 300,
+				Repeat:        4,
+				StartType:     data.NoneStartType,
+				SubSets: &[]data.TrainingSet{
 					{
-						Num:          0,
-						Distance:     400,
-						Repeat:       1,
-						What:         "Freestyle",
-						StartingRule: openapi.StartingRule{Type: openapi.None},
+						Id:             uuid.New(),
+						TrainingId:     trainingId,
+						SubSetOrder:    asPtr(0),
+						TotalDistance:  50,
+						Repeat:         1,
+						DistanceMeters: asPtr(50),
+						Description:    asPtr("max speed"),
+						StartType:      data.NoneStartType,
+						StartSeconds:   asPtr(60),
 					},
 					{
-						Num:      1,
-						Distance: 200,
-						Repeat:   3,
-						What:     "Breaststroke",
-						StartingRule: openapi.StartingRule{
-							Type:    openapi.Interval,
-							Seconds: &seconds,
-						},
+						Id:             uuid.New(),
+						TrainingId:     trainingId,
+						SubSetOrder:    asPtr(1),
+						TotalDistance:  25,
+						Repeat:         1,
+						DistanceMeters: asPtr(25),
+						Description:    asPtr("max speed"),
+						StartType:      data.PauseStartType,
+						StartSeconds:   asPtr(45),
 					},
 				},
 			},
 			{
-				Name:          "Main",
-				Num:           1,
-				Repeat:        2,
-				TotalDistance: 1200,
-				Sets: []openapi.NewTrainingSet{
+				Id:             uuid.New(),
+				TrainingId:     trainingId,
+				SetOrder:       3,
+				TotalDistance:  100,
+				Repeat:         1,
+				DistanceMeters: asPtr(100),
+				Description:    asPtr("cool down"),
+				StartType:      data.NoneStartType,
+			},
+			{
+				Id:            superSet2Id,
+				TrainingId:    trainingId,
+				SetOrder:      4,
+				TotalDistance: 300,
+				Repeat:        4,
+				StartType:     data.NoneStartType,
+				SubSets: &[]data.TrainingSet{
 					{
-						Num:      0,
-						Distance: 50,
-						Repeat:   10,
-						What:     "50 fast, 50 slow",
-						StartingRule: openapi.StartingRule{
-							Type:    openapi.Interval,
-							Seconds: &seconds,
-						},
+						Id:             uuid.New(),
+						TrainingId:     trainingId,
+						SubSetOrder:    asPtr(0),
+						TotalDistance:  50,
+						Repeat:         1,
+						DistanceMeters: asPtr(50),
+						Description:    asPtr("max speed"),
+						StartType:      data.NoneStartType,
+						StartSeconds:   asPtr(60),
 					},
 					{
-						Num:      1,
-						Distance: 100,
-						Repeat:   1,
-						What:     "Cool down",
-						StartingRule: openapi.StartingRule{
-							Type: openapi.None,
-						},
+						Id:             uuid.New(),
+						TrainingId:     trainingId,
+						SubSetOrder:    asPtr(1),
+						TotalDistance:  25,
+						Repeat:         1,
+						DistanceMeters: asPtr(25),
+						Description:    asPtr("max speed"),
+						StartType:      data.PauseStartType,
+						StartSeconds:   asPtr(45),
 					},
 				},
+			},
+			{
+				Id:             uuid.New(),
+				TrainingId:     trainingId,
+				SetOrder:       5,
+				TotalDistance:  200,
+				Repeat:         1,
+				DistanceMeters: asPtr(200),
+				Description:    asPtr("breastroke cool down"),
+				StartType:      data.NoneStartType,
 			},
 		},
 	}
-	return newTraining
+}
+
+func asPtr[T any](v T) *T {
+	return &v
 }

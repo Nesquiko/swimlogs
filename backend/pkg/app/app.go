@@ -18,7 +18,7 @@ type SwimLogsApp struct {
 type Result[T any] struct {
 	code     int
 	body     T
-	error    openapi.ErrorDetail
+	error    any
 	hasError bool
 }
 
@@ -72,6 +72,14 @@ func resultFromErrorDetails[T any](errDets openapi.ErrorDetail, code int) Result
 		code:     code,
 		hasError: true,
 		error:    errDets,
+	}
+}
+
+func errorResult[T any](errRes any, code int) Result[T] {
+	return Result[T]{
+		code:     code,
+		hasError: true,
+		error:    errRes,
 	}
 }
 

@@ -4,6 +4,8 @@
 package openapi
 
 import (
+	"time"
+
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
@@ -18,28 +20,12 @@ const (
 	Wednesday Day = "Wednesday"
 )
 
-// Defines values for StartingRuleType.
+// Defines values for StartType.
 const (
-	Interval StartingRuleType = "Interval"
-	None     StartingRuleType = "None"
-	Pause    StartingRuleType = "Pause"
+	Interval StartType = "Interval"
+	None     StartType = "None"
+	Pause    StartType = "Pause"
 )
-
-// Block defines model for Block.
-type Block struct {
-	Id   openapi_types.UUID `json:"id"`
-	Name string             `json:"name"`
-
-	// Num Number of the block, indicates on which place this block in training is supposed to be.
-	Num int `json:"num"`
-
-	// Repeat How many times to repeat this block
-	Repeat int           `json:"repeat"`
-	Sets   []TrainingSet `json:"sets"`
-
-	// TotalDistance Total distance in this block.
-	TotalDistance int `json:"totalDistance"`
-}
 
 // Day defines model for Day.
 type Day string
@@ -56,65 +42,39 @@ type ErrorDetail struct {
 	Title string `json:"title"`
 }
 
-// InvalidBlock defines model for InvalidBlock.
-type InvalidBlock struct {
-	Name *string `json:"name,omitempty"`
-
-	// Num The number of invalid block in training
-	Num    *int                  `json:"num,omitempty"`
-	Repeat *string               `json:"repeat,omitempty"`
-	Sets   *[]InvalidTrainingSet `json:"sets,omitempty"`
+// InvalidSession defines model for InvalidSession.
+type InvalidSession struct {
+	Day         *string `json:"day,omitempty"`
+	DurationMin *string `json:"durationMin,omitempty"`
+	StartTime   *string `json:"startTime,omitempty"`
 }
 
 // InvalidTraining defines model for InvalidTraining.
 type InvalidTraining struct {
-	Blocks      *[]InvalidBlock `json:"blocks,omitempty"`
-	Date        *string         `json:"date,omitempty"`
-	DurationMin *string         `json:"durationMin,omitempty"`
-	StartTime   *string         `json:"startTime,omitempty"`
+	DurationMin *string               `json:"durationMin,omitempty"`
+	InvalidSets *[]InvalidTrainingSet `json:"invalidSets,omitempty"`
+	Sets        *string               `json:"sets,omitempty"`
 }
 
 // InvalidTrainingSet defines model for InvalidTrainingSet.
 type InvalidTrainingSet struct {
-	Distance *string `json:"distance,omitempty"`
-
-	// Num The number of invalid set in training
-	Num          *int    `json:"num,omitempty"`
-	Repeat       *string `json:"repeat,omitempty"`
-	StartingRule *struct {
-		Seconds *string `json:"seconds,omitempty"`
-		Type    *string `json:"type,omitempty"`
-	} `json:"startingRule,omitempty"`
-	What *string `json:"what,omitempty"`
-}
-
-// NewBlock defines model for NewBlock.
-type NewBlock struct {
-	Name string `json:"name"`
-
-	// Num Number of the block, indicates on which place this block in training is supposed to be.
-	Num int `json:"num"`
-
-	// Repeat How many times to repeat this block
-	Repeat int              `json:"repeat"`
-	Sets   []NewTrainingSet `json:"sets"`
-
-	// TotalDistance Sum of all distances in sets in meters
-	TotalDistance int `json:"totalDistance"`
+	DistanceMeters *string               `json:"distanceMeters,omitempty"`
+	Repeat         *string               `json:"repeat,omitempty"`
+	SetOrder       *string               `json:"setOrder,omitempty"`
+	StartSeconds   *string               `json:"startSeconds,omitempty"`
+	StartType      *string               `json:"startType,omitempty"`
+	SubSetOrder    *string               `json:"subSetOrder,omitempty"`
+	SubSets        *[]InvalidTrainingSet `json:"subSets,omitempty"`
 }
 
 // NewTraining defines model for NewTraining.
 type NewTraining struct {
-	Blocks []NewBlock `json:"blocks"`
-
-	// Date On what date does the training occur.
-	Date openapi_types.Date `json:"date"`
-
 	// DurationMin How long does the session last, in minutes
-	DurationMin int `json:"durationMin"`
+	DurationMin int              `json:"durationMin"`
+	Sets        []NewTrainingSet `json:"sets"`
 
-	// StartTime When does the training start during the day.
-	StartTime StartTime `json:"startTime"`
+	// Start On what date and time does the training occur
+	Start time.Time `json:"start"`
 
 	// TotalDistance Sum of all distances in blocks in meters
 	TotalDistance int `json:"totalDistance"`
@@ -122,17 +82,26 @@ type NewTraining struct {
 
 // NewTrainingSet defines model for NewTrainingSet.
 type NewTrainingSet struct {
-	Distance int `json:"distance"`
-
-	// Num Number of the set, indicates on what place in block the set is supposed to be.
-	Num int `json:"num"`
+	// Description Description of what to swim
+	Description    *string `json:"description,omitempty"`
+	DistanceMeters *int    `json:"distanceMeters,omitempty"`
 
 	// Repeat How many times to repeat this set
-	Repeat       int          `json:"repeat"`
-	StartingRule StartingRule `json:"startingRule"`
+	Repeat int `json:"repeat"`
 
-	// What Description of what to swim
-	What string `json:"what"`
+	// SetOrder Indicates on what place in training this set is
+	SetOrder *int `json:"setOrder,omitempty"`
+
+	// StartSeconds Used by starts which require a time parameter
+	StartSeconds *int      `json:"startSeconds,omitempty"`
+	StartType    StartType `json:"startType"`
+
+	// SubSetOrder Indicates on what place in parent set this set is
+	SubSetOrder *int              `json:"subSetOrder,omitempty"`
+	SubSets     *[]NewTrainingSet `json:"subSets,omitempty"`
+
+	// TotalDistance Total distance in this set
+	TotalDistance int `json:"totalDistance"`
 }
 
 // Pagination Pagination metadata about paginated response
@@ -156,48 +125,34 @@ type Session struct {
 	Id          openapi_types.UUID `json:"id"`
 
 	// StartTime When does the session start during the day
-	StartTime StartTime `json:"startTime"`
+	StartTime string `json:"startTime"`
 }
 
-// StartingRule defines model for StartingRule.
-type StartingRule struct {
-	// Seconds Used by rules which require a time parameter
-	Seconds *int             `json:"seconds,omitempty"`
-	Type    StartingRuleType `json:"type"`
-}
-
-// StartingRuleType defines model for StartingRuleType.
-type StartingRuleType string
+// StartType defines model for StartType.
+type StartType string
 
 // Training defines model for Training.
 type Training struct {
-	Blocks []Block `json:"blocks"`
-
-	// Date On what date does the training occur
-	Date openapi_types.Date `json:"date"`
-
 	// DurationMin How long does the session last, in minutes
 	DurationMin int                `json:"durationMin"`
 	Id          openapi_types.UUID `json:"id"`
+	Sets        []TrainingSet      `json:"sets"`
 
-	// StartTime When does the training start during the day.
-	StartTime StartTime `json:"startTime"`
+	// Start On what date and time does the training occur
+	Start time.Time `json:"start"`
 
-	// TotalDistance Total distance in this training
+	// TotalDistance Sum of all distances in blocks in meters
 	TotalDistance int `json:"totalDistance"`
 }
 
 // TrainingDetail defines model for TrainingDetail.
 type TrainingDetail struct {
-	// Date On what date does the training occur.
-	Date openapi_types.Date `json:"date"`
-
 	// DurationMin How long does the session last, in minutes
 	DurationMin int                `json:"durationMin"`
 	Id          openapi_types.UUID `json:"id"`
 
-	// StartTime When does the training start during the day.
-	StartTime StartTime `json:"startTime"`
+	// Start On what date and time does the training occur
+	Start time.Time `json:"start"`
 
 	// TotalDistance Total distance in the training in meters
 	TotalDistance int `json:"totalDistance"`
@@ -205,25 +160,31 @@ type TrainingDetail struct {
 
 // TrainingSet defines model for TrainingSet.
 type TrainingSet struct {
-	Distance int                `json:"distance"`
-	Id       openapi_types.UUID `json:"id"`
-
-	// Num Number of the set, indicates on what place in block the set is supposed to be.
-	Num int `json:"num"`
+	// Description Description of what to swim
+	Description    *string            `json:"description,omitempty"`
+	DistanceMeters *int               `json:"distanceMeters,omitempty"`
+	Id             openapi_types.UUID `json:"id"`
 
 	// Repeat How many times to repeat this set
-	Repeat       int          `json:"repeat"`
-	StartingRule StartingRule `json:"startingRule"`
+	Repeat int `json:"repeat"`
 
-	// TotalDistance Total distance in this set.
+	// SetOrder Indicates on what place in training this set is
+	SetOrder *int `json:"setOrder,omitempty"`
+
+	// StartSeconds Used by starts which require a time parameter
+	StartSeconds *int      `json:"startSeconds,omitempty"`
+	StartType    StartType `json:"startType"`
+
+	// SubSetOrder Indicates on what place in parent set this set is
+	SubSetOrder *int           `json:"subSetOrder,omitempty"`
+	SubSets     *[]TrainingSet `json:"subSets,omitempty"`
+
+	// TotalDistance Total distance in this set
 	TotalDistance int `json:"totalDistance"`
-
-	// What Description of what to swim
-	What string `json:"what"`
 }
 
 // InvalidSessionErrorResponse defines model for InvalidSessionErrorResponse.
-type InvalidSessionErrorResponse = ErrorDetail
+type InvalidSessionErrorResponse = InvalidSession
 
 // InvalidTrainingErrorResponse defines model for InvalidTrainingErrorResponse.
 type InvalidTrainingErrorResponse = InvalidTraining
@@ -269,8 +230,8 @@ type UpdateTrainingRequest struct {
 			Repeat       *int `json:"repeat,omitempty"`
 			StartingRule *struct {
 				// Seconds Used by rules which require a time parameter
-				Seconds *int              `json:"seconds,omitempty"`
-				Type    *StartingRuleType `json:"type,omitempty"`
+				Seconds *int       `json:"seconds,omitempty"`
+				Type    *StartType `json:"type,omitempty"`
 			} `json:"startingRule,omitempty"`
 
 			// What Description of what to swim
@@ -305,7 +266,7 @@ type CreateSessionJSONBody struct {
 	DurationMin int `json:"durationMin"`
 
 	// StartTime When does the session start during the day
-	StartTime StartTime `json:"startTime"`
+	StartTime string `json:"startTime"`
 }
 
 // UpdateSessionJSONBody defines parameters for UpdateSession.
@@ -348,8 +309,8 @@ type UpdateTrainingJSONBody struct {
 			Repeat       *int `json:"repeat,omitempty"`
 			StartingRule *struct {
 				// Seconds Used by rules which require a time parameter
-				Seconds *int              `json:"seconds,omitempty"`
-				Type    *StartingRuleType `json:"type,omitempty"`
+				Seconds *int       `json:"seconds,omitempty"`
+				Type    *StartType `json:"type,omitempty"`
 			} `json:"startingRule,omitempty"`
 
 			// What Description of what to swim

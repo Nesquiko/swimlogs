@@ -39,10 +39,10 @@ const Toast: Component = () => {
       <div
         classList={{
           'bg-sky-500': type() === ToastType.INFO,
-          'bg-red-500': type() === ToastType.ERROR,
+          'bg-red-500 border-red-900': type() === ToastType.ERROR,
           'bg-green-500': type() === ToastType.SUCCESS
         }}
-        class="w-11/12 rounded-lg p-2 text-xl font-bold text-white shadow"
+        class="w-11/12 rounded-lg border p-2 text-xl font-bold text-white shadow"
       >
         {text()}
       </div>
