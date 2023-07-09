@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             rm -f /opt/swimlogs/dist/assets/*
-            rm -f /opt/swimlogs/dist/locales/*
+            rm -rf /opt/swimlogs/dist/locales/*
       - name: Deploy new artifacts
         uses: appleboy/scp-action@v0.1.4
         with:
