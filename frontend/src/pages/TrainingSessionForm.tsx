@@ -29,7 +29,7 @@ export const TrainingSessionForm: Component = () => {
   const [selectedDate, setSelectedDate] = state.selectedDate
   const [sessionsPage, setSessionsPage] = state.sessionsPage
   const [totalSessions] = state.totalSessions
-  const [selectedSession, setSelectedSession] = state.selectedSession
+  const [session, setSelectedSession] = state.session
 
   const sumbit = () => {
     let isValid = true
@@ -49,11 +49,11 @@ export const TrainingSessionForm: Component = () => {
       return
     }
 
-    const session = selectedSession() as Session
-    setTraining('durationMin', session.durationMin)
+    const s = session() as Session
+    setTraining('durationMin', s.durationMin)
     const start = selectedDate()!
-    const hours = parseInt(session.startTime.slice(0, 2))
-    const minutes = parseInt(session.startTime.slice(3))
+    const hours = parseInt(s.startTime.slice(0, 2))
+    const minutes = parseInt(s.startTime.slice(3))
     start.setHours(hours, minutes, 0, 0)
     setTraining('start', start)
     setCurrentComponent((c) => c + 1)
@@ -61,10 +61,7 @@ export const TrainingSessionForm: Component = () => {
 
   const validateWhenPickingSession = () => {
     let isValid = true
-    if (
-      selectedSession() === undefined ||
-      selectedSession() === 'not-selected'
-    ) {
+    if (session() === undefined || session() === 'not-selected') {
       setSelectedSession(undefined)
       isValid = false
     }
@@ -236,7 +233,7 @@ export const TrainingSessionForm: Component = () => {
             sessions={sessions()?.sessions ?? []}
             sessionPage={sessionsPage()}
             totalSessions={totalSessions()}
-            selectedSession={selectedSession()}
+            selectedSession={session()}
             onNextPage={() => {
               setSelectedSession('not-selected')
               setSessionsPage((i) => i + 1)
@@ -259,10 +256,7 @@ export const TrainingSessionForm: Component = () => {
           </label>
           <select
             id="date"
-            disabled={
-              selectedSession() === 'not-selected' ||
-              selectedSession() === undefined
-            }
+            disabled={session() === 'not-selected' || session() === undefined}
             classList={{
               'border-red-500 text-red': selectedDate() === undefined,
               'border-slate-300 text-black': selectedDate() !== undefined

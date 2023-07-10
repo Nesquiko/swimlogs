@@ -56,6 +56,7 @@ interface CreateTrainingContextProps {
   sumbitTraining: () => void
 }
 
+// TODO split this big context into smaller ones
 export const CreateTrainingContextProvider: ParentComponent<
   CreateTrainingContextProps
 > = (props) => {
@@ -63,7 +64,7 @@ export const CreateTrainingContextProvider: ParentComponent<
 
   const [sessionsPage] = state.sessionsPage
   const [, setTotalSessions] = state.totalSessions
-  const [selectedSession, setSelectedSession] = state.selectedSession
+  const [session, setSession] = state.session
   const [day] = state.day
   const [durationMin] = state.durationMin
   const [startTime] = state.startTime
@@ -104,14 +105,14 @@ export const CreateTrainingContextProvider: ParentComponent<
       return
     }
 
-    const session = {
+    const newSession = {
       id: '',
       day: day()!,
       durationMin: durationMin()!,
       startTime: startTime()!
     }
 
-    setSelectedSession(session)
+    setSession(newSession)
   })
 
   createEffect(() => {
@@ -119,15 +120,12 @@ export const CreateTrainingContextProvider: ParentComponent<
   })
 
   createEffect(() => {
-    if (
-      selectedSession() === undefined ||
-      selectedSession() === 'not-selected'
-    ) {
+    if (session() === undefined || session() === 'not-selected') {
       return
     }
 
     const dayNames = Array.from(Object.keys(Day))
-    const inputDayIndex = dayNames.indexOf((selectedSession() as Session).day)
+    const inputDayIndex = dayNames.indexOf((session() as Session).day)
     const today = new Date()
     const todayIndex = today.getDay() - 1
     const dayDifference = (inputDayIndex - todayIndex + 7) % 7
@@ -173,8 +171,7 @@ type State = {
   sessionsPage: Signal<number>
   totalSessions: Signal<number>
 
-  // TODO rename to session
-  selectedSession: Signal<Session | 'not-selected' | undefined>
+  session: Signal<Session | 'not-selected' | undefined>
 }
 
 function initialState(): State {
@@ -186,7 +183,7 @@ function initialState(): State {
   const selectedDate = createSignal<Date | undefined>(NullDateTime)
   const sessionsPage = createSignal(0)
   const totalSessions = createSignal(0)
-  const selectedSession = createSignal<Session | 'not-selected' | undefined>(
+  const session = createSignal<Session | 'not-selected' | undefined>(
     'not-selected'
   )
 
@@ -199,6 +196,6 @@ function initialState(): State {
     selectedDate,
     sessionsPage,
     totalSessions,
-    selectedSession
+    session
   }
 }
