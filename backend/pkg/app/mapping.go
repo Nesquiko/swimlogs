@@ -115,7 +115,7 @@ func apiNewSetIntoDataSet(
 		s.SetOrder = asPtr(parentSetOrder)
 	}
 
-	return data.TrainingSet{
+	ts := data.TrainingSet{
 		Id:             uuid.New(),
 		TrainingId:     tId,
 		SetOrder:       *s.SetOrder,
@@ -127,6 +127,12 @@ func apiNewSetIntoDataSet(
 		StartType:      string(s.StartType),
 		StartSeconds:   s.StartSeconds,
 	}
+
+	if s.StartType == openapi.None {
+		ts.StartSeconds = nil
+	}
+
+	return ts
 }
 
 func apiSessionFromDataSession(s data.Session) openapi.Session {
