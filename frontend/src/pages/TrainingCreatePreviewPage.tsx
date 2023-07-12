@@ -1,11 +1,13 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { Component } from 'solid-js'
-import { useCreateTraining } from '../components/CreateTrainingContextProvider'
+import { useShownComponent } from '../components/ShownComponentContextProvider'
 import TrainingPreview from '../components/TrainingPreview'
+import { useStateContext } from '../components/TrainingStateContext'
 
 export const TrainingCreatePreviewPage: Component = () => {
-  const [{ training }, , , , [, setCurrentComponent], submitTraining] =
-    useCreateTraining()
+  const [{ training }] = useStateContext()
+  const [, setCurrentComponent] = useShownComponent()
+
   return (
     <div>
       <TrainingPreview training={training} />

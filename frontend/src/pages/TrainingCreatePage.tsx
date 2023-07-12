@@ -1,16 +1,19 @@
 import { useNavigate } from '@solidjs/router'
-import { Component, createEffect, createSignal } from 'solid-js'
+import { Component, createEffect, createResource, createSignal } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
-import { NewTraining, ResponseError } from '../generated'
+import { NewTraining, ResponseError, Session } from '../generated'
 import { addTrainingDetail, trainingApi } from '../state/trainings'
-import { NullDateTime } from '../lib/consts'
+import { NullDateTime, PAGE_SIZE } from '../lib/consts'
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { openToast, ToastType } from '../components/Toast'
 import TrainingSetsForm from './TrainingSetsForm'
 import { TrainingSessionForm } from './TrainingSessionForm'
 import { TrainingCreatePreviewPage } from './TrainingCreatePreviewPage'
-import { CreateTrainingContextProvider } from '../components/CreateTrainingContextProvider'
+import { TrainingStateContextProvider } from '../components/TrainingStateContext'
+import { ShownComponentContextProvider } from '../components/ShownComponentContextProvider'
+import { SessionsContextProvider } from '../components/SessionsContextProvider'
+import { sessionApi } from '../state/session'
 
 const TrainingCreatePage: Component = () => {
   const [training, setTraining] = createStore<NewTraining>({
@@ -29,6 +32,7 @@ const TrainingCreatePage: Component = () => {
 
   const [t] = useTransContext()
   const navigate = useNavigate()
+
   async function createTraining() {
     const res = trainingApi.createTraining({ newTraining: training })
     await res
@@ -48,6 +52,24 @@ const TrainingCreatePage: Component = () => {
       })
   }
 
+  const [sessionsPage, setSessionsPage] = createSignal(0)
+  const [totalSessions, setTotalSessions] = createSignal(0)
+  const isLastPage = () => (sessionsPage() + 1) * PAGE_SIZE >= totalSessions()
+  const [sessions] = createResource(sessionsPage, getSessions)
+
+  async function getSessions(page: number): Promise<Session[]> {
+    return sessionApi
+      .getSessions({ page, pageSize: PAGE_SIZE })
+      .then((res) => {
+        setTotalSessions(res.pagination.total)
+        return res.sessions
+      })
+      .catch((e: ResponseError) => {
+        console.error('error', e)
+        return Promise.resolve([])
+      })
+  }
+
   const [currentComponent, setCurrentComponent] = createSignal(0)
   const comps = [
     TrainingSessionForm,
@@ -57,13 +79,21 @@ const TrainingCreatePage: Component = () => {
 
   return (
     <div>
-      <CreateTrainingContextProvider
-        newTraining={training}
-        currentComponentSignal={[currentComponent, setCurrentComponent]}
-        sumbitTraining={createTraining}
+      <SessionsContextProvider
+        sessions={sessions}
+        fetchNextSessionPage={() => setSessionsPage(sessionsPage() + 1)}
+        fetchPrevSessionPage={() => setSessionsPage(sessionsPage() - 1)}
+        page={sessionsPage}
+        isLastPage={isLastPage}
       >
-        <Dynamic component={comps[currentComponent()]} />
-      </CreateTrainingContextProvider>
+        <ShownComponentContextProvider
+          currentComponentSignal={[currentComponent, setCurrentComponent]}
+        >
+          <TrainingStateContextProvider newTraining={training}>
+            <Dynamic component={comps[currentComponent()]} />
+          </TrainingStateContextProvider>
+        </ShownComponentContextProvider>
+      </SessionsContextProvider>
     </div>
   )
 }

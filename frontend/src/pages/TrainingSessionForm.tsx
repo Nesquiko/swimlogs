@@ -1,7 +1,9 @@
 import { Trans } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
-import { useCreateTraining } from '../components/CreateTrainingContextProvider'
+import { Component, createSignal, For, Show } from 'solid-js'
 import SessionPicker from '../components/SessionPicker'
+import { useSessionsContext } from '../components/SessionsContextProvider'
+import { useShownComponent } from '../components/ShownComponentContextProvider'
+import { useStateContext } from '../components/TrainingStateContext'
 import { Day, Session } from '../generated'
 import {
   NullDateTime,
@@ -13,22 +15,24 @@ import {
 } from '../lib/consts'
 import { formatDate } from '../lib/datetime'
 
+// TODO when sessions are empty and page is 0, show message
 export const TrainingSessionForm: Component = () => {
+  const [{ training, setTraining }, state] = useStateContext()
+  const [, setCurrentComponent] = useShownComponent()
   const [
-    { training, setTraining },
-    ,
     sessions,
-    state,
-    [, setCurrentComponent]
-  ] = useCreateTraining()
-  const [pickSession, setPickSession] = state.pickSession
+    fetchNextSessionPage,
+    fetchPrevSessionPage,
+    sessionsPage,
+    isLastPage
+  ] = useSessionsContext()
+
+  const [pickSession, setPickSession] = createSignal(true)
   const [day, setDay] = state.day
   const [durationMin, setDurationMin] = state.durationMin
   const [startTime, setStartTime] = state.startTime
   const [dates] = state.dates
   const [selectedDate, setSelectedDate] = state.selectedDate
-  const [sessionsPage, setSessionsPage] = state.sessionsPage
-  const [totalSessions] = state.totalSessions
   const [session, setSelectedSession] = state.session
 
   const sumbit = () => {
@@ -230,17 +234,17 @@ export const TrainingSessionForm: Component = () => {
       <div class="h-3/5">
         <Show when={pickSession()} fallback={manualTrainingSessionForm()}>
           <SessionPicker
-            sessions={sessions()?.sessions ?? []}
-            sessionPage={sessionsPage()}
-            totalSessions={totalSessions()}
+            sessions={sessions()}
             selectedSession={session()}
+            sessionPage={sessionsPage()}
+            isLastPage={isLastPage()}
             onNextPage={() => {
               setSelectedSession('not-selected')
-              setSessionsPage((i) => i + 1)
+              fetchNextSessionPage()
             }}
             onPrevPage={() => {
               setSelectedSession('not-selected')
-              setSessionsPage((i) => i - 1)
+              fetchPrevSessionPage()
             }}
             onSelect={(s) => {
               setSelectedSession(s)
@@ -292,11 +296,9 @@ export const TrainingSessionForm: Component = () => {
           <button
             classList={{
               'bg-sky-500 text-white': pickSession(),
-              'bg-white text-sky-500': !pickSession(),
-              'cursor-not-allowed opacity-50': sessions()?.sessions.length === 0
+              'bg-white text-sky-500': !pickSession()
             }}
             class="rounded border border-sky-500 px-4 py-2 text-xl font-bold"
-            disabled={sessions()?.sessions.length === 0}
             onClick={() => setPickSession(true)}
           >
             <Trans key="assign.session" />
