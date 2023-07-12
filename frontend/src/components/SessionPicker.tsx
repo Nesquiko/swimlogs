@@ -13,18 +13,17 @@ interface SessionPickerProps {
   onSelect: (s: Session) => void
 }
 
-// TODO fix arrows to the bottom
 const SessionPicker: Component<SessionPickerProps> = (props) => {
   const [t] = useTransContext()
 
   return (
-    <div class="m-4 h-3/4 lg:h-2/3">
+    <div class="m-4 h-3/4">
       <div
         classList={{
           'border-red-500 bg-red-50': props.selectedSession === undefined,
           'border-transparent': props.selectedSession !== undefined
         }}
-        class="space-y-2 rounded-lg border p-2"
+        class="h-full space-y-2 rounded-lg border p-2"
       >
         <For each={props.sessions}>
           {(s) => (
