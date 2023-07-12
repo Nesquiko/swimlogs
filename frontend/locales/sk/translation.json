@@ -60,5 +60,7 @@
 	"set": "Séria",
 	"edit": "Upraviť",
 	"edit.super.set": "Uprav supersériu",
-	"total": "Spolu"
+	"total": "Spolu",
+	"session.fetch.error": "Chyba pri načítaní termínov, prosím nastavte manuálne",
+	"no.sessions.created": "Žiadne termíny ste ešte nevytvorili. Ak chcete vytvoriť termín, kliknite na tlačidlo 'Vytvor termín'"
 }

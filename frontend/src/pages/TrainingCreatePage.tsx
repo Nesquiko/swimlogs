@@ -56,6 +56,9 @@ const TrainingCreatePage: Component = () => {
   const [totalSessions, setTotalSessions] = createSignal(0)
   const isLastPage = () => (sessionsPage() + 1) * PAGE_SIZE >= totalSessions()
   const [sessions] = createResource(sessionsPage, getSessions)
+  const [serverError, setServerError] = createSignal<string | undefined>(
+    undefined
+  )
 
   async function getSessions(page: number): Promise<Session[]> {
     return sessionApi
@@ -66,6 +69,7 @@ const TrainingCreatePage: Component = () => {
       })
       .catch((e: ResponseError) => {
         console.error('error', e)
+        setServerError(e.message)
         return Promise.resolve([])
       })
   }
@@ -85,6 +89,7 @@ const TrainingCreatePage: Component = () => {
         fetchPrevSessionPage={() => setSessionsPage(sessionsPage() - 1)}
         page={sessionsPage}
         isLastPage={isLastPage}
+        serverError={serverError}
       >
         <ShownComponentContextProvider
           currentComponentSignal={[currentComponent, setCurrentComponent]}

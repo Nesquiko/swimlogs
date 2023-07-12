@@ -12,14 +12,16 @@ const makeSessionsContext = (
   fetchNextSessionPage: () => void,
   fetchPrevSessionPage: () => void,
   page: Accessor<number>,
-  isLastPage: Accessor<boolean>
+  isLastPage: Accessor<boolean>,
+  serverError: Accessor<string | undefined>
 ) => {
   return [
     sessions,
     fetchNextSessionPage,
     fetchPrevSessionPage,
     page,
-    isLastPage
+    isLastPage,
+    serverError
   ] as const
 }
 
@@ -35,6 +37,7 @@ interface SessionsContextProps {
   fetchPrevSessionPage: () => void
   page: Accessor<number>
   isLastPage: Accessor<boolean>
+  serverError: Accessor<string | undefined>
 }
 
 export const SessionsContextProvider: ParentComponent<SessionsContextProps> = (
@@ -47,7 +50,8 @@ export const SessionsContextProvider: ParentComponent<SessionsContextProps> = (
         props.fetchNextSessionPage,
         props.fetchPrevSessionPage,
         props.page,
-        props.isLastPage
+        props.isLastPage,
+        props.serverError
       )}
     >
       {props.children}

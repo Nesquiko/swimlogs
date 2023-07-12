@@ -1,8 +1,18 @@
-import { Trans } from '@mbarzda/solid-i18next'
-import { Component, createSignal, For, Show } from 'solid-js'
+import { Trans, useTransContext } from '@mbarzda/solid-i18next'
+import { A } from '@solidjs/router'
+import {
+  Component,
+  createEffect,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Switch
+} from 'solid-js'
 import SessionPicker from '../components/SessionPicker'
 import { useSessionsContext } from '../components/SessionsContextProvider'
 import { useShownComponent } from '../components/ShownComponentContextProvider'
+import { openToast, ToastType } from '../components/Toast'
 import { useStateContext } from '../components/TrainingStateContext'
 import { Day, Session } from '../generated'
 import {
@@ -15,8 +25,8 @@ import {
 } from '../lib/consts'
 import { formatDate } from '../lib/datetime'
 
-// TODO when sessions are empty and page is 0, show message
 export const TrainingSessionForm: Component = () => {
+  const [t] = useTransContext()
   const [{ training, setTraining }, state] = useStateContext()
   const [, setCurrentComponent] = useShownComponent()
   const [
@@ -24,8 +34,23 @@ export const TrainingSessionForm: Component = () => {
     fetchNextSessionPage,
     fetchPrevSessionPage,
     sessionsPage,
-    isLastPage
+    isLastPage,
+    serverError
   ] = useSessionsContext()
+
+  createEffect(() => {
+    if (serverError() !== undefined) {
+      setPickSession(false)
+      openToast(
+        t(
+          'session.fetch.error',
+          'There was an error during loading sessions, please set session manually'
+        ),
+        ToastType.ERROR,
+        4000
+      )
+    }
+  })
 
   const [pickSession, setPickSession] = createSignal(true)
   const [day, setDay] = state.day
@@ -85,8 +110,7 @@ export const TrainingSessionForm: Component = () => {
       isValid = false
     }
 
-    // TODO validate hours and minutes separately
-    if (startTime()!.match(/^[0-9]{2}:[0-9]{2}$/) === null) {
+    if (startTime()?.match(/^[0-9]{2}:[0-9]{2}$/) === null) {
       isValid = false
     }
     return isValid
@@ -233,24 +257,39 @@ export const TrainingSessionForm: Component = () => {
     <div class="h-screen">
       <div class="h-3/5">
         <Show when={pickSession()} fallback={manualTrainingSessionForm()}>
-          <SessionPicker
-            sessions={sessions()}
-            selectedSession={session()}
-            sessionPage={sessionsPage()}
-            isLastPage={isLastPage()}
-            onNextPage={() => {
-              setSelectedSession('not-selected')
-              fetchNextSessionPage()
-            }}
-            onPrevPage={() => {
-              setSelectedSession('not-selected')
-              fetchPrevSessionPage()
-            }}
-            onSelect={(s) => {
-              setSelectedSession(s)
-              setSelectedDate(NullDateTime)
-            }}
-          />
+          <Switch
+            fallback={
+              <SessionPicker
+                sessions={sessions()}
+                selectedSession={session()}
+                sessionPage={sessionsPage()}
+                isLastPage={isLastPage()}
+                onNextPage={() => {
+                  setSelectedSession('not-selected')
+                  fetchNextSessionPage()
+                }}
+                onPrevPage={() => {
+                  setSelectedSession('not-selected')
+                  fetchPrevSessionPage()
+                }}
+                onSelect={(s) => {
+                  setSelectedSession(s)
+                  setSelectedDate(NullDateTime)
+                }}
+              />
+            }
+          >
+            <Match when={sessions()?.length === 0}>
+              <div class="m-4 rounded bg-blue-200 p-4 text-lg font-bold">
+                <Trans key="no.sessions.created" />
+                <button class="my-4 block rounded-lg bg-sky-300 p-2 text-xl font-bold text-black">
+                  <A href="/session/create">
+                    <Trans key="create.session" />
+                  </A>
+                </button>
+              </div>
+            </Match>
+          </Switch>
         </Show>
       </div>
       <div class="h-2/5">
@@ -296,8 +335,10 @@ export const TrainingSessionForm: Component = () => {
           <button
             classList={{
               'bg-sky-500 text-white': pickSession(),
-              'bg-white text-sky-500': !pickSession()
+              'bg-white text-sky-500': !pickSession(),
+              'cursor-not-allowed opacity-50': serverError() !== undefined
             }}
+            disabled={serverError() !== undefined}
             class="rounded border border-sky-500 px-4 py-2 text-xl font-bold"
             onClick={() => setPickSession(true)}
           >
