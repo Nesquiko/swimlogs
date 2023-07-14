@@ -42,7 +42,6 @@ const TrainingCreatePage: Component = () => {
         navigate('/', { replace: true })
       })
       .catch((e: ResponseError) => {
-        // TODO check if error is 400
         console.error('error', e)
         openToast(
           t('training.creation.error', 'Error creating training'),
@@ -95,7 +94,10 @@ const TrainingCreatePage: Component = () => {
           currentComponentSignal={[currentComponent, setCurrentComponent]}
         >
           <TrainingStateContextProvider newTraining={training}>
-            <Dynamic component={comps[currentComponent()]} />
+            <Dynamic
+              {...{ onSubmit: createTraining }}
+              component={comps[currentComponent()]}
+            />
           </TrainingStateContextProvider>
         </ShownComponentContextProvider>
       </SessionsContextProvider>
