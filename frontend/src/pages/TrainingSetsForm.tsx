@@ -4,16 +4,17 @@ import { Component, createSignal, For, Match, Show, Switch } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { cloneSet } from '../lib/clone'
 import plusSvg from '../assets/plus.svg'
-import { useCreateTraining } from '../components/CreateTrainingContextProvider'
 import { NewTrainingSet, StartType } from '../generated'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
 import SuperSetEditPage from './SuperSetEditPage'
 import SetCard from '../components/SetCard'
+import { useStateContext } from '../components/TrainingStateContext'
+import { useShownComponent } from '../components/ShownComponentContextProvider'
 
 const TrainingSetsForm: Component = () => {
-  const [{ training, setTraining }, {}, , , [, setCurrentComponent]] =
-    useCreateTraining()
+  const [{ training, setTraining }] = useStateContext()
+  const [, setCurrentComponent] = useShownComponent()
 
   const newSet = (): NewTrainingSet => {
     return {

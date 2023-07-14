@@ -2,13 +2,12 @@ import { useTransContext } from '@mbarzda/solid-i18next'
 import { TFunction } from 'i18next'
 import { Component, For } from 'solid-js'
 import { Session } from '../generated'
-import { PAGE_SIZE } from '../lib/consts'
 
 interface SessionPickerProps {
-  sessions: Session[]
-  sessionPage: number
-  totalSessions: number
+  sessions?: Session[]
   selectedSession: Session | 'not-selected' | undefined
+  sessionPage: number
+  isLastPage: boolean
   onNextPage?: () => void
   onPrevPage?: () => void
   onSelect: (s: Session) => void
@@ -18,13 +17,13 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
   const [t] = useTransContext()
 
   return (
-    <div class="m-4 h-3/4 lg:h-2/3">
+    <div class="m-4 h-3/4">
       <div
         classList={{
           'border-red-500 bg-red-50': props.selectedSession === undefined,
           'border-transparent': props.selectedSession !== undefined
         }}
-        class="space-y-2 rounded-lg border p-2"
+        class="h-full space-y-2 rounded-lg border p-2"
       >
         <For each={props.sessions}>
           {(s) => (
@@ -60,10 +59,7 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
           </svg>
         </button>
         <button
-          classList={{
-            'text-slate-300 pointer-events-none':
-              (props.sessionPage + 1) * PAGE_SIZE >= props.totalSessions
-          }}
+          classList={{ 'text-slate-300 pointer-events-none': props.isLastPage }}
           class="inline-flex cursor-pointer text-black"
           onClick={() => props.onNextPage?.()}
         >

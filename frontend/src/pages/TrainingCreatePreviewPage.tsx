@@ -1,11 +1,19 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { Component } from 'solid-js'
-import { useCreateTraining } from '../components/CreateTrainingContextProvider'
+import { useShownComponent } from '../components/ShownComponentContextProvider'
 import TrainingPreview from '../components/TrainingPreview'
+import { useStateContext } from '../components/TrainingStateContext'
 
-export const TrainingCreatePreviewPage: Component = () => {
-  const [{ training }, , , , [, setCurrentComponent], submitTraining] =
-    useCreateTraining()
+interface TrainingCreatePreviewPageProps {
+  onSubmit: () => void
+}
+
+export const TrainingCreatePreviewPage: Component<
+  TrainingCreatePreviewPageProps
+> = (props) => {
+  const [{ training }] = useStateContext()
+  const [, setCurrentComponent] = useShownComponent()
+
   return (
     <div>
       <TrainingPreview training={training} />
@@ -18,7 +26,7 @@ export const TrainingCreatePreviewPage: Component = () => {
 
       <button
         class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-green-600 py-2 text-xl font-bold text-white"
-        onClick={() => submitTraining()}
+        onClick={() => props.onSubmit()}
       >
         <Trans key="finish" />
       </button>
