@@ -61,6 +61,8 @@
   "edit": "Edit",
   "edit.super.set": "Edit super set",
   "total": "Total",
-  "session.fetch.error": "There was an error during loading sessions, please set session manually",
-  "no.sessions.created": "No sessions created. To create one click on 'Create session'"
+  "session.fetch.error": "Error loading sessions",
+  "no.sessions.created": "No sessions created.",
+  "set.session": "Set session",
+  "please.select.session": "Please select a session"
 }

@@ -16,6 +16,7 @@ const openToast = (
   type: ToastType = ToastType.INFO,
   timeout: number = 2000
 ) => {
+  if (open()) return
   setType(type)
   setText(text)
   setOpen(true)
@@ -27,6 +28,7 @@ const openToast = (
 const Toast: Component = () => {
   return (
     <div
+      id="toast"
       classList={{
         'translate-y-full': !move(),
         '-translate-y-full': move(),
@@ -38,7 +40,7 @@ const Toast: Component = () => {
     >
       <div
         classList={{
-          'bg-sky-500': type() === ToastType.INFO,
+          'bg-sky-500 border-sky-900': type() === ToastType.INFO,
           'bg-red-500 border-red-900': type() === ToastType.ERROR,
           'bg-green-500': type() === ToastType.SUCCESS
         }}

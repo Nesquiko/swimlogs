@@ -81,27 +81,25 @@ const TrainingCreatePage: Component = () => {
   ]
 
   return (
-    <div>
-      <SessionsContextProvider
-        sessions={sessions}
-        fetchNextSessionPage={() => setSessionsPage(sessionsPage() + 1)}
-        fetchPrevSessionPage={() => setSessionsPage(sessionsPage() - 1)}
-        page={sessionsPage}
-        isLastPage={isLastPage}
-        serverError={serverError}
+    <SessionsContextProvider
+      sessions={sessions}
+      fetchNextSessionPage={() => setSessionsPage(sessionsPage() + 1)}
+      fetchPrevSessionPage={() => setSessionsPage(sessionsPage() - 1)}
+      page={sessionsPage}
+      isLastPage={isLastPage}
+      serverError={serverError}
+    >
+      <ShownComponentContextProvider
+        currentComponentSignal={[currentComponent, setCurrentComponent]}
       >
-        <ShownComponentContextProvider
-          currentComponentSignal={[currentComponent, setCurrentComponent]}
-        >
-          <TrainingStateContextProvider newTraining={training}>
-            <Dynamic
-              {...{ onSubmit: createTraining }}
-              component={comps[currentComponent()]}
-            />
-          </TrainingStateContextProvider>
-        </ShownComponentContextProvider>
-      </SessionsContextProvider>
-    </div>
+        <TrainingStateContextProvider newTraining={training}>
+          <Dynamic
+            {...{ onSubmit: createTraining }}
+            component={comps[currentComponent()]}
+          />
+        </TrainingStateContextProvider>
+      </ShownComponentContextProvider>
+    </SessionsContextProvider>
   )
 }
 
