@@ -8,6 +8,7 @@ import { openToast, ToastType } from '../components/Toast'
 import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { SmallIntMax } from '../lib/consts'
+import plusSvgBlack from '../assets/plus-black.svg'
 
 type SuperSetEditPageProps = {
   superSet: NewTrainingSet
@@ -261,10 +262,10 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
         </div>
       </Show>
       <button
-        class="float-right my-4 rounded-lg bg-sky-500 p-2 text-xl text-white shadow focus:outline-none focus:ring focus:ring-sky-300"
+        class="float-right h-10 w-10 rounded-full bg-yellow-400 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-yellow-300"
         onClick={() => setSetModalOpener({ set: newSubSet() })}
       >
-        <Trans key="add.set" />
+        <img src={plusSvgBlack} />
       </button>
       <div class="h-32 w-full"></div>
       <div class="fixed bottom-4 left-8 right-8 flex justify-between">
@@ -275,7 +276,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
           <Trans key="cancel" />
         </button>
         <button
-          class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
+          class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-600 focus:outline-none focus:ring focus:ring-sky-300"
           onClick={() => {
             if (!isSetValid()) return
 

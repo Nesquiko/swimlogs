@@ -232,7 +232,7 @@ function SetModal(props: SetModalProps): JSX.Element {
           <Trans key="cancel" />
         </button>
         <button
-          class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
+          class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-600 focus:outline-none focus:ring focus:ring-sky-300"
           onClick={() => {
             if (!isSetValid()) return
             // this modal only creates sets without subsets, so we can just shallow copy the object

@@ -3,7 +3,7 @@ import { t } from 'i18next'
 import { Component, createSignal, For, Match, Show, Switch } from 'solid-js'
 import { produce } from 'solid-js/store'
 import { cloneSet } from '../lib/clone'
-import plusSvg from '../assets/plus.svg'
+import plusSvgBlack from '../assets/plus-black.svg'
 import { NewTrainingSet, StartType } from '../generated'
 import SetModal from '../components/SetModal'
 import MenuModal from '../components/MenuModal'
@@ -162,7 +162,7 @@ const TrainingSetsForm: Component = () => {
           <Show
             when={training.sets.length !== 0}
             fallback={
-              <div class="m-4 rounded-lg bg-sky-200 p-4 text-xl font-semibold">
+              <div class="m-4 rounded-lg bg-sky-200 p-4 text-lg font-semibold">
                 <Trans key="no.sets.in.training" />
               </div>
             }
@@ -189,15 +189,15 @@ const TrainingSetsForm: Component = () => {
             {training.totalDistance.toLocaleString()}m
           </p>
           <button
-            class="float-right h-10 w-10 rounded-full bg-green-500 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-green-300"
+            class="float-right h-10 w-10 rounded-full bg-yellow-400 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-yellow-300"
             onClick={() => setAddMenuModalOpener({})}
           >
-            <img src={plusSvg} />
+            <img src={plusSvgBlack} />
           </button>
           <div class="h-32 w-full"></div>
 
           <button
-            class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
+            class="fixed bottom-0 right-4 my-4 w-20 rounded-lg bg-sky-500 py-2 text-xl font-bold text-white"
             onClick={() => {
               if (training.sets.length === 0) {
                 return
@@ -208,7 +208,7 @@ const TrainingSetsForm: Component = () => {
             <Trans key="next" />
           </button>
           <button
-            class="fixed bottom-0 left-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
+            class="fixed bottom-0 left-4 my-4 w-20 rounded-lg bg-sky-500 py-2 text-xl font-bold text-white"
             onClick={() => setCurrentComponent((c) => c - 1)}
           >
             <Trans key="previous" />
