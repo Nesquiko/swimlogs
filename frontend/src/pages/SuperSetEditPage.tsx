@@ -97,14 +97,6 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
       return false
     }
 
-    if (
-      superSet.startType !== StartType.None &&
-      superSet.startSeconds !== undefined &&
-      superSet.startSeconds < 1
-    ) {
-      return false
-    }
-
     if (superSet.subSets?.length === 0) {
       openToast(
         t('add.at.least.one.set', 'Add at least one set'),
@@ -179,66 +171,6 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
             setSuperSet('totalDistance', repeat * subSetsDist)
           }}
         />
-      </div>
-      <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="start">
-          <Trans key="start" />
-        </label>
-        <select
-          id="start"
-          class="w-32 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            setSuperSet('startType', e.target.value as StartType)
-          }}
-        >
-          <For each={Object.keys(StartType)}>
-            {(typ) => (
-              <option selected={typ === superSet.startType} value={typ}>
-                <Trans key={typ.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </select>
-      </div>
-      <div
-        classList={{
-          visible: superSet.startType !== StartType.None,
-          invisible: superSet.startType === StartType.None
-        }}
-        class="my-2 flex items-center justify-between"
-      >
-        <label class="text-xl" for="seconds">
-          <Trans key="seconds" />
-        </label>
-        <input
-          id="seconds"
-          type="number"
-          placeholder="20"
-          classList={{
-            'border-red-500 text-red-500':
-              superSet.startSeconds !== undefined && superSet.startSeconds < 1,
-            'border-slate-300':
-              superSet.startSeconds === undefined || superSet.startSeconds >= 1
-          }}
-          class="w-24 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          value={superSet.startSeconds}
-          onChange={(e) => {
-            const val = e.target.value
-            let seconds = parseInt(val)
-            if (Number.isNaN(seconds) || seconds < 1 || seconds > SmallIntMax) {
-              seconds = 0
-            }
-            setSuperSet('startSeconds', seconds)
-          }}
-        >
-          <For each={Object.keys(StartType)}>
-            {(typ) => (
-              <option selected={typ === superSet.startType} value={typ}>
-                <Trans key={typ.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </input>
       </div>
 
       <div class="m-2 space-y-4">
