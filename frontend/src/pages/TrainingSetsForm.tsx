@@ -167,7 +167,7 @@ const TrainingSetsForm: Component = () => {
               </div>
             }
           >
-            <div class="m-2 space-y-4">
+            <div class="space-y-4">
               <For each={training.sets}>
                 {(set, setIdx) => {
                   return (
@@ -184,16 +184,18 @@ const TrainingSetsForm: Component = () => {
               </For>
             </div>
           </Show>
-          <p class="my-4 text-xl">
+          <div class="text-end">
+            <button
+              class="my-2 h-10 w-10 rounded-full bg-yellow-400 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-yellow-300 md:mx-4 lg:mx-16 xl:mx-32"
+              onClick={() => setAddMenuModalOpener({})}
+            >
+              <img src={plusSvgBlack} />
+            </button>
+          </div>
+          <p class="my-4 text-xl md:mx-4 lg:mx-16 xl:mx-32">
             <Trans key="total.distance.training" />{' '}
             {training.totalDistance.toLocaleString()}m
           </p>
-          <button
-            class="float-right h-10 w-10 rounded-full bg-yellow-400 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-yellow-300"
-            onClick={() => setAddMenuModalOpener({})}
-          >
-            <img src={plusSvgBlack} />
-          </button>
           <div class="h-32 w-full"></div>
 
           <button

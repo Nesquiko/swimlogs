@@ -64,5 +64,6 @@
   "session.fetch.error": "Chyba pri načítaní termínov.",
   "no.sessions.created": "Žiadne termíny neboli vytvorené. Vytvorte termín, alebo ho nastavte.",
   "set.session": "Nastaviť termín",
-  "please.select.session": "Prosím vyberte termín"
+  "please.select.session": "Prosím vyberte termín",
+  "total.distance.set": "Celková vzdialenosť v sérii"
 }

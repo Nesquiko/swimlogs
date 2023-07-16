@@ -47,7 +47,9 @@ const SetCard: Component<SetCardProps> = (props) => {
             />
           </Show>
         </div>
-        <p class="whitespace-pre-wrap p-2 text-lg">{set.description}</p>
+        <Show when={set.description}>
+          <p class="whitespace-pre-wrap p-2 text-lg">{set.description}</p>
+        </Show>
       </div>
     )
   }
@@ -114,7 +116,7 @@ const SetCard: Component<SetCardProps> = (props) => {
   }
 
   return (
-    <div class="rounded-lg border border-solid border-slate-300 shadow">
+    <div class="rounded-lg border border-solid border-slate-300 shadow md:mx-4 lg:mx-16 xl:mx-32">
       <Switch>
         <Match when={props.set.subSets && props.set.subSets?.length > 0}>
           {superSetLayout(props.setNumber, props.set)}
@@ -123,6 +125,14 @@ const SetCard: Component<SetCardProps> = (props) => {
           {setLayout(props.setNumber, props.set)}
         </Match>
       </Switch>
+      <div class="rounded-b-lg border-t border-solid border-slate-300 p-2 text-lg">
+        <span class="inline-block w-3/4">
+          <Trans key="total.distance.set" />
+        </span>
+        <span class="inline-block w-1/4 text-end font-bold">
+          {props.set.totalDistance}m
+        </span>
+      </div>
     </div>
   )
 }

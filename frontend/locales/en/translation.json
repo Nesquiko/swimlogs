@@ -64,5 +64,6 @@
   "session.fetch.error": "Error loading sessions",
   "no.sessions.created": "No sessions created.",
   "set.session": "Set session",
-  "please.select.session": "Please select a session"
+  "please.select.session": "Please select a session",
+  "total.distance.set": "Total distance in set"
 }
