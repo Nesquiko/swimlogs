@@ -17,14 +17,8 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
   const [t] = useTransContext()
 
   return (
-    <div class="m-4 h-3/4">
-      <div
-        classList={{
-          'border-red-500 bg-red-50': props.selectedSession === undefined,
-          'border-transparent': props.selectedSession !== undefined
-        }}
-        class="h-full space-y-2 rounded-lg border p-2"
-      >
+    <div class="h-full">
+      <div class="h-3/4 space-y-2 rounded-lg px-4 md:px-8 lg:px-12 xl:px-16">
         <For each={props.sessions}>
           {(s) => (
             <SessionPickerItem
@@ -36,11 +30,12 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
           )}
         </For>
       </div>
-      <div class="m-4 space-x-8 text-center">
+      <div class="space-x-8 p-2 text-center">
         <button
           classList={{
             'text-slate-300 pointer-events-none': props.sessionPage === 0
           }}
+          disabled={props.sessionPage === 0}
           class="inline-flex cursor-pointer text-black"
           onClick={() => props.onPrevPage?.()}
         >
@@ -61,6 +56,7 @@ const SessionPicker: Component<SessionPickerProps> = (props) => {
         <button
           classList={{ 'text-slate-300 pointer-events-none': props.isLastPage }}
           class="inline-flex cursor-pointer text-black"
+          disabled={props.isLastPage}
           onClick={() => props.onNextPage?.()}
         >
           <svg

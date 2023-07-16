@@ -6,7 +6,6 @@ import {
   createSignal,
   For,
   Match,
-  Show,
   Switch
 } from 'solid-js'
 import SessionPicker from '../components/SessionPicker'
@@ -15,19 +14,15 @@ import { useShownComponent } from '../components/ShownComponentContextProvider'
 import { openToast, ToastType } from '../components/Toast'
 import { useStateContext } from '../components/TrainingStateContext'
 import { Day, Session } from '../generated'
-import {
-  NullDateTime,
-  NullDay,
-  NullStartTime,
-  SmallIntMax,
-  StartTimeHours,
-  StartTimeMinutes
-} from '../lib/consts'
-import { formatDate } from '../lib/datetime'
+import { SmallIntMax, StartTimeHours, StartTimeMinutes } from '../lib/consts'
+import plusSvgBlack from '../assets/plus-black.svg'
+import editSvgBlack from '../assets/edit-black.svg'
+import selectSvgBlack from '../assets/select-black.svg'
+import DatePickerModal from '../components/DatePickerModal'
 
 export const TrainingSessionForm: Component = () => {
   const [t] = useTransContext()
-  const [{ training, setTraining }, state] = useStateContext()
+  const [{ setTraining }, state] = useStateContext()
   const [, setCurrentComponent] = useShownComponent()
   const [
     sessions,
@@ -52,314 +47,215 @@ export const TrainingSessionForm: Component = () => {
     }
   })
 
-  const [pickSession, setPickSession] = createSignal(true)
+  const [pickSession, setPickSession] = state.pickSession
   const [day, setDay] = state.day
   const [durationMin, setDurationMin] = state.durationMin
   const [startTime, setStartTime] = state.startTime
-  const [dates] = state.dates
-  const [selectedDate, setSelectedDate] = state.selectedDate
   const [session, setSelectedSession] = state.session
 
-  const sumbit = () => {
-    let isValid = true
+  const [datePickerOpener, setDatepickerOpener] = createSignal({ s: session() })
 
-    if (pickSession()) {
-      isValid = validateWhenPickingSession()
-    } else {
-      isValid = validateWhenSettingSession()
-    }
-
-    if (selectedDate() === NullDateTime) {
-      setSelectedDate(undefined)
-      isValid = false
-    }
-
-    if (!isValid) {
-      return
-    }
-
-    const s = session() as Session
+  const sumbit = (start: Date, s: Session) => {
     setTraining('durationMin', s.durationMin)
-    const start = selectedDate()!
-    const hours = parseInt(s.startTime.slice(0, 2))
-    const minutes = parseInt(s.startTime.slice(3))
-    start.setHours(hours, minutes, 0, 0)
     setTraining('start', start)
     setCurrentComponent((c) => c + 1)
   }
 
-  const validateWhenPickingSession = () => {
-    let isValid = true
-    if (session() === undefined || session() === 'not-selected') {
-      setSelectedSession(undefined)
-      isValid = false
-    }
-
-    return isValid
-  }
-
-  const validateWhenSettingSession = () => {
-    let isValid = true
-    if (day() === undefined || day() === NullDay) {
-      setDay(undefined)
-      isValid = false
-    }
-
-    if (startTime() === undefined || startTime() === NullStartTime) {
-      setStartTime(undefined)
-      isValid = false
-    }
-
-    if (startTime()?.match(/^[0-9]{2}:[0-9]{2}$/) === null) {
-      isValid = false
-    }
-    return isValid
-  }
-
-  const manualTrainingSessionForm = () => {
-    return (
-      <div class="m-4">
-        <div class="flex items-center justify-between">
-          <label class="mx-4 text-xl font-bold" for="day">
-            <Trans key="day" />
-          </label>
-          <select
-            id="day"
-            classList={{
-              'border-red-500': day() === undefined,
-              'border-slate-300': day() !== undefined
-            }}
-            class="my-2 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-            onChange={(e) => {
-              setDay(e.target.value as Day)
-              setSelectedDate(NullDateTime)
-            }}
-          >
-            <option value="" disabled={day() !== NullDay}>
-              <Trans key="select.day" />
-            </option>
-            <For each={Object.keys(Day)}>
-              {(d) => (
-                <option selected={d === day()} value={d}>
-                  <Trans key={d.toLowerCase()} />
-                </option>
-              )}
-            </For>
-          </select>
-        </div>
-        <div class="flex items-center justify-between">
-          <label class="mx-4 w-3/4 text-xl font-bold" for="duration">
-            <Trans key="duration.in.minutes" />
-          </label>
-          <input
-            id="duration"
-            type="number"
-            min="1"
-            placeholder={'60'}
-            classList={{
-              'border-red-500 text-red-500': durationMin() === undefined,
-              'border-slate-300': durationMin() !== undefined
-            }}
-            class="my-2 w-1/4 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-            value={durationMin()}
-            onChange={(e) => {
-              const val = e.target.value
-              const dur = parseInt(val)
-              if (Number.isNaN(dur) || dur < 1 || dur > SmallIntMax) {
-                setDurationMin(undefined)
-                return
-              }
-              setDurationMin(dur)
-            }}
-          />
-        </div>
-        <div class="flex items-center justify-between">
-          <label class="mx-4 text-xl font-bold">
-            <Trans key="starttime" />
-          </label>
-          <div
-            classList={{
-              'border-red-500 text-red-500': startTime() === undefined,
-              'border-slate-300': startTime() !== undefined
-            }}
-            class="my-2 w-auto rounded-md border px-4 py-2 text-xl"
-          >
-            <div class="flex">
-              <select
-                name="hours"
-                class="appearance-none bg-transparent text-xl outline-none"
-                onChange={(e) => {
-                  const val = e.target.value
-                  const minutes = startTime() ? startTime()!.slice(3) : '--'
-                  const newTime = val + ':' + minutes
-                  setStartTime(newTime)
-                }}
-              >
-                <option
-                  value=""
-                  disabled={startTime() !== NullStartTime.slice(0, 2)}
-                >
-                  --
-                </option>
-                <For each={Array.from(StartTimeHours)}>
-                  {(hour) => (
-                    <option
-                      selected={
-                        startTime() !== undefined &&
-                        hour === startTime()!.slice(0, 2)
-                      }
-                      value={hour}
-                    >
-                      {hour}
-                    </option>
-                  )}
-                </For>
-              </select>
-              <span class="mx-2">:</span>
-              <select
-                name="minutes"
-                class="appearance-none bg-transparent text-xl outline-none"
-                onChange={(e) => {
-                  const val = e.target.value
-                  const hours = startTime() ? startTime()!.slice(0, 2) : '--'
-                  const newTime = hours + ':' + val
-                  setStartTime(newTime)
-                }}
-              >
-                <option
-                  value=""
-                  disabled={startTime() !== NullStartTime.slice(3)}
-                >
-                  --
-                </option>
-                <For each={Array.from(StartTimeMinutes)}>
-                  {(minute) => (
-                    <option
-                      selected={
-                        startTime() !== undefined &&
-                        minute === startTime()!.slice(3)
-                      }
-                      value={minute}
-                    >
-                      {minute}
-                    </option>
-                  )}
-                </For>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div class="h-screen">
-      <div class="h-3/5">
-        <Show when={pickSession()} fallback={manualTrainingSessionForm()}>
-          <Switch
-            fallback={
-              <SessionPicker
-                sessions={sessions()}
-                selectedSession={session()}
-                sessionPage={sessionsPage()}
-                isLastPage={isLastPage()}
-                onNextPage={() => {
-                  setSelectedSession('not-selected')
-                  fetchNextSessionPage()
-                }}
-                onPrevPage={() => {
-                  setSelectedSession('not-selected')
-                  fetchPrevSessionPage()
-                }}
-                onSelect={(s) => {
-                  setSelectedSession(s)
-                  setSelectedDate(NullDateTime)
+    <div class="h-[32rem]">
+      <DatePickerModal opener={datePickerOpener()} onSubmit={sumbit} />
+      <p class="m-4 text-2xl font-bold">
+        <Trans key="select.session" />
+        <Switch>
+          <Match when={serverError() !== undefined}>
+            <></>
+          </Match>
+          <Match when={!pickSession()}>
+            <img
+              class="float-right inline-block cursor-pointer"
+              src={selectSvgBlack}
+              width={32}
+              height={32}
+              onClick={() => {
+                setPickSession(true)
+              }}
+            />
+          </Match>
+          <Match when={pickSession()}>
+            <img
+              class="float-right inline-block cursor-pointer"
+              src={editSvgBlack}
+              width={32}
+              height={32}
+              onClick={() => {
+                setPickSession(false)
+              }}
+            />
+          </Match>
+        </Switch>
+      </p>
+      <Switch>
+        <Match
+          when={
+            sessions() !== undefined && sessions()!.length > 0 && pickSession()
+          }
+        >
+          <SessionPicker
+            sessions={sessions()}
+            selectedSession={session()}
+            sessionPage={sessionsPage()}
+            isLastPage={isLastPage()}
+            onNextPage={() => {
+              setSelectedSession((s) => {
+                s.id = ''
+                return s
+              })
+              fetchNextSessionPage()
+            }}
+            onPrevPage={() => {
+              setSelectedSession((s) => {
+                s.id = ''
+                return s
+              })
+              fetchPrevSessionPage()
+            }}
+            onSelect={(s) => setSelectedSession(s)}
+          />
+        </Match>
+        <Match when={sessions()?.length === 0 && pickSession()}>
+          <div class="text-center">
+            <div class="m-4 rounded-lg bg-sky-200 p-4 text-start text-lg font-bold">
+              <Trans key="no.sessions.created" />
+            </div>
+            <button class="text-md m-4 rounded-lg bg-yellow-400 p-2 font-bold text-black">
+              <img
+                class="mr-2 inline"
+                src={plusSvgBlack}
+                width={32}
+                height={32}
+              />
+              <A href="/session/create">
+                <Trans key="create.session" />
+              </A>
+            </button>
+            <button
+              class="text-md m-4 rounded-lg bg-yellow-400 p-2 font-bold text-black"
+              onClick={() => setPickSession(false)}
+            >
+              <img
+                class="mr-2 inline"
+                src={editSvgBlack}
+                width={32}
+                height={32}
+              />
+              <Trans key="set.session" />
+            </button>
+          </div>
+        </Match>
+        <Match when={!pickSession()}>
+          <form class="mx-4">
+            <fieldset>
+              <label class="block text-xl" for="day">
+                <Trans key="day" />
+              </label>
+              <select
+                id="day"
+                class="text-cente w-32 rounded-lg border border-solid border-slate-300 bg-white p-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
+                onChange={(e) => setDay(e.target.value as Day)}
+              >
+                <For each={Object.keys(Day)}>
+                  {(d) => (
+                    <option selected={d === day()} value={d}>
+                      <Trans key={d.toLowerCase()} />
+                    </option>
+                  )}
+                </For>
+              </select>
+              <label class="mt-4 block text-xl" for="duration">
+                <Trans key="duration.in.minutes" />
+              </label>
+              <input
+                id="duration"
+                type="number"
+                min="1"
+                max={SmallIntMax}
+                class="w-32 rounded-lg border border-solid border-slate-300 bg-white p-2 text-center text-xl focus:border-sky-500 focus:outline-none focus:ring"
+                value={durationMin()}
+                onChange={(e) => {
+                  const val = e.target.value
+                  const dur = parseInt(val)
+                  if (Number.isNaN(dur) || dur < 1 || dur > SmallIntMax) {
+                    setDurationMin(60)
+                    return
+                  }
+                  setDurationMin(dur)
                 }}
               />
-            }
-          >
-            <Match when={sessions()?.length === 0}>
-              <div class="m-4 rounded bg-blue-200 p-4 text-lg font-bold">
-                <Trans key="no.sessions.created" />
-                <button class="my-4 block rounded-lg bg-sky-300 p-2 text-xl font-bold text-black">
-                  <A href="/session/create">
-                    <Trans key="create.session" />
-                  </A>
-                </button>
+              <label class="mt-4 block text-xl" for="hours">
+                <Trans key="starttime" />
+              </label>
+              <div class="w-32 rounded-lg border border-slate-300 px-4 py-2 text-center text-xl">
+                <select
+                  id="hours"
+                  class="appearance-none bg-transparent outline-none"
+                  onChange={(e) => {
+                    const val = e.target.value
+                    const hours = parseInt(val)
+                    setStartTime({
+                      hours: hours,
+                      minutes: startTime().minutes
+                    })
+                  }}
+                >
+                  <For each={Array.from(StartTimeHours)}>
+                    {(hour) => (
+                      <option
+                        selected={parseInt(hour) === startTime().hours}
+                        value={hour}
+                      >
+                        {hour}
+                      </option>
+                    )}
+                  </For>
+                </select>
+                <span class="mx-2">:</span>
+                <select
+                  name="minutes"
+                  class="appearance-none bg-transparent outline-none"
+                  onChange={(e) => {
+                    const val = e.target.value
+                    const minutes = parseInt(val)
+                    setStartTime({
+                      hours: startTime().hours,
+                      minutes: minutes
+                    })
+                  }}
+                >
+                  <For each={Array.from(StartTimeMinutes)}>
+                    {(minute) => (
+                      <option
+                        selected={parseInt(minute) === startTime().minutes}
+                        value={minute}
+                      >
+                        {minute}
+                      </option>
+                    )}
+                  </For>
+                </select>
               </div>
-            </Match>
-          </Switch>
-        </Show>
-      </div>
-      <div class="h-2/5">
-        <div class="flex w-5/6 items-center text-center">
-          <label class="mx-4 w-1/2 text-xl font-bold" for="date">
-            <Trans key="date" />
-          </label>
-          <select
-            id="date"
-            disabled={session() === 'not-selected' || session() === undefined}
-            classList={{
-              'border-red-500 text-red': selectedDate() === undefined,
-              'border-slate-300 text-black': selectedDate() !== undefined
-            }}
-            class="my-2 w-11/12 rounded-md border border-solid bg-white px-4 py-2 text-xl focus:border-sky-500 focus:outline-none focus:ring"
-            onChange={(e) => {
-              const date = new Date(dates()[parseInt(e.target.value)])
-              setSelectedDate(date)
-            }}
-          >
-            <option value="" disabled={training.start !== NullDateTime}>
-              <Trans key="select.date" />
-            </option>
-            <For each={dates()}>
-              {(d, i) => {
-                return (
-                  <option
-                    selected={
-                      training.start !== NullDateTime &&
-                      training.start.toDateString() ===
-                        dates()[i()].toDateString()
-                    }
-                    value={i()}
-                  >
-                    {formatDate(d)}
-                  </option>
-                )
-              }}
-            </For>
-          </select>
-        </div>
-        <div class="flex w-screen justify-around text-xl">
-          <button
-            classList={{
-              'bg-sky-500 text-white': pickSession(),
-              'bg-white text-sky-500': !pickSession(),
-              'cursor-not-allowed opacity-50': serverError() !== undefined
-            }}
-            disabled={serverError() !== undefined}
-            class="rounded border border-sky-500 px-4 py-2 text-xl font-bold"
-            onClick={() => setPickSession(true)}
-          >
-            <Trans key="assign.session" />
-          </button>
-          <button
-            classList={{
-              'bg-white text-sky-500': pickSession(),
-              'bg-sky-500 text-white': !pickSession()
-            }}
-            class="rounded border border-sky-500 px-4 py-2 font-bold"
-            onClick={() => setPickSession(false)}
-          >
-            <Trans key="set.manually" />
-          </button>
-        </div>
-      </div>
-
+            </fieldset>
+          </form>
+        </Match>
+      </Switch>
       <button
-        class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
-        onClick={() => sumbit()}
+        class="absolute bottom-0 right-4 my-4 w-20 rounded-lg bg-sky-500 py-2 text-xl font-bold text-white"
+        onClick={() => {
+          if (pickSession() && session().id === '') {
+            openToast(t('please.select.session'))
+            return
+          }
+          setDatepickerOpener({ s: session() })
+        }}
       >
         <Trans key="next" />
       </button>

@@ -18,14 +18,14 @@ export const TrainingCreatePreviewPage: Component<
     <div>
       <TrainingPreview training={training} />
       <button
-        class="fixed bottom-0 left-4 mx-auto my-4 w-1/4 rounded border bg-purple-dark py-2 text-xl font-bold text-white"
+        class="fixed bottom-0 left-4 my-4 w-20 rounded-lg bg-sky-500 py-2 text-xl font-bold text-white"
         onClick={() => setCurrentComponent((c) => c - 1)}
       >
         <Trans key="previous" />
       </button>
 
       <button
-        class="fixed bottom-0 right-4 mx-auto my-4 w-1/4 rounded border bg-green-600 py-2 text-xl font-bold text-white"
+        class="fixed bottom-0 right-4 my-4 w-28 rounded-lg bg-green-500 py-2 text-xl font-bold text-white"
         onClick={() => props.onSubmit()}
       >
         <Trans key="finish" />

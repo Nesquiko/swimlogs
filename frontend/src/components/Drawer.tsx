@@ -40,7 +40,7 @@ const Drawer: Component = () => {
   }
 
   return (
-    <div>
+    <div id="drawer">
       <div
         classList={{ 'bg-black/50': open(), 'pointer-events-none': !open() }}
         class="fixed left-0 top-0 z-10 h-full w-full"

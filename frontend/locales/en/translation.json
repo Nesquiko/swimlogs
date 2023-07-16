@@ -5,6 +5,7 @@
   "start": "Start",
   "duration": "Duration",
   "seconds": "Seconds",
+  "minutes": "Minutes",
   "repeat": "Repeat",
   "block": "Block",
   "distance": "Distance",
@@ -35,7 +36,6 @@
   "add.new.super.set": "Add new super set",
   "no.sets.in.training": "No sets in training. Add some!",
   "no.sets.in.superset": "No sets in super set. Add some!",
-  "minutes": "60",
   "block.name.placeholder": "Warm up",
   "monday": "Monday",
   "tuesday": "Tuesday",
@@ -61,6 +61,9 @@
   "edit": "Edit",
   "edit.super.set": "Edit super set",
   "total": "Total",
-  "session.fetch.error": "There was an error during loading sessions, please set session manually",
-  "no.sessions.created": "No sessions created. To create one click on 'Create session'"
+  "session.fetch.error": "Error loading sessions",
+  "no.sessions.created": "No sessions created.",
+  "set.session": "Set session",
+  "please.select.session": "Please select a session",
+  "total.distance.set": "Total distance in set"
 }

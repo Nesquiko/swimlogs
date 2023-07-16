@@ -5,7 +5,7 @@ import menuSvg from '../assets/menu.svg'
 
 const Topbar: Component = () => {
   return (
-    <div class="w-full bg-sky-500 p-2">
+    <div id="topbar" class="w-full bg-sky-500 p-2">
       <div class="inline-block w-1/5 align-middle">
         <img
           class="inline-block cursor-pointer"

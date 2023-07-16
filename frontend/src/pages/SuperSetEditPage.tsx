@@ -8,6 +8,7 @@ import { openToast, ToastType } from '../components/Toast'
 import { NewTrainingSet, StartType } from '../generated'
 import { cloneSet } from '../lib/clone'
 import { SmallIntMax } from '../lib/consts'
+import plusSvgBlack from '../assets/plus-black.svg'
 
 type SuperSetEditPageProps = {
   superSet: NewTrainingSet
@@ -96,14 +97,6 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
       return false
     }
 
-    if (
-      superSet.startType !== StartType.None &&
-      superSet.startSeconds !== undefined &&
-      superSet.startSeconds < 1
-    ) {
-      return false
-    }
-
     if (superSet.subSets?.length === 0) {
       openToast(
         t('add.at.least.one.set', 'Add at least one set'),
@@ -179,66 +172,6 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
           }}
         />
       </div>
-      <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="start">
-          <Trans key="start" />
-        </label>
-        <select
-          id="start"
-          class="w-32 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            setSuperSet('startType', e.target.value as StartType)
-          }}
-        >
-          <For each={Object.keys(StartType)}>
-            {(typ) => (
-              <option selected={typ === superSet.startType} value={typ}>
-                <Trans key={typ.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </select>
-      </div>
-      <div
-        classList={{
-          visible: superSet.startType !== StartType.None,
-          invisible: superSet.startType === StartType.None
-        }}
-        class="my-2 flex items-center justify-between"
-      >
-        <label class="text-xl" for="seconds">
-          <Trans key="seconds" />
-        </label>
-        <input
-          id="seconds"
-          type="number"
-          placeholder="20"
-          classList={{
-            'border-red-500 text-red-500':
-              superSet.startSeconds !== undefined && superSet.startSeconds < 1,
-            'border-slate-300':
-              superSet.startSeconds === undefined || superSet.startSeconds >= 1
-          }}
-          class="w-24 rounded-md border border-solid border-slate-300 bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          value={superSet.startSeconds}
-          onChange={(e) => {
-            const val = e.target.value
-            let seconds = parseInt(val)
-            if (Number.isNaN(seconds) || seconds < 1 || seconds > SmallIntMax) {
-              seconds = 0
-            }
-            setSuperSet('startSeconds', seconds)
-          }}
-        >
-          <For each={Object.keys(StartType)}>
-            {(typ) => (
-              <option selected={typ === superSet.startType} value={typ}>
-                <Trans key={typ.toLowerCase()} />
-              </option>
-            )}
-          </For>
-        </input>
-      </div>
 
       <div class="m-2 space-y-4">
         <For each={superSet.subSets}>
@@ -261,10 +194,10 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
         </div>
       </Show>
       <button
-        class="float-right my-4 rounded-lg bg-sky-500 p-2 text-xl text-white shadow focus:outline-none focus:ring focus:ring-sky-300"
+        class="float-right h-10 w-10 rounded-full bg-yellow-400 text-2xl text-white shadow focus:outline-none focus:ring focus:ring-yellow-300"
         onClick={() => setSetModalOpener({ set: newSubSet() })}
       >
-        <Trans key="add.set" />
+        <img src={plusSvgBlack} />
       </button>
       <div class="h-32 w-full"></div>
       <div class="fixed bottom-4 left-8 right-8 flex justify-between">
@@ -275,7 +208,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
           <Trans key="cancel" />
         </button>
         <button
-          class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
+          class="rounded-lg bg-sky-500 px-4 py-2 font-bold text-white hover:bg-sky-600 focus:outline-none focus:ring focus:ring-sky-300"
           onClick={() => {
             if (!isSetValid()) return
 
