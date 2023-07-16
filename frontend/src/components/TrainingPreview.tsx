@@ -1,12 +1,6 @@
 import { Trans } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
-import {
-  NewTraining,
-  NewTrainingSet,
-  StartType,
-  Training,
-  TrainingSet
-} from '../generated'
+import { Component, For } from 'solid-js'
+import { NewTraining, Training } from '../generated'
 import { formatDate } from '../lib/datetime'
 import SetCard from './SetCard'
 

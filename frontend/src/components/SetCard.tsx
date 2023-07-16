@@ -1,5 +1,5 @@
 import { Component, For, Match, Show, Switch } from 'solid-js'
-import { NewTrainingSet } from '../generated'
+import { NewTrainingSet, StartType } from '../generated'
 import settings from '../assets/settings.svg'
 import { Trans } from '@mbarzda/solid-i18next'
 
@@ -15,6 +15,16 @@ const SetCard: Component<SetCardProps> = (props) => {
   const setLayout = (setNum: number, set: NewTrainingSet) => {
     const repeat = set.repeat > 1 ? `${set.repeat} x ` : ''
 
+    const startSeconds =
+      set.startType !== StartType.None ? set.startSeconds! % 60 : 0
+    const startMinutes =
+      set.startType !== StartType.None
+        ? (set.startSeconds! - startSeconds) / 60
+        : 0
+    const start = `${startMinutes !== 0 ? startMinutes + "'" : ''}${
+      startSeconds !== 0 ? startSeconds + '"' : ''
+    }`
+
     return (
       <div>
         <div class="rounded-t-lg bg-sky-300 p-2">
@@ -25,7 +35,7 @@ const SetCard: Component<SetCardProps> = (props) => {
             <span class="text-xl">
               <Trans key={set.startType.toLowerCase()} />:{' '}
             </span>
-            <span class="text-xl">{set.startSeconds}"</span>
+            <span class="text-xl">{start}</span>
           </Show>
           <Show when={props.showSettings}>
             <img
@@ -64,6 +74,18 @@ const SetCard: Component<SetCardProps> = (props) => {
         <For each={superSet.subSets}>
           {(subSet, idx) => {
             const repeatSubSet = subSet.repeat > 1 ? `${subSet.repeat} x ` : ''
+            const startSeconds =
+              subSet.startType !== StartType.None
+                ? subSet.startSeconds! % 60
+                : 0
+            const startMinutes =
+              subSet.startType !== StartType.None
+                ? (subSet.startSeconds! - startSeconds) / 60
+                : 0
+            const start = `${startMinutes !== 0 ? startMinutes + "'" : ''}${
+              startSeconds !== 0 ? startSeconds + '"' : ''
+            }`
+
             return (
               <div class="ml-12 p-2">
                 <span class="inline-block w-10 text-xl">
@@ -75,7 +97,7 @@ const SetCard: Component<SetCardProps> = (props) => {
                   <span class="text-xl">
                     <Trans key={subSet.startType.toLowerCase()} />:{' '}
                   </span>
-                  <span class="text-xl">{subSet.startSeconds}"</span>
+                  <span class="text-xl">{start}</span>
                 </Show>
                 <p class="ml-10 whitespace-pre-wrap text-lg">
                   {subSet.description}
