@@ -4,6 +4,7 @@ import { Component, createSignal } from 'solid-js'
 import swimSvg from '../assets/swim.svg'
 import calendarSvg from '../assets/calendar-black.svg'
 import homeSvg from '../assets/home.svg'
+import historySvg from '../assets/history-black.svg'
 
 const [open, setOpen] = createSignal(false)
 
@@ -55,6 +56,11 @@ const Drawer: Component = () => {
       >
         <div class="h-full flex-col justify-start bg-white pt-4">
           <Item pathname="/" labelKey="home" imgSrc={homeSvg} />
+          <Item
+            pathname="/trainings"
+            labelKey="trainings.history"
+            imgSrc={historySvg}
+          />
           <Item
             pathname="/training/create"
             labelKey="create.training"
