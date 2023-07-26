@@ -11,6 +11,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetTrainingDetailsPaginationWorks(t *testing.T) {
+	it.TestFilter(t)
+	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
+
+	weekTime := time.Date(2023, 8, 24, 12, 0, 0, 0, time.UTC) // Thursday
+	for i := 0; i < 7; i++ {
+		newTraining := newTraining()
+		newTraining.Start = weekTime.AddDate(0, 0, -i)
+		_, err := PostgresDbConn.SaveTraining(newTraining)
+		require.Nil(t, err)
+	}
+
+	expectedCount := 7
+	trainings, total, err := PostgresDbConn.GetTrainingDetails(0, 5)
+	require.Nil(t, err)
+	assert := assert.New(t)
+	assert.Equal(expectedCount, total)
+	assert.Equal(5, len(trainings))
+
+	trainings, total, err = PostgresDbConn.GetTrainingDetails(1, 5)
+	require.Nil(t, err)
+	assert.Equal(expectedCount, total)
+	assert.Equal(2, len(trainings))
+}
+
 func TestGetTrainingDetailsForWeekSuccessfully(t *testing.T) {
 	it.TestFilter(t)
 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })

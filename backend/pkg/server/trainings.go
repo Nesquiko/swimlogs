@@ -27,6 +27,8 @@ func (s *SwimLogsServer) GetTrainingsDetails(
 	r *http.Request,
 	params openapi.GetTrainingsDetailsParams,
 ) {
+	res := s.app.GetTrainingDetails(params)
+	respondWithJSON(w, res.Code(), res.Body())
 }
 
 // (GET /trainings/details/current-week)

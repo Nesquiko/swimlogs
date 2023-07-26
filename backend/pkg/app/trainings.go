@@ -139,3 +139,22 @@ func (app *SwimLogsApp) GetTrainingDetailsInWeek(
 	}
 	return resultWithBody(body, http.StatusOK)
 }
+
+func (app *SwimLogsApp) GetTrainingDetails(
+	params openapi.GetTrainingsDetailsParams,
+) Result[openapi.TrainingDetailsResponse] {
+	tds, total, err := app.db.GetTrainingDetails(params.Page, params.PageSize)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to get training details")
+		return internalServerErrorResult[openapi.TrainingDetailsResponse](
+			"Failed to get training details",
+		)
+	}
+
+	pagination := openapi.Pagination{Page: params.Page, PageSize: len(tds), Total: total}
+	body := openapi.TrainingDetailsResponse{
+		Details:    mapDataTrainingsToApiTrainingDetails(tds),
+		Pagination: pagination,
+	}
+	return resultWithBody(body, http.StatusOK)
+}

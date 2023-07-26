@@ -16,8 +16,8 @@ func (app *SwimLogsApp) GetSessions(
 ) Result[openapi.SessionsResponse] {
 	sessions, total, err := app.db.GetSessions(params.Page, params.PageSize)
 	if err != nil {
-		log.Warn().Err(err).Msg("failed to get all sessions")
-		return internalServerErrorResult[openapi.SessionsResponse]("Failed to get all sessions")
+		log.Warn().Err(err).Msg("failed to get sessions")
+		return internalServerErrorResult[openapi.SessionsResponse]("Failed to get sessions")
 	}
 
 	pagination := openapi.Pagination{Page: params.Page, PageSize: len(sessions), Total: total}
