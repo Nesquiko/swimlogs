@@ -249,21 +249,7 @@ paths:
             minimum: 1
       responses:
         200:
-          description: Paginated list of training details
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  details:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TrainingDetail'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-                required:
-                  - details
-                  - pagination
+          $ref: '#/components/responses/TrainingDetailsResponse'
         400:
           description: Page or pageSize is invalid
           content:
@@ -378,6 +364,23 @@ components:
                 $ref: '#/components/schemas/Pagination'
             required:
               - sessions
+              - pagination
+    
+    TrainingDetailsResponse:
+      description: Paginated list of training details
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              details:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingDetail'
+              pagination:
+                $ref: '#/components/schemas/Pagination'
+            required:
+              - details
               - pagination
 
     TrainingDetailsCurrentWeekResponse:

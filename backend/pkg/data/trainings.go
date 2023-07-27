@@ -251,3 +251,42 @@ func (db *PostgresDbConn) GetTrainingDetailsInWeek(week time.Time) ([]Training, 
 
 	return ts, nil
 }
+
+var selectTrainingDetails = `
+select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at, count(*) over ()
+from trainings t
+order by t.start desc, t.duration_min, t.total_distance
+limit $1 offset $2
+`
+
+// GetTrainingDetails returns a paginated list of trainings and total count of trainings.
+// Page starts at 0.
+func (db *PostgresDbConn) GetTrainingDetails(page, pageSize int) ([]Training, int, error) {
+	var ts = make([]Training, 0)
+
+	rows, err := db.Query(selectTrainingDetails, pageSize, page*pageSize)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetTrainingDetails: %w", err)
+	}
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		var t Training
+		err := rows.Scan(
+			&t.Id,
+			&t.Start,
+			&t.DurationMin,
+			&t.TotalDistance,
+			&t.CreatedAt,
+			&t.ModifiedAt,
+			&count,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetTrainingDetails: %w", err)
+		}
+		ts = append(ts, t)
+	}
+
+	return ts, count, nil
+}

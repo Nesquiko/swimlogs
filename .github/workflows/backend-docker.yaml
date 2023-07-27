@@ -50,6 +50,10 @@ jobs:
           cache: false # since it will be rebuilt in docker
       - name: Dowloand dependencies
         run: go get .
+      - name: Dowloand Oapi-Codegen
+        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.13.0
+      - name: Generate from OpenApi spec
+        run: make generate
       - name: Test
         run: go test -p 1 -count=1 -v ./...
 

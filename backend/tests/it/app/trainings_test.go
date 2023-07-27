@@ -12,6 +12,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetTrainingsDetailsSuccessfully(t *testing.T) {
+	it.TestFilter(t)
+	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
+
+	weekTime := time.Date(2023, 8, 24, 12, 0, 0, 0, time.UTC) // Thursday
+	for i := 0; i < 7; i++ {
+		newTraining := newTraining()
+		newTraining.Start = weekTime.AddDate(0, 0, -i)
+		res := SwimLogsApp.SaveTraining(newTraining)
+		require.Equal(t, http.StatusCreated, res.Code())
+		require.IsType(t, openapi.TrainingDetail{}, res.Body())
+	}
+
+	expectedTotalCount := 7
+	res := SwimLogsApp.GetTrainingDetails(openapi.GetTrainingsDetailsParams{Page: 0, PageSize: 5})
+	require.Equal(t, http.StatusOK, res.Code())
+	require.IsType(t, openapi.TrainingDetailsResponse{}, res.Body())
+	response := res.Body().(openapi.TrainingDetailsResponse)
+
+	assert := assert.New(t)
+	assert.Equal(expectedTotalCount, response.Pagination.Total)
+	assert.Equal(5, len(response.Details))
+
+	res = SwimLogsApp.GetTrainingDetails(openapi.GetTrainingsDetailsParams{Page: 1, PageSize: 5})
+	require.Equal(t, http.StatusOK, res.Code())
+	require.IsType(t, openapi.TrainingDetailsResponse{}, res.Body())
+	response = res.Body().(openapi.TrainingDetailsResponse)
+	assert.Equal(expectedTotalCount, response.Pagination.Total)
+	assert.Equal(2, len(response.Details))
+}
+
 func TestGetTrainingsDetailsForCurrentWeekSuccessfully(t *testing.T) {
 	it.TestFilter(t)
 	t.Cleanup(func() { it.TruncateTrainings(PostgresDbConn.DB) })
@@ -31,7 +62,6 @@ func TestGetTrainingsDetailsForCurrentWeekSuccessfully(t *testing.T) {
 	require.IsType(t, openapi.TrainingDetailsCurrentWeekResponse{}, res.Body())
 	trainings := res.Body().(openapi.TrainingDetailsCurrentWeekResponse).Details
 	assert.Equal(t, expectedCount, len(trainings))
-
 }
 
 func TestGetTrainingByIdSuccessfully(t *testing.T) {

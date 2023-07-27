@@ -1,11 +1,11 @@
 import { Component, Show, For } from 'solid-js'
-import { useTrainingsDetails } from '../state/trainings'
+import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import DetailCard from '../components/DetailCard'
 import { useNavigate } from '@solidjs/router'
 import { Trans } from '@mbarzda/solid-i18next'
 
 const Home: Component = () => {
-  const [details] = useTrainingsDetails()
+  const [details] = useTrainingsDetailsThisWeek()
   const navigate = useNavigate()
 
   return (
