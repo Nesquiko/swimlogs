@@ -13,14 +13,14 @@ async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
   const trainings = result.then((res) => res)
   return trainings
 }
-const [details, { mutate }] = createResource(getTrainingsThisWeek)
-const useTrainingsDetails = () => [details]
+const [detailsThisWeek, { mutate }] = createResource(getTrainingsThisWeek)
+const useTrainingsDetailsThisWeek = () => [detailsThisWeek]
 
 function addTrainingDetail(td: TrainingDetail) {
   if (!isThisInThisWeek(td.start)) {
     return
   }
-  const currentDetails = details()?.details ?? []
+  const currentDetails = detailsThisWeek()?.details ?? []
   const newDetails = [...currentDetails, td]
   newDetails.sort(trainingDetailCompare)
   mutate({ details: newDetails })
@@ -53,4 +53,4 @@ function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
   return 0
 }
 
-export { trainingApi, useTrainingsDetails, addTrainingDetail }
+export { trainingApi, useTrainingsDetailsThisWeek, addTrainingDetail }
