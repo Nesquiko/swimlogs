@@ -18,6 +18,7 @@ var (
 	subSetOrderDuplicateErrFormat = "Duplicate sub set order '%d'"
 	startTypeErrFormat            = "Unknown starting type name '%s'"
 	startSecondsErrFormat         = "Type '%s' must have seconds set"
+	equipmentErrFormat            = "Unknown equipment '%s'"
 )
 
 type TrainingValidation struct {
@@ -146,6 +147,16 @@ func validateSet(set openapi.NewTrainingSet) (openapi.InvalidTrainingSet, bool) 
 	} else if set.StartType != openapi.None && set.StartSeconds == nil {
 		invalid.StartSeconds = asPtr(fmt.Sprintf(startSecondsErrFormat, set.StartType))
 		isValid = false
+	}
+
+	if set.Equipment != nil {
+		invalid.Equipment = asPtr(make([]string, 0))
+		for _, e := range *set.Equipment {
+			if !openapi.EquipmentSet[e] {
+				*invalid.Equipment = append(*invalid.Equipment, fmt.Sprintf(equipmentErrFormat, e))
+				isValid = false
+			}
+		}
 	}
 
 	return invalid, isValid

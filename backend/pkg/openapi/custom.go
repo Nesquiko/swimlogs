@@ -38,3 +38,11 @@ var StartTypes = map[StartType]bool{
 	Pause:    true,
 	Interval: true,
 }
+
+var EquipmentSet = map[Equipment]bool{
+	Board:   true,
+	Fins:    true,
+	Monofin: true,
+	Paddles: true,
+	Snorkel: true,
+}

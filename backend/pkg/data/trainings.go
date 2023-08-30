@@ -40,6 +40,7 @@ type TrainingSet struct {
 	StartType      string
 	StartSeconds   *int
 	SubSets        *[]TrainingSet
+	Equipment      []string
 }
 
 func (db *PostgresDbConn) SaveTraining(t Training) (Training, error) {
@@ -85,10 +86,10 @@ func (db *PostgresDbConn) saveTraining(t Training, tx *sql.Tx) (Training, error)
 
 var insertSet = `
 insert into sets (id, parent_set_id, training_id, set_order, subset_order, repeat,
-		distance_meters, description, start_type, start_seconds, total_distance)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		distance_meters, description, start_type, start_seconds, total_distance, equipment)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 returning id, parent_set_id, training_id, set_order, subset_order, repeat, distance_meters, description, start_type,
-    start_seconds, total_distance
+    start_seconds, total_distance, equipment
 `
 
 func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error) {
@@ -105,6 +106,7 @@ func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error
 		s.StartType,
 		s.StartSeconds,
 		s.TotalDistance,
+		pq.Array(s.Equipment),
 	).Scan(
 		&s.Id,
 		&s.ParentSetId,
@@ -117,6 +119,7 @@ func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error
 		&s.StartType,
 		&s.StartSeconds,
 		&s.TotalDistance,
+		pq.Array(s.Equipment),
 	)
 
 	if pqErr, ok := err.(*pq.Error); ok {
@@ -141,7 +144,8 @@ var selectTraining = `
 select
     t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
     s.id, s.parent_set_id, s.training_id, s.set_order, s.subset_order, s.repeat,
-    s.distance_meters, s.description, s.start_type, s.start_seconds, s.total_distance
+    s.distance_meters, s.description, s.start_type, s.start_seconds, s.total_distance,
+	s.equipment
 from trainings t
          join sets s on t.id = s.training_id
 where t.id = $1
@@ -180,6 +184,7 @@ func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
 			&s.StartType,
 			&s.StartSeconds,
 			&s.TotalDistance,
+			pq.Array(&s.Equipment),
 		)
 		if err != nil {
 			return Training{}, fmt.Errorf("GetTrainingById: %w", err)

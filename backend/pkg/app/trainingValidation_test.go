@@ -101,6 +101,28 @@ func Test_validateNewTraining(t *testing.T) {
 				IsValid: false,
 			},
 		},
+		{
+			desc: "invalid equipment",
+			tr: openapi.NewTraining{
+				DurationMin: 60,
+				Sets: []openapi.NewTrainingSet{
+					{
+						Repeat:    1,
+						SetOrder:  asPtr(0),
+						StartType: openapi.None,
+						Equipment: &[]openapi.Equipment{openapi.Board, openapi.Equipment("Fin")},
+					},
+				},
+			},
+			expected: TrainingValidation{
+				InvalidTraining: openapi.InvalidTraining{
+					InvalidSets: &[]openapi.InvalidTrainingSet{{
+						Equipment: &[]string{fmt.Sprintf(equipmentErrFormat, "Fin")},
+					}},
+				},
+				IsValid: false,
+			},
+		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
