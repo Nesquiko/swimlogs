@@ -1,7 +1,7 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { createEffect, createSignal, For, JSX, on, onMount } from 'solid-js'
-import { createStore, reconcile } from 'solid-js/store'
-import { NewTrainingSet, StartType } from '../generated'
+import { createStore, produce, reconcile } from 'solid-js/store'
+import { Equipment, NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
 
 type SetModalProps = {
@@ -121,6 +121,38 @@ function SetModal(props: SetModalProps): JSX.Element {
     }
 
     return isValid
+  }
+
+  const equipmentButton = (equipment: Equipment) => {
+    return (
+      <button
+        classList={{
+          'bg-sky-300': trainingSet.equipment?.includes(equipment)
+        }}
+        class="rounded-lg border p-2"
+        onClick={() => {
+          if (trainingSet.equipment === undefined) {
+            setTrainingSet('equipment', new Array())
+          }
+
+          if (trainingSet.equipment?.includes(equipment)) {
+            setTrainingSet('equipment', (e) =>
+              e?.filter((e) => e !== equipment)
+            )
+            return
+          }
+
+          setTrainingSet(
+            'equipment',
+            produce((e) => {
+              e?.push(equipment)
+            })
+          )
+        }}
+      >
+        {equipment}
+      </button>
+    )
   }
 
   return (
@@ -259,6 +291,20 @@ function SetModal(props: SetModalProps): JSX.Element {
           }}
         />
       </div>
+
+      <div class="my-2 ">
+        <label class="text-xl">
+          <Trans key="equipment" />
+        </label>
+        <div class="flex items-center justify-between">
+          {equipmentButton(Equipment.Fins)}
+          {equipmentButton(Equipment.Monofin)}
+          {equipmentButton(Equipment.Snorkel)}
+          {equipmentButton(Equipment.Paddles)}
+          {equipmentButton(Equipment.Board)}
+        </div>
+      </div>
+
       <label class="text-xl" for="description">
         <Trans key="description" />
       </label>
