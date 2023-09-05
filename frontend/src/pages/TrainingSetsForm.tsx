@@ -109,11 +109,16 @@ const TrainingSetsForm: Component = () => {
           />
         </Match>
         <Match when={!superSetFormOpen()}>
-          <SetModal opener={addModalOpener()} onSubmitSet={addNewSet} />
+          <SetModal
+            opener={addModalOpener()}
+            onSubmitSet={addNewSet}
+            title={t('add.new.set')}
+          />
           <SetModal
             opener={editModalOpener()}
             onSubmitSet={(set, idx) => editSet(set, idx!)}
             submitBtnLabelKey="edit"
+            title={t('edit.set')}
           />
           <MenuModal
             widthRem="15"

@@ -8,6 +8,7 @@ type SetModalProps = {
   opener: { set: NewTrainingSet; idx?: number }
   onSubmitSet: (set: NewTrainingSet, idx?: number) => void
 
+  title: string
   submitBtnLabelKey?: string
 }
 
@@ -160,9 +161,7 @@ function SetModal(props: SetModalProps): JSX.Element {
       ref={dialog!}
       class="h-screen w-11/12 rounded-lg md:w-5/6 lg:w-2/3 xl:w-1/3"
     >
-      <p class="text-center text-2xl">
-        <Trans key="add.new.set" />
-      </p>
+      <p class="text-center text-2xl">{props.title}</p>
       <hr class="my-2 rounded-lg border-2 border-slate-500" />
       <div class="my-2 flex items-center justify-between">
         <label class="text-xl" for="repeat">

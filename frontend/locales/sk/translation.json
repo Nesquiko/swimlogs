@@ -33,6 +33,7 @@
 	"add": "Pridať",
 	"add.set": "Pridaj sériu",
 	"add.new.set": "Pridaj novú sériu",
+	"edit.set": "Upraviť sériu",
 	"add.new.super.set": "Pridaj novú supersériu",
 	"no.sets.in.training": "Tréning neobsahuje žiadne série. Pridaj novú sériu!",
 	"no.sets.in.superset": "Superséria neobsahuje žiadne série. Pridaj novú sériu!",
