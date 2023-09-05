@@ -3,11 +3,11 @@ import { createEffect, createSignal, For, JSX, on, onMount } from 'solid-js'
 import { createStore, produce, reconcile } from 'solid-js/store'
 import { Equipment, NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
+import { EquipmentIcons } from './Equipment'
 
 type SetModalProps = {
   opener: { set: NewTrainingSet; idx?: number }
   onSubmitSet: (set: NewTrainingSet, idx?: number) => void
-
   title: string
   submitBtnLabelKey?: string
 }
@@ -125,12 +125,13 @@ function SetModal(props: SetModalProps): JSX.Element {
   }
 
   const equipmentButton = (equipment: Equipment) => {
+    let imgSrc = EquipmentIcons.get(equipment)
     return (
       <button
         classList={{
           'bg-sky-300': trainingSet.equipment?.includes(equipment)
         }}
-        class="rounded-lg border p-2"
+        class="rounded-lg border border-slate-300 p-2"
         onClick={() => {
           if (trainingSet.equipment === undefined) {
             setTrainingSet('equipment', new Array())
@@ -151,7 +152,7 @@ function SetModal(props: SetModalProps): JSX.Element {
           )
         }}
       >
-        {equipment}
+        <img width={48} height={48} src={imgSrc} />
       </button>
     )
   }

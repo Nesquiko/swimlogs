@@ -2,7 +2,7 @@ import { Component, For, Match, Show, Switch } from 'solid-js'
 import { Equipment, NewTrainingSet, StartType } from '../generated'
 import settings from '../assets/settings.svg'
 import { Trans } from '@mbarzda/solid-i18next'
-import editSvgBlack from '../assets/edit-black.svg'
+import { EquipmentIcons } from './Equipment'
 
 type SetCardProps = {
   set: NewTrainingSet
@@ -14,9 +14,8 @@ type SetCardProps = {
 
 const SetCard: Component<SetCardProps> = (props) => {
   const equipmentTag = (equipment: Equipment) => {
-    return (
-      <img class="m-2 inline-block" width={24} height={24} src={editSvgBlack} />
-    )
+    let imgSrc = EquipmentIcons.get(equipment)
+    return <img class="m-2 inline-block" width={48} height={48} src={imgSrc} />
   }
 
   const setLayout = (setNum: number, set: NewTrainingSet) => {
