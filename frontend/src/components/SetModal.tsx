@@ -3,6 +3,7 @@ import { createEffect, createSignal, For, JSX, on, onMount } from 'solid-js'
 import { createStore, produce, reconcile } from 'solid-js/store'
 import { Equipment, NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
+import Counter from './Counter'
 import { EquipmentIcons } from './Equipment'
 
 type SetModalProps = {
@@ -157,6 +158,11 @@ function SetModal(props: SetModalProps): JSX.Element {
     )
   }
 
+  const setDistance = (distance: number) => {
+    setTrainingSet('distanceMeters', distance)
+    setTrainingSet('totalDistance', trainingSet.repeat * distance)
+  }
+
   return (
     <dialog
       ref={dialog!}
@@ -164,41 +170,59 @@ function SetModal(props: SetModalProps): JSX.Element {
     >
       <p class="text-center text-2xl">{props.title}</p>
       <hr class="my-2 rounded-lg border-2 border-slate-500" />
-      <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="repeat">
+      <div class="flex items-center justify-between">
+        <label class="text-xl">
           <Trans key="repeat" />
         </label>
-        <input
-          id="repeat"
-          type="number"
-          placeholder="1"
-          classList={{
-            'border-red-500 text-red-500': trainingSet.repeat < 1,
-            'border-slate-300': trainingSet.repeat >= 1
-          }}
-          class="w-24 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.repeat}
-          onChange={(e) => {
-            let repeat = parseInt(e.target.value)
-            if (Number.isNaN(repeat) || repeat < 1 || repeat > SmallIntMax) {
-              repeat = 0
-            }
-            setTrainingSet('repeat', repeat)
+
+        <Counter
+          initial={trainingSet.repeat}
+          min={1}
+          max={SmallIntMax}
+          onChange={(n) => {
+            setTrainingSet('repeat', n)
             setTrainingSet(
               'totalDistance',
-              repeat * (trainingSet.distanceMeters ?? 0)
+              n * (trainingSet.distanceMeters ?? 0)
             )
           }}
         />
       </div>
+      <p class="my-2 text-xl">
+        <Trans key="distance" />
+      </p>
       <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="distance">
-          <Trans key="distance" />
-        </label>
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 25
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(25)}
+        >
+          25
+        </button>
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 50
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(50)}
+        >
+          50
+        </button>
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 100
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(100)}
+        >
+          100
+        </button>
         <input
           id="distance"
           type="number"
-          placeholder="400"
+          placeholder={t('different.distance', 'Custom distance')}
           classList={{
             'border-red-500 text-red-500':
               trainingSet.distanceMeters !== undefined &&
@@ -207,8 +231,7 @@ function SetModal(props: SetModalProps): JSX.Element {
               trainingSet.distanceMeters === undefined ||
               trainingSet.distanceMeters >= 1
           }}
-          class="w-24 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.distanceMeters ?? '0'}
+          class="w-36 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
           onChange={(e) => {
             let dist = parseInt(e.target.value)
             if (Number.isNaN(dist) || dist < 1 || dist > SmallIntMax) {
