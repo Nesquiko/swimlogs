@@ -1,7 +1,8 @@
 import { Component, For, Match, Show, Switch } from 'solid-js'
-import { NewTrainingSet, StartType } from '../generated'
+import { Equipment, NewTrainingSet, StartType } from '../generated'
 import settings from '../assets/settings.svg'
 import { Trans } from '@mbarzda/solid-i18next'
+import { EquipmentIcons } from './Equipment'
 
 type SetCardProps = {
   set: NewTrainingSet
@@ -12,6 +13,11 @@ type SetCardProps = {
 }
 
 const SetCard: Component<SetCardProps> = (props) => {
+  const equipmentTag = (equipment: Equipment) => {
+    let imgSrc = EquipmentIcons.get(equipment)
+    return <img class="m-2 inline-block" width={48} height={48} src={imgSrc} />
+  }
+
   const setLayout = (setNum: number, set: NewTrainingSet) => {
     const repeat = set.repeat > 1 ? `${set.repeat} x ` : ''
 
@@ -47,6 +53,11 @@ const SetCard: Component<SetCardProps> = (props) => {
             />
           </Show>
         </div>
+        <Show when={set.equipment}>
+          <div class="text-center">
+            <For each={set.equipment}>{(e) => equipmentTag(e)}</For>
+          </div>
+        </Show>
         <Show when={set.description}>
           <p class="whitespace-pre-wrap p-2 text-lg">{set.description}</p>
         </Show>
@@ -101,6 +112,13 @@ const SetCard: Component<SetCardProps> = (props) => {
                   </span>
                   <span class="text-xl">{start}</span>
                 </Show>
+
+                <Show when={subSet.equipment}>
+                  <div class="text-center">
+                    <For each={subSet.equipment}>{(e) => equipmentTag(e)}</For>
+                  </div>
+                </Show>
+
                 <p class="ml-10 whitespace-pre-wrap text-lg">
                   {subSet.description}
                 </p>

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: '1.0.0'
+  version: '1.1.0'
   title: SwimLogs API
   license:
     name: MIT License
@@ -459,6 +459,15 @@ components:
         - None
         - Interval
         - Pause
+    
+    Equipment:
+      type: string
+      enum:
+        - Fins
+        - Monofin
+        - Snorkel
+        - Board
+        - Paddles 
 
     Session:
       type: object
@@ -533,6 +542,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSet'
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipment'
       required:
         - id
         - repeat
@@ -703,6 +716,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NewTrainingSet'
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipment'
       required:
         - repeat
         - startType
@@ -737,3 +754,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InvalidTrainingSet'
+        equipment:
+          type: array
+          items:
+            type: string
+            example: "Unknown equipment 'Fin'"

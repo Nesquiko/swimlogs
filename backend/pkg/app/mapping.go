@@ -45,6 +45,12 @@ func dataSetsIntoApiTrainingSets(ts []data.TrainingSet) []openapi.TrainingSet {
 }
 
 func dataSetIntoApiTrainingSet(s data.TrainingSet) openapi.TrainingSet {
+	var equipment []openapi.Equipment
+
+	for _, e := range s.Equipment {
+		equipment = append(equipment, openapi.Equipment(e))
+	}
+
 	return openapi.TrainingSet{
 		Id:             s.Id,
 		SetOrder:       &s.SetOrder,
@@ -55,6 +61,7 @@ func dataSetIntoApiTrainingSet(s data.TrainingSet) openapi.TrainingSet {
 		StartType:      openapi.StartType(s.StartType),
 		StartSeconds:   s.StartSeconds,
 		TotalDistance:  s.TotalDistance,
+		Equipment:      &equipment,
 	}
 }
 
@@ -115,6 +122,13 @@ func apiNewSetIntoDataSet(
 		s.SetOrder = asPtr(parentSetOrder)
 	}
 
+	var equipment []string
+	if s.Equipment != nil {
+		for _, e := range *s.Equipment {
+			equipment = append(equipment, string(e))
+		}
+	}
+
 	ts := data.TrainingSet{
 		Id:             uuid.New(),
 		TrainingId:     tId,
@@ -126,6 +140,7 @@ func apiNewSetIntoDataSet(
 		Description:    s.Description,
 		StartType:      string(s.StartType),
 		StartSeconds:   s.StartSeconds,
+		Equipment:      equipment,
 	}
 
 	if s.StartType == openapi.None {

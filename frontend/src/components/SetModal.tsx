@@ -1,13 +1,15 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { createEffect, createSignal, For, JSX, on, onMount } from 'solid-js'
-import { createStore, reconcile } from 'solid-js/store'
-import { NewTrainingSet, StartType } from '../generated'
+import { createStore, produce, reconcile } from 'solid-js/store'
+import { Equipment, NewTrainingSet, StartType } from '../generated'
 import { SmallIntMax } from '../lib/consts'
+import Counter from './Counter'
+import { EquipmentIcons } from './Equipment'
 
 type SetModalProps = {
   opener: { set: NewTrainingSet; idx?: number }
   onSubmitSet: (set: NewTrainingSet, idx?: number) => void
-
+  title: string
   submitBtnLabelKey?: string
 }
 
@@ -16,22 +18,22 @@ function SetModal(props: SetModalProps): JSX.Element {
   const [startTimeSeconds, setStartTimeSeconds] = createSignal(0)
   const [startTimeSecondsErr, setStartTimeSecondsErr] = createSignal(false)
 
-  const [startMinutes, setStartMinutes] = createSignal(0)
-  const [startMinutesErr, setStartMinutesErr] = createSignal(false)
+  const [startTimeMinutes, setStartTimeMinutes] = createSignal(0)
+  const [startTimeMinutesErr, setStartTimeMinutesErr] = createSignal(false)
 
   createEffect(
     on(
       () => props.opener,
       () => {
-        setStartMinutes(0)
+        setStartTimeMinutes(0)
         setStartTimeSeconds(0)
-        setStartMinutesErr(false)
+        setStartTimeMinutesErr(false)
         setStartTimeSecondsErr(false)
 
         if (props.opener.set.startType !== StartType.None) {
           const seconds = props.opener.set.startSeconds! % 60
           const minutes = (props.opener.set.startSeconds! - seconds) / 60
-          setStartMinutes(minutes)
+          setStartTimeMinutes(minutes)
           setStartTimeSeconds(seconds)
         }
         setTrainingSet(reconcile(props.opener.set))
@@ -81,7 +83,7 @@ function SetModal(props: SetModalProps): JSX.Element {
     // this modal only creates sets without subsets, so we can just shallow copy the object
     const ts = Object.assign({}, trainingSet)
     if (ts.startType !== StartType.None) {
-      ts.startSeconds = startTimeSeconds() + startMinutes() * 60
+      ts.startSeconds = startTimeSeconds() + startTimeMinutes() * 60
     } else {
       ts.startSeconds = undefined
     }
@@ -108,13 +110,13 @@ function SetModal(props: SetModalProps): JSX.Element {
         isValid = false
       }
 
-      if (startMinutes() < 0 || startMinutes() > 59) {
-        setStartMinutesErr(true)
+      if (startTimeMinutes() < 0 || startTimeMinutes() > 59) {
+        setStartTimeMinutesErr(true)
         isValid = false
       }
 
-      if (startMinutes() * 60 + startTimeSeconds() === 0) {
-        setStartMinutesErr(true)
+      if (startTimeMinutes() * 60 + startTimeSeconds() === 0) {
+        setStartTimeMinutesErr(true)
         setStartTimeSecondsErr(true)
         isValid = false
       }
@@ -123,50 +125,103 @@ function SetModal(props: SetModalProps): JSX.Element {
     return isValid
   }
 
+  const equipmentButton = (equipment: Equipment) => {
+    let imgSrc = EquipmentIcons.get(equipment)
+    return (
+      <button
+        classList={{
+          'bg-sky-300': trainingSet.equipment?.includes(equipment)
+        }}
+        class="rounded-lg border border-slate-300 p-2"
+        onClick={() => {
+          if (trainingSet.equipment === undefined) {
+            setTrainingSet('equipment', new Array())
+          }
+
+          if (trainingSet.equipment?.includes(equipment)) {
+            setTrainingSet('equipment', (e) =>
+              e?.filter((e) => e !== equipment)
+            )
+            return
+          }
+
+          setTrainingSet(
+            'equipment',
+            produce((e) => {
+              e?.push(equipment)
+            })
+          )
+        }}
+      >
+        <img width={48} height={48} src={imgSrc} />
+      </button>
+    )
+  }
+
+  const setDistance = (distance: number) => {
+    setTrainingSet('distanceMeters', distance)
+    setTrainingSet('totalDistance', trainingSet.repeat * distance)
+  }
+
   return (
     <dialog
       ref={dialog!}
       class="h-screen w-11/12 rounded-lg md:w-5/6 lg:w-2/3 xl:w-1/3"
     >
-      <p class="text-center text-2xl">
-        <Trans key="add.new.set" />
-      </p>
-      <hr class="my-2 rounded-lg border-2 border-slate-500" />
-      <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="repeat">
+      <p class="text-center text-2xl">{props.title}</p>
+      <hr class="my-4 rounded-lg border-2 border-slate-500" />
+      <div class="flex items-center justify-between">
+        <label class="text-xl">
           <Trans key="repeat" />
         </label>
-        <input
-          id="repeat"
-          type="number"
-          placeholder="1"
-          classList={{
-            'border-red-500 text-red-500': trainingSet.repeat < 1,
-            'border-slate-300': trainingSet.repeat >= 1
-          }}
-          class="w-24 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.repeat}
-          onChange={(e) => {
-            let repeat = parseInt(e.target.value)
-            if (Number.isNaN(repeat) || repeat < 1 || repeat > SmallIntMax) {
-              repeat = 0
-            }
-            setTrainingSet('repeat', repeat)
+        <Counter
+          initial={trainingSet.repeat}
+          min={1}
+          max={SmallIntMax}
+          onChange={(n) => {
+            setTrainingSet('repeat', n)
             setTrainingSet(
               'totalDistance',
-              repeat * (trainingSet.distanceMeters ?? 0)
+              n * (trainingSet.distanceMeters ?? 0)
             )
           }}
         />
       </div>
-      <div class="my-2 flex items-center justify-between">
-        <label class="text-xl" for="distance">
-          <Trans key="distance" />
-        </label>
+      <p class="my-4 text-xl">
+        <Trans key="distance" />
+      </p>
+      <div class="my-4 flex items-center justify-between">
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 25
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(25)}
+        >
+          25
+        </button>
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 50
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(50)}
+        >
+          50
+        </button>
+        <button
+          classList={{
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 100
+          }}
+          class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
+          onClick={() => setDistance(100)}
+        >
+          100
+        </button>
         <input
           id="distance"
           type="number"
-          placeholder="400"
+          placeholder={t('different.distance', 'Custom distance')}
           classList={{
             'border-red-500 text-red-500':
               trainingSet.distanceMeters !== undefined &&
@@ -175,8 +230,7 @@ function SetModal(props: SetModalProps): JSX.Element {
               trainingSet.distanceMeters === undefined ||
               trainingSet.distanceMeters >= 1
           }}
-          class="w-24 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
-          value={trainingSet.distanceMeters ?? '0'}
+          class="w-36 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
           onChange={(e) => {
             let dist = parseInt(e.target.value)
             if (Number.isNaN(dist) || dist < 1 || dist > SmallIntMax) {
@@ -187,7 +241,7 @@ function SetModal(props: SetModalProps): JSX.Element {
           }}
         />
       </div>
-      <div class="my-2 flex items-center justify-between">
+      <div class="my-4 flex items-center justify-between">
         <label class="text-xl" for="start">
           <Trans key="start" />
         </label>
@@ -212,53 +266,38 @@ function SetModal(props: SetModalProps): JSX.Element {
           visible: trainingSet.startType !== StartType.None,
           invisible: trainingSet.startType === StartType.None
         }}
-        class="my-2 text-end"
+        class="my-4 flex justify-around gap-4 md:justify-end"
       >
-        <input
-          id="minutes"
-          type="number"
-          placeholder={t('minutes', 'minutes')}
-          value={startMinutes() === 0 ? '' : startMinutes()}
-          min="0"
-          max="59"
-          classList={{
-            'border-red-500 text-red-500': startMinutesErr(),
-            'border-slate-300': !startMinutesErr()
-          }}
-          class="mx-2 w-24 rounded-lg border border-solid bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            const val = e.target.value
-            let minutes = parseInt(val)
-            setStartMinutesErr(false)
-            if (Number.isNaN(minutes) || minutes < 0 || minutes > SmallIntMax) {
-              minutes = 0
-            }
-            setStartMinutes(minutes)
-          }}
+        <Counter
+          label={t('minutes')}
+          initial={startTimeMinutes()}
+          onChange={(m) => setStartTimeMinutes(m)}
+          min={0}
+          max={59}
+          error={startTimeMinutesErr()}
         />
-        <input
-          id="seconds"
-          type="number"
-          value={startTimeSeconds() === 0 ? '' : startTimeSeconds()}
-          min="0"
-          max="59"
-          placeholder={t('seconds', 'seconds')}
-          classList={{
-            'border-red-500 text-red-500': startTimeSecondsErr(),
-            'border-slate-300': !startTimeSecondsErr()
-          }}
-          class="w-24 rounded-lg border border-solid bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            const val = e.target.value
-            let seconds = parseInt(val)
-            setStartTimeSecondsErr(false)
-            if (Number.isNaN(seconds) || seconds < 1 || seconds > SmallIntMax) {
-              seconds = 0
-            }
-            setStartTimeSeconds(seconds)
-          }}
+        <Counter
+          label={t('seconds')}
+          initial={startTimeSeconds()}
+          onChange={(s) => setStartTimeSeconds(s)}
+          min={0}
+          max={59}
+          error={startTimeSecondsErr()}
         />
       </div>
+      <div class="my-4 ">
+        <label class="text-xl">
+          <Trans key="equipment" />
+        </label>
+        <div class="flex items-center justify-between">
+          {equipmentButton(Equipment.Fins)}
+          {equipmentButton(Equipment.Monofin)}
+          {equipmentButton(Equipment.Snorkel)}
+          {equipmentButton(Equipment.Paddles)}
+          {equipmentButton(Equipment.Board)}
+        </div>
+      </div>
+
       <label class="text-xl" for="description">
         <Trans key="description" />
       </label>

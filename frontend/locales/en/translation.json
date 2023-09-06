@@ -33,6 +33,7 @@
 	"add": "Add",
 	"add.set": "Add set",
 	"add.new.set": "Add new set",
+	"edit.set": "Update set",
 	"add.new.super.set": "Add new super set",
 	"no.sets.in.training": "No sets in training. Add some!",
 	"no.sets.in.superset": "No sets in super set. Add some!",
@@ -66,5 +67,7 @@
 	"set.session": "Set session",
 	"please.select.session": "Please select a session",
 	"total.distance.set": "Total distance in set",
-	"trainings.history": "Trainings history"
+	"trainings.history": "Trainings history",
+	"equipment": "Equipment",
+	"different.distance": "Custom distance"
 }

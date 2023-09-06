@@ -33,6 +33,7 @@
 	"add": "Pridať",
 	"add.set": "Pridaj sériu",
 	"add.new.set": "Pridaj novú sériu",
+	"edit.set": "Upraviť sériu",
 	"add.new.super.set": "Pridaj novú supersériu",
 	"no.sets.in.training": "Tréning neobsahuje žiadne série. Pridaj novú sériu!",
 	"no.sets.in.superset": "Superséria neobsahuje žiadne série. Pridaj novú sériu!",
@@ -66,5 +67,7 @@
 	"set.session": "Nastaviť termín",
 	"please.select.session": "Prosím vyberte termín",
 	"total.distance.set": "Celková vzdialenosť v sérii",
-	"trainings.history": "História tréningov"
+	"trainings.history": "História tréningov",
+	"equipment": "Pomôcky",
+	"different.distance": "Iná vzdialenosť"
 }
