@@ -18,22 +18,22 @@ function SetModal(props: SetModalProps): JSX.Element {
   const [startTimeSeconds, setStartTimeSeconds] = createSignal(0)
   const [startTimeSecondsErr, setStartTimeSecondsErr] = createSignal(false)
 
-  const [startMinutes, setStartMinutes] = createSignal(0)
-  const [startMinutesErr, setStartMinutesErr] = createSignal(false)
+  const [startTimeMinutes, setStartTimeMinutes] = createSignal(0)
+  const [startTimeMinutesErr, setStartTimeMinutesErr] = createSignal(false)
 
   createEffect(
     on(
       () => props.opener,
       () => {
-        setStartMinutes(0)
+        setStartTimeMinutes(0)
         setStartTimeSeconds(0)
-        setStartMinutesErr(false)
+        setStartTimeMinutesErr(false)
         setStartTimeSecondsErr(false)
 
         if (props.opener.set.startType !== StartType.None) {
           const seconds = props.opener.set.startSeconds! % 60
           const minutes = (props.opener.set.startSeconds! - seconds) / 60
-          setStartMinutes(minutes)
+          setStartTimeMinutes(minutes)
           setStartTimeSeconds(seconds)
         }
         setTrainingSet(reconcile(props.opener.set))
@@ -83,7 +83,7 @@ function SetModal(props: SetModalProps): JSX.Element {
     // this modal only creates sets without subsets, so we can just shallow copy the object
     const ts = Object.assign({}, trainingSet)
     if (ts.startType !== StartType.None) {
-      ts.startSeconds = startTimeSeconds() + startMinutes() * 60
+      ts.startSeconds = startTimeSeconds() + startTimeMinutes() * 60
     } else {
       ts.startSeconds = undefined
     }
@@ -110,13 +110,13 @@ function SetModal(props: SetModalProps): JSX.Element {
         isValid = false
       }
 
-      if (startMinutes() < 0 || startMinutes() > 59) {
-        setStartMinutesErr(true)
+      if (startTimeMinutes() < 0 || startTimeMinutes() > 59) {
+        setStartTimeMinutesErr(true)
         isValid = false
       }
 
-      if (startMinutes() * 60 + startTimeSeconds() === 0) {
-        setStartMinutesErr(true)
+      if (startTimeMinutes() * 60 + startTimeSeconds() === 0) {
+        setStartTimeMinutesErr(true)
         setStartTimeSecondsErr(true)
         isValid = false
       }
@@ -169,12 +169,11 @@ function SetModal(props: SetModalProps): JSX.Element {
       class="h-screen w-11/12 rounded-lg md:w-5/6 lg:w-2/3 xl:w-1/3"
     >
       <p class="text-center text-2xl">{props.title}</p>
-      <hr class="my-2 rounded-lg border-2 border-slate-500" />
+      <hr class="my-4 rounded-lg border-2 border-slate-500" />
       <div class="flex items-center justify-between">
         <label class="text-xl">
           <Trans key="repeat" />
         </label>
-
         <Counter
           initial={trainingSet.repeat}
           min={1}
@@ -188,10 +187,10 @@ function SetModal(props: SetModalProps): JSX.Element {
           }}
         />
       </div>
-      <p class="my-2 text-xl">
+      <p class="my-4 text-xl">
         <Trans key="distance" />
       </p>
-      <div class="my-2 flex items-center justify-between">
+      <div class="my-4 flex items-center justify-between">
         <button
           classList={{
             'bg-sky-400 text-white': trainingSet.distanceMeters === 25
@@ -242,7 +241,7 @@ function SetModal(props: SetModalProps): JSX.Element {
           }}
         />
       </div>
-      <div class="my-2 flex items-center justify-between">
+      <div class="my-4 flex items-center justify-between">
         <label class="text-xl" for="start">
           <Trans key="start" />
         </label>
@@ -267,55 +266,26 @@ function SetModal(props: SetModalProps): JSX.Element {
           visible: trainingSet.startType !== StartType.None,
           invisible: trainingSet.startType === StartType.None
         }}
-        class="my-2 text-end"
+        class="my-4 flex justify-around gap-4 md:justify-end"
       >
-        <input
-          id="minutes"
-          type="number"
-          placeholder={t('minutes', 'minutes')}
-          value={startMinutes() === 0 ? '' : startMinutes()}
-          min="0"
-          max="59"
-          classList={{
-            'border-red-500 text-red-500': startMinutesErr(),
-            'border-slate-300': !startMinutesErr()
-          }}
-          class="mx-2 w-24 rounded-lg border border-solid bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            const val = e.target.value
-            let minutes = parseInt(val)
-            setStartMinutesErr(false)
-            if (Number.isNaN(minutes) || minutes < 0 || minutes > SmallIntMax) {
-              minutes = 0
-            }
-            setStartMinutes(minutes)
-          }}
+        <Counter
+          label={t('minutes')}
+          initial={startTimeMinutes()}
+          onChange={(m) => setStartTimeMinutes(m)}
+          min={0}
+          max={59}
+          error={startTimeMinutesErr()}
         />
-        <input
-          id="seconds"
-          type="number"
-          value={startTimeSeconds() === 0 ? '' : startTimeSeconds()}
-          min="0"
-          max="59"
-          placeholder={t('seconds', 'seconds')}
-          classList={{
-            'border-red-500 text-red-500': startTimeSecondsErr(),
-            'border-slate-300': !startTimeSecondsErr()
-          }}
-          class="w-24 rounded-lg border border-solid bg-white p-2 text-center text-lg focus:border-sky-500 focus:outline-none focus:ring"
-          onChange={(e) => {
-            const val = e.target.value
-            let seconds = parseInt(val)
-            setStartTimeSecondsErr(false)
-            if (Number.isNaN(seconds) || seconds < 1 || seconds > SmallIntMax) {
-              seconds = 0
-            }
-            setStartTimeSeconds(seconds)
-          }}
+        <Counter
+          label={t('seconds')}
+          initial={startTimeSeconds()}
+          onChange={(s) => setStartTimeSeconds(s)}
+          min={0}
+          max={59}
+          error={startTimeSecondsErr()}
         />
       </div>
-
-      <div class="my-2 ">
+      <div class="my-4 ">
         <label class="text-xl">
           <Trans key="equipment" />
         </label>
