@@ -4,10 +4,17 @@ on:
     branches:
       - main
     paths:
-      - "frontend/**"
+      - 'frontend/**'
+      - '.github/workflows/frontend-deploy.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     defaults:
       run:
         working-directory: ./frontend
@@ -21,7 +28,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: '18'
       - name: Install dependencies
         run: npm install
       - name: Build

@@ -4,10 +4,17 @@ on:
     branches:
       - main
     paths:
-      - "nginx.conf"
+      - 'nginx.conf'
+      - '.github/workflows/nginx-conf-deploy.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -17,7 +24,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "nginx.conf"
+          source: 'nginx.conf'
           target: /opt/swimlogs/nginx
       - name: Restart NGINX container
         uses: appleboy/ssh-action@v0.1.10
