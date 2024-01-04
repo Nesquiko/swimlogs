@@ -43,7 +43,7 @@ const Counter: Component<CounterProps> = (props) => {
           classList={{
             'text-slate-300 pointer-events-none bg-sky-100':
               isLessEqualThanMin(),
-            'bg-sky-400': !isLessEqualThanMin()
+            'bg-sky-400': !isLessEqualThanMin(),
           }}
           class="h-full w-8 cursor-pointer rounded-l-lg border-r border-slate-300"
           onClick={() => changeNumber(number() - 1)}
@@ -80,7 +80,7 @@ const Counter: Component<CounterProps> = (props) => {
           classList={{
             'text-slate-300 pointer-events-none bg-sky-100':
               isMoreEqualThanMax(),
-            'bg-sky-400': !isMoreEqualThanMax()
+            'bg-sky-400': !isMoreEqualThanMax(),
           }}
           class="h-full w-8 cursor-pointer rounded-r-lg border-l bg-sky-400"
           onClick={() => changeNumber(number() + 1)}

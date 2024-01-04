@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "./generate-openapi.sh ;vite build; cp -r ./locales ./dist/locales",
     "serve": "vite preview",
-    "generate": "./generate-openapi.sh"
+    "generate": "./generate-openapi.sh",
+    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json}'"
   },
   "license": "MIT",
   "devDependencies": {

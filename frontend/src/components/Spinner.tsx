@@ -13,7 +13,7 @@ const Spinner: Component<SpinnerProps> = (props) => {
         aria-hidden="true"
         style={{
           width: `${remSize}rem`,
-          height: `${remSize}rem`
+          height: `${remSize}rem`,
         }}
         class="animate-spin fill-sky-600 text-slate-200"
         viewBox="0 0 100 101"

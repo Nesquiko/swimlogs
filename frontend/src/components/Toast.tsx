@@ -3,7 +3,7 @@ import { Component, createSignal } from 'solid-js'
 enum ToastType {
   INFO,
   ERROR,
-  SUCCESS
+  SUCCESS,
 }
 
 const [open, setOpen] = createSignal(false)
@@ -34,7 +34,7 @@ const Toast: Component = () => {
         '-translate-y-full': move(),
         visible: open(),
         invisible: !open(),
-        'h-0': !open()
+        'h-0': !open(),
       }}
       class="fixed bottom-0 z-10 mx-auto flex w-full transform justify-center transition-transform duration-300 ease-in-out"
     >
@@ -42,7 +42,7 @@ const Toast: Component = () => {
         classList={{
           'bg-sky-500 border-sky-900': type() === ToastType.INFO,
           'bg-red-500 border-red-900': type() === ToastType.ERROR,
-          'bg-green-500': type() === ToastType.SUCCESS
+          'bg-green-500': type() === ToastType.SUCCESS,
         }}
         class="w-11/12 rounded-lg border p-2 text-xl font-bold text-white shadow"
       >

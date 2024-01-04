@@ -27,7 +27,7 @@ render(() => {
     <TransProvider
       options={{
         backend,
-        fallbackLng: 'en'
+        fallbackLng: 'en',
       }}
     >
       <Router>

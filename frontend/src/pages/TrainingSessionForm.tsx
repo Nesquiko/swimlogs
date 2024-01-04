@@ -6,7 +6,7 @@ import {
   createSignal,
   For,
   Match,
-  Switch
+  Switch,
 } from 'solid-js'
 import SessionPicker from '../components/SessionPicker'
 import { useSessionsContext } from '../components/SessionsContextProvider'
@@ -30,7 +30,7 @@ export const TrainingSessionForm: Component = () => {
     fetchPrevSessionPage,
     sessionsPage,
     isLastPage,
-    serverError
+    serverError,
   ] = useSessionsContext()
 
   createEffect(() => {
@@ -203,7 +203,7 @@ export const TrainingSessionForm: Component = () => {
                     const hours = parseInt(val)
                     setStartTime({
                       hours: hours,
-                      minutes: startTime().minutes
+                      minutes: startTime().minutes,
                     })
                   }}
                 >
@@ -227,7 +227,7 @@ export const TrainingSessionForm: Component = () => {
                     const minutes = parseInt(val)
                     setStartTime({
                       hours: startTime().hours,
-                      minutes: minutes
+                      minutes: minutes,
                     })
                   }}
                 >

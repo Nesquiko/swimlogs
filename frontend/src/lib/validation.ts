@@ -3,7 +3,7 @@ import {
   InvalidTrainingSet,
   NewTraining,
   NewTrainingSet,
-  StartType
+  StartType,
 } from '../generated'
 
 export const isInvalidTrainingEmpty = (it: InvalidTraining): boolean => {

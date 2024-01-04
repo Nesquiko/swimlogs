@@ -2,7 +2,7 @@ import { createResource } from 'solid-js'
 import {
   GetDetailsCurrWeekResponse,
   TrainingApi,
-  TrainingDetail
+  TrainingDetail,
 } from '../generated'
 import config from './api'
 

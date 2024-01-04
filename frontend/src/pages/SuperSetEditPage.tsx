@@ -26,18 +26,18 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
       repeat: 1,
       distanceMeters: 100,
       startType: StartType.None,
-      totalDistance: 100
+      totalDistance: 100,
     }
   }
 
   const [setModalOpener, setSetModalOpener] = createSignal({
-    set: newSubSet()
+    set: newSubSet(),
   })
   const [setSettingsOpener, setSetSettingsOpener] = createSignal({ idx: -1 })
   const [editModalOpener, setEditModalOpener] = createSignal(
     {
       set: newSubSet(),
-      idx: -1
+      idx: -1,
     },
     { equals: false }
   )
@@ -124,18 +124,18 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
             action: (o) => {
               setEditModalOpener({
                 set: superSet.subSets![o.idx],
-                idx: o.idx
+                idx: o.idx,
               })
-            }
+            },
           },
           {
             label: t('duplicate', 'Duplicate'),
-            action: (o) => duplicateSubSet(o.idx)
+            action: (o) => duplicateSubSet(o.idx),
           },
           {
             label: t('delete', 'Delete'),
-            action: (o) => deleteSet(o.idx)
-          }
+            action: (o) => deleteSet(o.idx),
+          },
         ]}
         header={(o) => t('set', 'Set') + ' ' + (o.idx + 1)}
       />
@@ -152,7 +152,7 @@ const SuperSetEditPage: Component<SuperSetEditPageProps> = (props) => {
           placeholder="1"
           classList={{
             'border-red-500 text-red-500': superSet.repeat < 1,
-            'border-slate-300': superSet.repeat >= 1
+            'border-slate-300': superSet.repeat >= 1,
           }}
           class="w-24 rounded-md border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
           value={superSet.repeat}

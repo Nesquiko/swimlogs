@@ -4,7 +4,7 @@ import {
   createSignal,
   ParentComponent,
   Signal,
-  useContext
+  useContext,
 } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Day, NewTraining, Session } from '../generated'
@@ -58,7 +58,7 @@ export const TrainingStateContextProvider: ParentComponent<
       id: '',
       day: day()!,
       durationMin: durationMin()!,
-      startTime: startTimeStr
+      startTime: startTimeStr,
     }
 
     setSession(newSession)
@@ -78,7 +78,7 @@ function initialState(): State {
   const durationMin = createSignal<number>(60)
   const startTime = createSignal<{ hours: number; minutes: number }>({
     hours: 6,
-    minutes: 0
+    minutes: 0,
   })
   const selectedDate = createSignal<Date | undefined>(NullDateTime)
   const pickSession = createSignal<boolean>(true)
@@ -86,7 +86,7 @@ function initialState(): State {
     id: '',
     day: Day.Monday,
     durationMin: 60,
-    startTime: '06:00'
+    startTime: '06:00',
   })
 
   return {
@@ -95,6 +95,6 @@ function initialState(): State {
     startTime,
     selectedDate,
     pickSession,
-    session
+    session,
   }
 }

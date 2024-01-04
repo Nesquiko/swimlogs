@@ -20,7 +20,7 @@ const TrainingCreatePage: Component = () => {
     start: NullDateTime,
     durationMin: 60,
     totalDistance: 100,
-    sets: []
+    sets: [],
   })
 
   createEffect(() => {
@@ -77,7 +77,7 @@ const TrainingCreatePage: Component = () => {
   const comps = [
     TrainingSessionForm,
     TrainingSetsForm,
-    TrainingCreatePreviewPage
+    TrainingCreatePreviewPage,
   ]
 
   return (

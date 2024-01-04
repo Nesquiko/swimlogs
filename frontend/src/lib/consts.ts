@@ -13,7 +13,7 @@ export const StartTimeHours = [
   '17',
   '18',
   '19',
-  '20'
+  '20',
 ]
 export const StartTimeMinutes = ['00', '15', '30', '45']
 

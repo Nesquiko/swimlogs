@@ -15,7 +15,7 @@ const TrainingPreview: Component<TrainingPreviewProps> = (props) => {
 
   const time = props.training?.start.toLocaleTimeString('sk-SK', {
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 
   return (

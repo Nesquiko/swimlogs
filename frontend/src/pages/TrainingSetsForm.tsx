@@ -21,7 +21,7 @@ const TrainingSetsForm: Component = () => {
       repeat: 1,
       distanceMeters: 100,
       startType: StartType.None,
-      totalDistance: 100
+      totalDistance: 100,
     }
   }
 
@@ -31,7 +31,7 @@ const TrainingSetsForm: Component = () => {
       distanceMeters: 100,
       startType: StartType.None,
       totalDistance: 100,
-      subSets: []
+      subSets: [],
     }
   }
 
@@ -39,15 +39,15 @@ const TrainingSetsForm: Component = () => {
   const [setSettingsOpener, setSetSettingsOpener] = createSignal({ idx: -1 })
 
   const [addModalOpener, setAddModalOpener] = createSignal({
-    set: newSet()
+    set: newSet(),
   })
   const [editModalOpener, setEditModalOpener] = createSignal({
     set: newSet(),
-    idx: -1
+    idx: -1,
   })
   const [superSetEditOpener, setSuperSetEditOpener] = createSignal({
     superSet: newSuperSet(),
-    idx: -1
+    idx: -1,
   })
   const [superSetFormOpen, setSuperSetFormOpen] = createSignal(false)
 
@@ -126,15 +126,15 @@ const TrainingSetsForm: Component = () => {
             items={[
               {
                 label: t('add.new.set', 'Add new set'),
-                action: () => setAddModalOpener({ set: newSet() })
+                action: () => setAddModalOpener({ set: newSet() }),
               },
               {
                 label: t('add.new.super.set', 'Add new superset'),
                 action: () => {
                   setSuperSetEditOpener({ superSet: newSuperSet(), idx: -1 })
                   setSuperSetFormOpen(true)
-                }
-              }
+                },
+              },
             ]}
           />
           <MenuModal<{ idx: number }>
@@ -150,16 +150,16 @@ const TrainingSetsForm: Component = () => {
                   } else {
                     setEditModalOpener({ set: set, idx: o.idx })
                   }
-                }
+                },
               },
               {
                 label: t('duplicate', 'Duplicate'),
-                action: (o) => duplicateSet(o.idx)
+                action: (o) => duplicateSet(o.idx),
               },
               {
                 label: t('delete', 'Delete'),
-                action: (o) => deleteSet(o.idx)
-              }
+                action: (o) => deleteSet(o.idx),
+              },
             ]}
             header={(o) => t('set', 'Set') + ' ' + (o.idx + 1)}
           />

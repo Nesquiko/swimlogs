@@ -130,7 +130,7 @@ function SetModal(props: SetModalProps): JSX.Element {
     return (
       <button
         classList={{
-          'bg-sky-300': trainingSet.equipment?.includes(equipment)
+          'bg-sky-300': trainingSet.equipment?.includes(equipment),
         }}
         class="rounded-lg border border-slate-300 p-2"
         onClick={() => {
@@ -193,7 +193,7 @@ function SetModal(props: SetModalProps): JSX.Element {
       <div class="my-4 flex items-center justify-between">
         <button
           classList={{
-            'bg-sky-400 text-white': trainingSet.distanceMeters === 25
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 25,
           }}
           class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
           onClick={() => setDistance(25)}
@@ -202,7 +202,7 @@ function SetModal(props: SetModalProps): JSX.Element {
         </button>
         <button
           classList={{
-            'bg-sky-400 text-white': trainingSet.distanceMeters === 50
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 50,
           }}
           class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
           onClick={() => setDistance(50)}
@@ -211,7 +211,7 @@ function SetModal(props: SetModalProps): JSX.Element {
         </button>
         <button
           classList={{
-            'bg-sky-400 text-white': trainingSet.distanceMeters === 100
+            'bg-sky-400 text-white': trainingSet.distanceMeters === 100,
           }}
           class="w-16 rounded-lg border border-slate-300 p-2 text-center text-lg"
           onClick={() => setDistance(100)}
@@ -228,7 +228,7 @@ function SetModal(props: SetModalProps): JSX.Element {
               trainingSet.distanceMeters < 1,
             'border-slate-300':
               trainingSet.distanceMeters === undefined ||
-              trainingSet.distanceMeters >= 1
+              trainingSet.distanceMeters >= 1,
           }}
           class="w-36 rounded-lg border p-2 text-center text-lg focus:border-blue-500 focus:outline-none focus:ring"
           onChange={(e) => {
@@ -264,7 +264,7 @@ function SetModal(props: SetModalProps): JSX.Element {
       <div
         classList={{
           visible: trainingSet.startType !== StartType.None,
-          invisible: trainingSet.startType === StartType.None
+          invisible: trainingSet.startType === StartType.None,
         }}
         class="my-4 flex justify-around gap-4 md:justify-end"
       >

@@ -10,5 +10,5 @@ export const EquipmentIcons = new Map<Equipment, string>([
   [Equipment.Board, boardBlackSvg],
   [Equipment.Paddles, paddlesBlackSvg],
   [Equipment.Snorkel, snorkelBlackSvg],
-  [Equipment.Monofin, monofinBlackSvg]
+  [Equipment.Monofin, monofinBlackSvg],
 ])

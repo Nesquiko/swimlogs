@@ -23,11 +23,11 @@ const SessionCreatePage: Component = () => {
         .toString()
         .padStart(2, '0')}:${startTime.minutes.toString().padStart(2, '0')}`,
       durationMin: duration(),
-      day: day()
+      day: day(),
     }
     await sessionApi
       .createSession({
-        createSessionRequest: session
+        createSessionRequest: session,
       })
       .then(() => {
         openToast(t('session.created', 'Session created'), ToastType.SUCCESS)

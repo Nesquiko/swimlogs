@@ -3,7 +3,7 @@ import {
   createContext,
   ParentComponent,
   Resource,
-  useContext
+  useContext,
 } from 'solid-js'
 import { Session } from '../generated'
 
@@ -21,7 +21,7 @@ const makeSessionsContext = (
     fetchPrevSessionPage,
     page,
     isLastPage,
-    serverError
+    serverError,
   ] as const
 }
 
