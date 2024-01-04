@@ -21,12 +21,12 @@ backup() {
 	backups_count=$(find "$backups_dir" -type f | wc -l)
 
 	if [ "$backups_count" -gt 5 ]; then
-		oldest_backup=$(find "$backups_dir" -type f | sort -n | head -1)
+		oldest_backup=$(find "$backups_dir" -type f -name "*.sql" | sort -t'_' -k1.29,1.33 -k1.26,1.27 -k1.23,1.24 | head -1)
 		rm "$oldest_backup"
 	fi
 
 	datetime=$(date +%d-%m-%Y"_"%H_%M_%S)
-	/usr/bin/docker exec -t db pg_dump -a --exclude-table=schema_migrations \
+	/usr/bin/docker exec -t db pg_dump --clean --exclude-table=schema_migrations \
 		-U swimlogs >"$backups_dir"/"$datetime".sql
 }
 
@@ -36,7 +36,7 @@ restore() {
 		exit 1
 	fi
 
-	latest_backup=$(find "$backups_dir" -type f | sort -n | tail -1)
+	latest_backup=$(find "$backups_dir" -type f -name "*.sql" | sort -t'_' -k1.29,1.33 -k1.26,1.27 -k1.23,1.24 | tail -1)
 
 	/usr/bin/docker <"$latest_backup" exec -i db psql -U swimlogs
 }
