@@ -84,7 +84,7 @@ export const TrainingSessionForm: Component = () => {
           <Match when={pickSession()}>
             <img
               class="float-right inline-block cursor-pointer"
-              src={editSvgBlack}
+              src={plusSvgBlack}
               width={32}
               height={32}
               onClick={() => {
