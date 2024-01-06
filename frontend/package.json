@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "./generate-openapi.sh ;vite build; cp -r ./locales ./dist/locales",
+    "build": "./generate-openapi.sh ;tsc && vite build; cp -r ./locales ./dist/locales",
     "serve": "vite preview",
     "generate": "./generate-openapi.sh",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json}'"
@@ -23,6 +23,7 @@
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.1",
     "@mbarzda/solid-i18next": "^1.2.2",
     "@solidjs/router": "^0.8.2",
     "i18next": "^23.2.3",
