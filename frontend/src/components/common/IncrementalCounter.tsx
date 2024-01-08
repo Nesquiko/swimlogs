@@ -20,19 +20,19 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
     props.max !== undefined ? props.value >= props.max : false
 
   return (
-    <div class="flex items-center justify-between md:w-96">
+    <div class="w-44">
       <Show when={props.label}>
         <label
           for={id}
           classList={{ 'text-red-500': props.error }}
-          class="text-center text-xl"
+          class="block text-center text-xl"
         >
           {props.label}
         </label>
       </Show>
       <div
         classList={{ 'border-red-500': props.error }}
-        class="flex h-10 flex-row rounded-lg border border-slate-300"
+        class="flex h-10 rounded-lg border border-slate-300"
       >
         <button
           disabled={isLessEqualThanMin()}
@@ -44,16 +44,16 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
             'text-slate-300 pointer-events-none select-none bg-red-100':
               props.error && isLessEqualThanMin(),
           }}
-          class="h-full w-12 cursor-pointer rounded-l-lg border-r border-slate-300"
+          class="w-14 cursor-pointer rounded-l-lg border-r border-slate-300 leading-10"
           onClick={() => props.onChange(props.value - 1)}
         >
-          <span class="m-auto text-2xl">-</span>
+          <i class="fa-solid fa-minus"></i>
         </button>
         <input
           id={id}
           type="number"
           classList={{ 'text-red-500': props.error }}
-          class="w-14 p-2 text-center text-lg [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          class="w-16 p-2 text-center text-lg [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           min={props.min}
           max={props.max}
           value={props.value}
@@ -85,10 +85,10 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
             'text-slate-300 pointer-events-none select-none bg-red-100':
               props.error && isMoreEqualThanMax(),
           }}
-          class="h-full w-12 cursor-pointer rounded-r-lg border-l bg-sky-400"
+          class="w-14 cursor-pointer rounded-r-lg border-l bg-sky-400 leading-10"
           onClick={() => props.onChange(props.value + 1)}
         >
-          <span class="m-auto border-slate-300 text-2xl">+</span>
+          <i class="fa-solid fa-plus"></i>
         </button>
       </div>
     </div>
