@@ -15,14 +15,16 @@ const App: Component = () => {
     <div>
       <Topbar />
       <Drawer />
-      <Routes>
-        <Route path="/" component={Home} />
-        <Route path="/training/create" component={TrainingCreatePage} />
-        <Route path="/training/:id" component={TrainingPage} />
-        <Route path="/trainings" component={TrainingHistoryPage} />
-        <Route path="/session/create" component={SessionCreatePage} />
-      </Routes>
-      <Toast />
+      <div class="py-2">
+        <Routes>
+          <Route path="/" component={Home} />
+          <Route path="/training/create" component={TrainingCreatePage} />
+          <Route path="/training/:id" component={TrainingPage} />
+          <Route path="/trainings" component={TrainingHistoryPage} />
+          <Route path="/session/create" component={SessionCreatePage} />
+        </Routes>
+        <Toast />
+      </div>
     </div>
   )
 }

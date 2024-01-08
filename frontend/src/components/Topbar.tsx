@@ -7,13 +7,11 @@ const Topbar: Component = () => {
   return (
     <div id="topbar" class="w-full bg-sky-500 p-2">
       <div class="inline-block w-1/5 align-middle">
-        <img
-          class="inline-block cursor-pointer"
-          src={menuSvg}
-          width={40}
-          height={40}
-          onClick={() => openDrawer()}
-        />
+        <i
+          class="fa-solid fa-bars fa-2xl cursor-pointer"
+          style="color: #ffffff;"
+          onClick={openDrawer}
+        ></i>
       </div>
       <div class="inline-block w-3/5 text-center align-middle">
         <A href="/" class="cursor-pointer text-xl font-bold text-white">
