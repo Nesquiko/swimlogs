@@ -21,7 +21,7 @@
 	"assign.session": "Priraď termín",
 	"create.training": "Vytvoriť tréning",
 	"create.session": "Vytvoriť termín",
-	"this.weeks.trainings": "Tréningy na tento týždeň",
+	"this.week": "Tento týždeň",
 	"couldnt.load.trainings": "Nepodarilo sa načítať tréningy",
 	"no.trainings": "Žiadne tréningy na tento týždeň",
 	"training.created": "Tréning vytvorený",
@@ -69,5 +69,6 @@
 	"total.distance.set": "Celková vzdialenosť v sérii",
 	"trainings.history": "História tréningov",
 	"equipment": "Pomôcky",
-	"different.distance": "Iná vzdialenosť"
+	"different.distance": "Iná vzdialenosť",
+	"total.distance.swam": "Celková preplávaná vzdialenosť"
 }

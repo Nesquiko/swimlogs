@@ -21,7 +21,7 @@
 	"assign.session": "Assign session",
 	"create.training": "Create training",
 	"create.session": "Create session",
-	"this.weeks.trainings": "This week's trainings",
+	"this.week": "This week",
 	"couldnt.load.trainings": "Couldn't load training details for this week",
 	"no.trainings": "No trainings this week",
 	"training.created": "Training created",
@@ -69,5 +69,6 @@
 	"total.distance.set": "Total distance in set",
 	"trainings.history": "Trainings history",
 	"equipment": "Equipment",
-	"different.distance": "Custom distance"
+	"different.distance": "Custom distance",
+	"total.distance.swam": "Total distance swam"
 }

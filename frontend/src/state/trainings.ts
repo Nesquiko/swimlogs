@@ -9,9 +9,12 @@ import config from './api'
 const trainingApi = new TrainingApi(config)
 
 async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
-  const result = trainingApi.getTrainingsDetailsCurrentWeek()
-  const trainings = result.then((res) => res)
-  return trainings
+  return trainingApi
+    .getTrainingsDetailsCurrentWeek()
+    .then((res) => res)
+    .catch((err) => {
+      throw Promise.reject(new Error('Error fetching trainings details'))
+    })
 }
 const [detailsThisWeek, { mutate }] = createResource(getTrainingsThisWeek)
 const useTrainingsDetailsThisWeek = () => [detailsThisWeek]
@@ -22,8 +25,12 @@ function addTrainingDetail(td: TrainingDetail) {
   }
   const currentDetails = detailsThisWeek()?.details ?? []
   const newDetails = [...currentDetails, td]
+  const newDistance = newDetails.reduce(
+    (acc, curr) => acc + curr.totalDistance,
+    0
+  )
   newDetails.sort(trainingDetailCompare)
-  mutate({ details: newDetails })
+  mutate({ details: newDetails, distance: newDistance })
 }
 
 function isThisInThisWeek(date: Date): boolean {

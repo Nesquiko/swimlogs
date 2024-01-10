@@ -8,3 +8,21 @@ export function formatDate(date: Date | undefined): string {
 
   return `${day}.${month}.${year}`
 }
+
+export function formatTime(date: Date | undefined): string {
+  if (!date) {
+    return ''
+  }
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${hours}:${minutes}`
+}
+
+export function dateForDayOfWeek(targetDayIndex: number): Date {
+  const today = new Date()
+  const todayIndex = today.getDay()
+  const daysUntilTarget = targetDayIndex - todayIndex
+  today.setDate(today.getDate() + daysUntilTarget)
+  return new Date(today)
+}
