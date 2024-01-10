@@ -133,9 +133,14 @@ func (app *SwimLogsApp) GetTrainingDetailsInWeek(
 			"Failed to get training details",
 		)
 	}
+	distance := 0
+	for _, t := range trainings {
+		distance += t.TotalDistance
+	}
 
 	body := openapi.TrainingDetailsCurrentWeekResponse{
 		Details: mapDataTrainingsToApiTrainingDetails(trainings),
+		Distance: distance,
 	}
 	return resultWithBody(body, http.StatusOK)
 }
