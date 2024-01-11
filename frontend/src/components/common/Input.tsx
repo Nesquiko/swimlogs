@@ -1,19 +1,21 @@
 import { Component, createSignal, For, Show } from 'solid-js'
 import { randomId } from '../../lib/str'
 
-type InputProps<T> = {
-  onChange: (value: T) => void
-  value?: T
+type TextAreaProps = {
+  onChange: (value: string) => void
+  value?: string
   label?: string
   placeholder?: string
   maxLength?: number
+
+  validated?: boolean
   error?: string
 }
 
 const INITIAL_HEIGHT = 44
 const LINE_HEIGHT = 28 // tailwind 'text-lg' line height is 28px
 
-const TextAreaInput: Component<InputProps<string>> = (props) => {
+const TextAreaInput: Component<TextAreaProps> = (props) => {
   const id = randomId()
   let textAreaRef: HTMLTextAreaElement
   const [textAreaHeight, setTextAreaHeight] = createSignal(INITIAL_HEIGHT)
@@ -54,11 +56,19 @@ const TextAreaInput: Component<InputProps<string>> = (props) => {
   )
 }
 
-const NumberInput: Component<InputProps<number>> = (props) => {
+type NumberInputProps = {
+  onChange: (n: number | undefined) => void
+  value?: number
+  label?: string
+  placeholder?: string
+  error?: string
+}
+
+const NumberInput: Component<NumberInputProps> = (props) => {
   const id = randomId()
 
   return (
-    <div class="md:w-96">
+    <div class="w-full md:w-96">
       <Show when={props.label}>
         <Label id={id} label={props.label!} error={props.error} />
       </Show>
@@ -72,8 +82,15 @@ const NumberInput: Component<InputProps<number>> = (props) => {
             props.error !== undefined,
           'border-slate-300 focus:border-sky-500': props.error === undefined,
         }}
-        class="w-full rounded-lg border p-2 text-center text-lg focus:outline-none md:float-right md:w-44"
-        onChange={(e) => props.onChange(parseInt(e.target.value))}
+        class="w-full rounded-lg border p-2 text-center text-lg shadow focus:outline-none md:float-right md:w-44"
+        onChange={(e) => {
+          const n = parseInt(e.target.value)
+          if (isNaN(n)) {
+            props.onChange(undefined)
+            return
+          }
+          props.onChange(parseInt(e.target.value))
+        }}
       />
 
       <ErrorMessage error={props.error} />

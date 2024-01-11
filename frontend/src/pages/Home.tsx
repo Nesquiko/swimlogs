@@ -75,7 +75,14 @@ const Home: Component = () => {
   }
 
   return (
-    <div class="h-full px-4">
+    <div class="h-full px-4 pb-28">
+      <button
+        class="fixed bottom-2 right-2 h-16 w-16 rounded-lg bg-sky-500"
+        onClick={() => navigate('/training/new')}
+      >
+        <i class="fa-solid fa-plus fa-2xl text-white"></i>
+      </button>
+
       <Show
         when={!details.error}
         fallback={

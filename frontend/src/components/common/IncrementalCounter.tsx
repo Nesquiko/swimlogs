@@ -20,7 +20,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
     props.max !== undefined ? props.value >= props.max : false
 
   return (
-    <div class="w-44">
+    <div class="flex items-center justify-between md:block md:w-44">
       <Show when={props.label}>
         <label
           for={id}
