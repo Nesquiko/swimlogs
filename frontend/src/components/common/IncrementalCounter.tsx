@@ -7,12 +7,14 @@ interface CounterProps {
 
   min?: number
   max?: number
+  step?: number
   label?: string
   error?: boolean
 }
 
 const IncrementalCounter: Component<CounterProps> = (props) => {
   const id = randomId()
+  const step = props.step ?? 1
 
   const isLessEqualThanMin = () =>
     props.min !== undefined ? props.value <= props.min : false
@@ -32,7 +34,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
       </Show>
       <div
         classList={{ 'border-red-500': props.error }}
-        class="flex h-10 rounded-lg border border-slate-300"
+        class="flex h-10 rounded-lg"
       >
         <button
           disabled={isLessEqualThanMin()}
@@ -45,7 +47,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
               props.error && isLessEqualThanMin(),
           }}
           class="w-14 cursor-pointer rounded-l-lg border-r border-slate-300 leading-10"
-          onClick={() => props.onChange(props.value - 1)}
+          onClick={() => props.onChange(props.value - step)}
         >
           <i class="fa-solid fa-minus"></i>
         </button>
@@ -53,7 +55,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
           id={id}
           type="number"
           classList={{ 'text-red-500': props.error }}
-          class="w-16 p-2 text-center text-lg [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          class="w-16 p-2 text-center text-lg"
           min={props.min}
           max={props.max}
           value={props.value}
@@ -85,8 +87,8 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
             'text-slate-300 pointer-events-none select-none bg-red-100':
               props.error && isMoreEqualThanMax(),
           }}
-          class="w-14 cursor-pointer rounded-r-lg border-l bg-sky-400 leading-10"
-          onClick={() => props.onChange(props.value + 1)}
+          class="w-14 cursor-pointer rounded-r-lg border-l border-slate-300 leading-10"
+          onClick={() => props.onChange(props.value + step)}
         >
           <i class="fa-solid fa-plus"></i>
         </button>

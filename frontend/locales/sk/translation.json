@@ -71,5 +71,7 @@
 	"equipment": "Pomôcky",
 	"different.distance": "Iná vzdialenosť",
 	"total.distance.swam": "Celková preplávaná vzdialenosť",
-	"total.distance": "Celková vzdialenosť"
+	"total.distance": "Celková vzdialenosť",
+	"move.up": "Posunuť hore",
+	"move.down": "Posunuť dole"
 }

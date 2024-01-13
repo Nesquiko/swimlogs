@@ -2,7 +2,7 @@ import { Component, createSignal, For, Show } from 'solid-js'
 import { randomId } from '../../lib/str'
 
 type TextAreaProps = {
-  onChange: (value: string) => void
+  onInput: (value: string) => void
   value?: string
   label?: string
   placeholder?: string
@@ -12,8 +12,8 @@ type TextAreaProps = {
   error?: string
 }
 
-const INITIAL_HEIGHT = 44
 const LINE_HEIGHT = 28 // tailwind 'text-lg' line height is 28px
+const INITIAL_HEIGHT = 2 * LINE_HEIGHT
 
 const TextAreaInput: Component<TextAreaProps> = (props) => {
   const id = randomId()
@@ -47,7 +47,7 @@ const TextAreaInput: Component<TextAreaProps> = (props) => {
         placeholder={props.placeholder ?? ''}
         maxlength={props.maxLength}
         onInput={(e) => {
-          props.onChange(e.currentTarget.value)
+          props.onInput(e.currentTarget.value)
           changeHeight()
         }}
       />
@@ -103,7 +103,7 @@ type SelectOption<T> = {
   value: T
 }
 
-type SelectInputProps<T> = {
+type SelectInputProps<T> ={
   onChange: (value: SelectOption<T> | undefined) => void
   options: SelectOption<T>[]
   value?: T
@@ -119,7 +119,7 @@ const SelectInput = <T extends object>(props: SelectInputProps<T>) => {
   >(undefined)
 
   return (
-    <div class="w-44 bg-yellow-200 py-2">
+    <div class="w-44 py-2">
       <div class="block">
         <Show when={props.label}>
           <Label id={id} label={props.label!} error={props.error} />

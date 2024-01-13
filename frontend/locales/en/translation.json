@@ -71,5 +71,7 @@
 	"equipment": "Equipment",
 	"different.distance": "Custom distance",
 	"total.distance.swam": "Total distance swam",
-	"total.distance": "Total distance"
+	"total.distance": "Total distance",
+	"move.up": "Move up",
+	"move.down": "Move down"
 }

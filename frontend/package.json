@@ -12,23 +12,24 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.5.2",
-    "autoprefixer": "^10.4.13",
-    "postcss": "^8.4.21",
-    "prettier": "^2.8.4",
-    "prettier-plugin-tailwindcss": "^0.2.3",
-    "tailwindcss": "^3.2.7",
+    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.33",
+    "prettier": "^2.8.8",
+    "prettier-plugin-tailwindcss": "^0.2.8",
+    "tailwindcss": "^3.4.1",
     "typescript": "^4.9.5",
-    "vite": "^4.1.4",
-    "vite-plugin-solid": "^2.5.0"
+    "vite": "^4.5.1",
+    "vite-plugin-solid": "^2.8.0"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.1",
-    "@mbarzda/solid-i18next": "^1.2.2",
-    "@solidjs/router": "^0.8.2",
-    "i18next": "^23.2.3",
-    "i18next-browser-languagedetector": "^7.0.2",
-    "i18next-http-backend": "^2.2.1",
-    "solid-js": "^1.6.10"
+    "@mbarzda/solid-i18next": "^1.4.1",
+    "@solidjs/router": "^0.8.4",
+    "flowbite": "^2.2.1",
+    "i18next": "^23.7.16",
+    "i18next-browser-languagedetector": "^7.2.0",
+    "i18next-http-backend": "^2.4.2",
+    "solid-js": "^1.8.11"
   }
 }

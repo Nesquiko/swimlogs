@@ -10,5 +10,10 @@ export function cloneSet(s: NewTrainingSet) {
   newSet.startSeconds = s.startSeconds
   newSet.distanceMeters = s.distanceMeters
   newSet.totalDistance = s.totalDistance
+
+  newSet.equipment = []
+  s.equipment?.forEach((e) => {
+    newSet.equipment?.push(e)
+  })
   return newSet
 }
