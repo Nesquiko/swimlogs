@@ -7,6 +7,14 @@ type HeaderState = {
   onBack?: () => void
 }
 
+const defaultBack = () => history.back()
+
+let onBackOverride: (() => void) | undefined
+
+export const setOnBackOverrideOnce = (onBack: () => void) => {
+  onBackOverride = onBack
+}
+
 const Header: Component = () => {
   const [headerState, setHeaderState] = createSignal<HeaderState>({
     state: 'menu',
@@ -17,7 +25,17 @@ const Header: Component = () => {
     if (location.pathname === '/') {
       setHeaderState({ state: 'menu' })
     } else {
-      setHeaderState({ state: 'back', onBack: () => history.back() })
+      setHeaderState({
+        state: 'back',
+        onBack: () => {
+          if (onBackOverride) {
+            onBackOverride()
+            onBackOverride = undefined
+          } else {
+            defaultBack()
+          }
+        },
+      })
     }
   })
 

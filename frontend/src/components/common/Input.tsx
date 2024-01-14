@@ -12,21 +12,21 @@ type TextAreaProps = {
   error?: string
 }
 
-const LINE_HEIGHT = 28 // tailwind 'text-lg' line height is 28px
+const LINE_HEIGHT = 24 // tailwind 'text-base' line height is 24px
 const INITIAL_HEIGHT = 2 * LINE_HEIGHT
 
 const TextAreaInput: Component<TextAreaProps> = (props) => {
   const id = randomId()
   let textAreaRef: HTMLTextAreaElement
-  const [textAreaHeight, setTextAreaHeight] = createSignal(INITIAL_HEIGHT)
 
-  const changeHeight = () => {
+  const calculateHeight = () => {
     const newLines = props.value?.match(/\n/g)?.length ?? 0
     const newHeightWithLines = INITIAL_HEIGHT + newLines * LINE_HEIGHT
-
-    setTextAreaHeight(newHeightWithLines)
+    return newHeightWithLines
   }
-  changeHeight()
+  const [textAreaHeight, setTextAreaHeight] = createSignal(
+    props.value ? calculateHeight() : INITIAL_HEIGHT
+  )
 
   return (
     <div>
@@ -42,13 +42,13 @@ const TextAreaInput: Component<TextAreaProps> = (props) => {
             props.error !== undefined,
           'border-slate-300 focus:border-sky-500': props.error === undefined,
         }}
-        class="w-full overflow-y-hidden rounded-lg border p-2 text-lg focus:outline-none"
+        class="w-full overflow-y-hidden rounded-lg border p-2 text-base focus:outline-none"
         value={props.value ?? ''}
         placeholder={props.placeholder ?? ''}
         maxlength={props.maxLength}
         onInput={(e) => {
           props.onInput(e.currentTarget.value)
-          changeHeight()
+          setTextAreaHeight(calculateHeight())
         }}
       />
       <ErrorMessage error={props.error} />
@@ -103,12 +103,13 @@ type SelectOption<T> = {
   value: T
 }
 
-type SelectInputProps<T> ={
+type SelectInputProps<T> = {
   onChange: (value: SelectOption<T> | undefined) => void
   options: SelectOption<T>[]
   value?: T
   label?: string
   noneOption?: string
+  validated?: boolean
   error?: string
 }
 
@@ -160,7 +161,9 @@ const SelectInput = <T extends object>(props: SelectInputProps<T>) => {
           )}
         </For>
       </select>
-      <ErrorMessage error={props.error} />
+      <Show when={!!props.validated}>
+        <ErrorMessage error={props.error} />
+      </Show>
     </div>
   )
 }

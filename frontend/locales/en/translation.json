@@ -73,5 +73,10 @@
 	"total.distance.swam": "Total distance swam",
 	"total.distance": "Total distance",
 	"move.up": "Move up",
-	"move.down": "Move down"
+	"move.down": "Move down",
+	"create": "Create",
+	"back": "Back",
+	"confirm.training.delete.message": "Are you sure you want to delete this training?",
+	"confirm.delete.training": "Yes, delete training",
+	"reject.delete.training": "No, cancel"
 }

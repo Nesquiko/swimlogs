@@ -73,5 +73,10 @@
 	"total.distance.swam": "Celková preplávaná vzdialenosť",
 	"total.distance": "Celková vzdialenosť",
 	"move.up": "Posunuť hore",
-	"move.down": "Posunuť dole"
+	"move.down": "Posunuť dole",
+	"create": "Vytvoriť",
+	"back": "Späť",
+	"confirm.training.delete.message": "Naozaj chcete vymazať tento tréning?",
+	"confirm.delete.training": "Áno, vymazaž tréning",
+	"reject.delete.training": "Nie, zrušiť"
 }

@@ -1,6 +1,7 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import DropdownMenu from '../components/common/DropdownMenu'
+import ConfirmationModal from '../components/ConfirmationModal'
 import { EquipmentIcons } from '../components/Equipment'
 import { NewTraining, NewTrainingSet, StartType } from '../generated'
 
@@ -14,6 +15,8 @@ interface TrainingPreviewPageProps {
     onMoveDown: (setIdx: number) => void
     onDelete: (setIdx: number) => void
   }
+  showDeleteTraining?: boolean
+  onDeleteTraining?: () => void
 }
 
 const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
@@ -88,7 +91,7 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
           </Show>
         </div>
         <Show when={set.description}>
-          <p class="p-2 text-gray-500">{set.description}</p>
+          <p class="whitespace-pre-wrap p-2 text-gray-500">{set.description}</p>
         </Show>
         <Show when={set.equipment && set.equipment.length > 0}>
           <div class="text-center">
@@ -110,10 +113,22 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
 
   return (
     <div class="space-y-4 px-4">
-      <div class="text-center">
-        <span class="me-2 inline-block w-1/2 rounded bg-sky-100 px-2.5 py-0.5 text-xl font-medium text-sky-900">
+      <div class="grid grid-cols-3 items-center">
+        <div class="col-start-2 me-2 inline-block w-full rounded bg-sky-100 px-2.5 py-0.5 text-center text-xl font-medium text-sky-900">
           <span>{props.training.totalDistance / 1000}km</span>
-        </span>
+        </div>
+        <Show when={props.showDeleteTraining}>
+          <div class="text-right">
+            <ConfirmationModal
+              icon="fa-trash"
+              message={t('confirm.training.delete.message')}
+              confirmLabel={t('confirm.delete.training')}
+              cancelLabel={t('reject.delete.training')}
+              onConfirm={props.onDeleteTraining!}
+              onCancel={() => {}}
+            />
+          </div>
+        </Show>
       </div>
       <div class="space-y-2">
         <For each={props.training.sets}>{setCard}</For>

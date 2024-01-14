@@ -12,14 +12,18 @@ import { SmallIntMax } from '../lib/consts'
 
 const DISTANCES = [25, 50, 75, 100, 200, 400]
 
-interface CreateSetPageProps {
-  onCreateSet: (set: NewTrainingSet) => void
+interface EditSetPageProps {
+  set?: NewTrainingSet
+  submitLabel: string
+  onSubmitSet: (set: NewTrainingSet) => void
+
+  onCancel: () => void
 }
 
-const CreateSetPage: Component<CreateSetPageProps> = (props) => {
+const EditSetPage: Component<EditSetPageProps> = (props) => {
   const [t] = useTransContext()
-  const [repeat, setRepeat] = createSignal(1)
-  const [distance, setDistance] = createSignal(100)
+  const [repeat, setRepeat] = createSignal(props.set?.repeat ?? 1)
+  const [distance, setDistance] = createSignal(props.set?.distanceMeters ?? 100)
   const distanceErr = () => {
     if (distance() < 25) {
       return 'Too small'
@@ -27,11 +31,19 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
       return 'Too big'
     }
   }
-  const [start, setStart] = createSignal<String>(StartType.None)
-  const [seconds, setSeconds] = createSignal<number>(0)
-  const [minutes, setMinutes] = createSignal<number>(0)
-  const [equipment, setEquipment] = createSignal<Equipment[]>([])
-  const [description, setDescription] = createSignal<string | undefined>()
+  const [start, setStart] = createSignal<String>(props.set?.startType ?? 'None')
+  const [seconds, setSeconds] = createSignal<number>(
+    (props.set?.startSeconds ?? 0) % 60 ?? 0
+  )
+  const [minutes, setMinutes] = createSignal<number>(
+    ((props.set?.startSeconds ?? 0) - seconds()) / 60 ?? 0
+  )
+  const [equipment, setEquipment] = createSignal<Equipment[]>(
+    props.set?.equipment ?? []
+  )
+  const [description, setDescription] = createSignal<string | undefined>(
+    props.set?.description ?? undefined
+  )
 
   const isValid = () => {
     const isStartValid =
@@ -43,7 +55,7 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
     return distanceErr() === undefined && isStartValid
   }
 
-  const createSet = () => {
+  const submitSet = () => {
     const startInSeconds = seconds() + minutes() * 60
 
     const set: NewTrainingSet = {
@@ -56,7 +68,7 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
       equipment: equipment().length > 0 ? equipment() : undefined,
     }
 
-    props.onCreateSet(set)
+    props.onSubmitSet(set)
   }
 
   const distanceItem = (dist: number) => {
@@ -104,6 +116,7 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
       />
       <h1 class="text-xl">{t('distance')}</h1>
       <div class="space-y-4">
+{/* TODO col-span 2 for the custom distance input */}
         <div class="grid grid-cols-[100px,100px,100px] justify-between justify-items-center gap-4 text-center">
           <For each={DISTANCES.slice(0, 3)}>{distanceItem}</For>
           <For each={DISTANCES.slice(3)}>{distanceItem}</For>
@@ -129,7 +142,7 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
           })}
         />
         <Show when={start() !== undefined && start() !== StartType.None}>
-          <div class="space-y-4 pl-8">
+          <div class="space-y-2 pb-2 pl-8">
             <IncrementalCounter
               label={t('seconds')}
               value={seconds()}
@@ -171,8 +184,8 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
 
       <div class="flex items-center justify-between md:justify-around">
         <button
-          class="w-20 rounded-lg bg-red-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-red-300"
-          onClick={() => history.back()}
+          class="w-24 rounded-lg bg-red-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-red-300"
+          onClick={props.onCancel}
         >
           <Trans key="cancel" />
         </button>
@@ -182,19 +195,19 @@ const CreateSetPage: Component<CreateSetPageProps> = (props) => {
           classList={{
             'bg-green-500/30': !isValid(),
           }}
-          class="w-20 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
+          class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
           onClick={() => {
             if (!isValid()) {
               return
             }
-            createSet()
+            submitSet()
           }}
         >
-          <Trans key="next" />
+          {props.submitLabel}
         </button>
       </div>
     </div>
   )
 }
 
-export default CreateSetPage
+export default EditSetPage
