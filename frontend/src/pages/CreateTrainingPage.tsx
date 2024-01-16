@@ -17,7 +17,7 @@ const CreateTrainingPage: Component = () => {
   const [t] = useTransContext()
   const [showCreateSet, setShowCreateSet] = createSignal(false)
   const [editedSetIdx, setEditedSetIdx] = createSignal(-1)
-  const [showTrainingSession, setShowTrainingSession] = createSignal(false)
+  const [showTrainingSession, setShowTrainingSession] = createSignal(true)
 
   const [training, setTraining] = createStore<NewTraining>(
     loadTrainingFromLocalStorage() ?? {
@@ -43,6 +43,11 @@ const CreateTrainingPage: Component = () => {
   const onDeleteTraining = () => {
     clearTrainingFromLocalStorage()
     history.back()
+  }
+
+  const onTrainingSessionSubmit = (trainingSession: NewTraining) => {
+	setShowTrainingSession(false)
+    console.log('onTrainingSessionSubmit', trainingSession)
   }
 
   const onCreateSet = (set: NewTrainingSet) => {
@@ -118,7 +123,7 @@ const CreateTrainingPage: Component = () => {
           />
         </Match>
         <Match when={showTrainingSession()}>
-          <EditTrainingSessionPage />
+          <EditTrainingSessionPage onSubmit={onTrainingSessionSubmit} />
         </Match>
         <Match when={!showCreateSet()}>
           <TrainingPreviewPage
@@ -153,7 +158,7 @@ const CreateTrainingPage: Component = () => {
               <button
                 class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
                 onClick={() => {
-				  setOnBackOverrideOnce(onBack)
+                  setOnBackOverrideOnce(onBack)
                   setShowTrainingSession(true)
                 }}
               >
