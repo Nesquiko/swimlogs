@@ -1,6 +1,8 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
+import { useNavigate } from '@solidjs/router'
 import { Component, createSignal, Match, Show, Switch } from 'solid-js'
 import { createStore } from 'solid-js/store'
+import { ToastMode } from '../components/common/DismissibleToast'
 import { setOnBackOverrideOnce } from '../components/Header'
 import { NewTraining, NewTrainingSet } from '../generated'
 import { cloneSet } from '../lib/clone'
@@ -9,15 +11,18 @@ import {
   loadTrainingFromLocalStorage,
   saveTrainingToLocalStorage,
 } from '../state/local-storage'
+import { addTrainingDetail, trainingApi } from '../state/trainings'
 import EditSetPage from './EditSetPage'
 import EditTrainingSessionPage from './EditTrainingSessionPage'
+import { showToast } from './Home'
 import TrainingPreviewPage from './TrainingPreviewPage'
 
 const CreateTrainingPage: Component = () => {
   const [t] = useTransContext()
+  const navigate = useNavigate()
   const [showCreateSet, setShowCreateSet] = createSignal(false)
   const [editedSetIdx, setEditedSetIdx] = createSignal(-1)
-  const [showTrainingSession, setShowTrainingSession] = createSignal(true)
+  const [showTrainingSession, setShowTrainingSession] = createSignal(false)
 
   const [training, setTraining] = createStore<NewTraining>(
     loadTrainingFromLocalStorage() ?? {
@@ -45,9 +50,28 @@ const CreateTrainingPage: Component = () => {
     history.back()
   }
 
-  const onTrainingSessionSubmit = (trainingSession: NewTraining) => {
-	setShowTrainingSession(false)
-    console.log('onTrainingSessionSubmit', trainingSession)
+  const onTrainingSessionSubmit = (trainingSession: {
+    start: Date
+    durationMin: number
+  }) => {
+    setShowTrainingSession(false)
+    setTraining('start', trainingSession.start)
+    setTraining('durationMin', trainingSession.durationMin)
+
+    trainingApi
+      .createTraining({ newTraining: training })
+      .then((res) => {
+        addTrainingDetail(res)
+        showToast(t('training.created', 'Training created'))
+		clearTrainingFromLocalStorage()
+      })
+      .catch((e) => {
+        console.error('error', e)
+        showToast(t('training.creation.error'), ToastMode.ERROR)
+      })
+      .finally(() => {
+        navigate('/', { replace: true })
+      })
   }
 
   const onCreateSet = (set: NewTrainingSet) => {
@@ -123,7 +147,10 @@ const CreateTrainingPage: Component = () => {
           />
         </Match>
         <Match when={showTrainingSession()}>
-          <EditTrainingSessionPage onSubmit={onTrainingSessionSubmit} />
+          <EditTrainingSessionPage
+            onSubmit={onTrainingSessionSubmit}
+            onBack={onBack}
+          />
         </Match>
         <Match when={!showCreateSet()}>
           <TrainingPreviewPage
@@ -146,6 +173,18 @@ const CreateTrainingPage: Component = () => {
             onDeleteTraining={onDeleteTraining}
           />
 
+          <div class="py-2 text-center">
+            <button
+              class="h-12 w-12 rounded-full bg-sky-500"
+              onClick={() => {
+                setOnBackOverrideOnce(onBack)
+                setShowCreateSet(true)
+              }}
+            >
+              <i class="fa-solid fa-plus fa-2xl text-white"></i>
+            </button>
+          </div>
+
           <Show when={training.sets.length > 0}>
             <div class="flex items-center justify-between p-4 md:justify-around">
               <button
@@ -162,20 +201,10 @@ const CreateTrainingPage: Component = () => {
                   setShowTrainingSession(true)
                 }}
               >
-                {t('create')}
+                {t('next')}
               </button>
             </div>
           </Show>
-
-          <button
-            class="fixed bottom-2 right-2 h-16 w-16 rounded-lg bg-sky-500"
-            onClick={() => {
-              setOnBackOverrideOnce(onBack)
-              setShowCreateSet(true)
-            }}
-          >
-            <i class="fa-solid fa-plus fa-2xl text-white"></i>
-          </button>
         </Match>
       </Switch>
     </div>

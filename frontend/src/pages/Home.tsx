@@ -1,10 +1,23 @@
-import { Component, Show, For } from 'solid-js'
+import { Component, Show, For, createSignal } from 'solid-js'
 import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import { useNavigate } from '@solidjs/router'
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import Message from '../components/common/Info'
 import { Day, TrainingDetail } from '../generated'
 import { dateForDayOfWeek, formatDate, formatTime } from '../lib/datetime'
+import DismissibleToast, {
+  ToastMode,
+} from '../components/common/DismissibleToast'
+
+const [openToast, setOpenToast] = createSignal(false)
+const [toastMessage, setToastMessage] = createSignal('')
+const [toastMode, setToastMode] = createSignal(ToastMode.SUCCESS)
+
+const showToast = (message: string, mode: ToastMode = ToastMode.SUCCESS) => {
+  setToastMessage(message)
+  setToastMode(mode)
+  setOpenToast(true)
+}
 
 const Home: Component = () => {
   const [t] = useTransContext()
@@ -18,7 +31,7 @@ const Home: Component = () => {
         class="flex cursor-pointer justify-between rounded-lg border border-solid border-slate-200 px-8 py-2"
       >
         <span class="text-lg">{formatTime(detail.start)}</span>
-        <span class="text-lg">{detail.totalDistance / 100}km</span>
+        <span class="text-lg">{detail.totalDistance / 1000}km</span>
       </div>
     )
   }
@@ -76,6 +89,12 @@ const Home: Component = () => {
 
   return (
     <div class="h-full px-4 pb-28">
+      <DismissibleToast
+        open={openToast()}
+		onDismiss={() => setOpenToast(false)}
+        mode={toastMode()}
+        message={toastMessage()}
+      />
       <button
         class="fixed bottom-2 right-2 h-16 w-16 rounded-lg bg-sky-500"
         onClick={() => navigate('/training/new')}
@@ -94,7 +113,7 @@ const Home: Component = () => {
         </h1>
         <div class="flex justify-between">
           <Trans key="total.distance.swam" />
-          <p>{(details()?.distance ?? 0) / 100}km</p>
+          <p>{(details()?.distance ?? 0) / 1000}km</p>
         </div>
         <Show when={details()?.details?.length === 0}>
           <Message type="info" message={t('no.trainings')} />
@@ -106,3 +125,4 @@ const Home: Component = () => {
 }
 
 export default Home
+export { showToast }

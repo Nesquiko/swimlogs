@@ -106,7 +106,7 @@ type SelectOption<T> = {
 type SelectInputProps<T> = {
   onChange: (value: SelectOption<T> | undefined) => void
   options: SelectOption<T>[]
-  value?: T
+  initialValueIndex?: number
   label?: string
   noneOption?: string
   validated?: boolean
@@ -117,7 +117,7 @@ const SelectInput = <T extends object>(props: SelectInputProps<T>) => {
   const id = randomId()
   const [selectedOption, setSelectedOption] = createSignal<
     SelectOption<T> | undefined
-  >(undefined)
+  >(props.options[props.initialValueIndex ?? 0])
 
   return (
     <div class="w-44 py-2">

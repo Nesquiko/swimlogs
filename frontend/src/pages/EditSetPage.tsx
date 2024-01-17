@@ -116,7 +116,6 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
       />
       <h1 class="text-xl">{t('distance')}</h1>
       <div class="space-y-4">
-{/* TODO col-span 2 for the custom distance input */}
         <div class="grid grid-cols-[100px,100px,100px] justify-between justify-items-center gap-4 text-center">
           <For each={DISTANCES.slice(0, 3)}>{distanceItem}</For>
           <For each={DISTANCES.slice(3)}>{distanceItem}</For>
