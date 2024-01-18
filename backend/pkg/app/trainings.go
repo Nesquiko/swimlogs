@@ -139,7 +139,7 @@ func (app *SwimLogsApp) GetTrainingDetailsInWeek(
 	}
 
 	body := openapi.TrainingDetailsCurrentWeekResponse{
-		Details: mapDataTrainingsToApiTrainingDetails(trainings),
+		Details:  mapDataTrainingsToApiTrainingDetails(trainings),
 		Distance: distance,
 	}
 	return resultWithBody(body, http.StatusOK)
@@ -162,4 +162,22 @@ func (app *SwimLogsApp) GetTrainingDetails(
 		Pagination: pagination,
 	}
 	return resultWithBody(body, http.StatusOK)
+}
+
+func (app *SwimLogsApp) DeleteTrainingById(id uuid.UUID) Result[struct{}] {
+	err := app.db.DeleteTrainingById(id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		log.Warn().Err(err).Str("trainingId", id.String()).Msg("training not found")
+		return resultWithError[struct{}](
+			"Training not found",
+			fmt.Sprintf("Training with id %s not found", id.String()),
+			http.StatusNotFound,
+			nil,
+		)
+	} else if err != nil {
+		log.Warn().Err(err).Msg("failed to delete training")
+		return internalServerErrorResult[struct{}]("Failed to delete training")
+	}
+
+	return resultWithoutBody(http.StatusNoContent)
 }

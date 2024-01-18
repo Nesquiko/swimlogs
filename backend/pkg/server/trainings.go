@@ -43,6 +43,12 @@ func (s *SwimLogsServer) DeleteTraining(
 	r *http.Request,
 	id types.UUID,
 ) {
+	res := s.app.DeleteTrainingById(id)
+	if res.HasError() {
+		respondWithJSON(w, res.Code(), res.Body())
+		return
+	}
+	respondWithCode(w, http.StatusNoContent)
 }
 
 // (GET /trainings/{id})

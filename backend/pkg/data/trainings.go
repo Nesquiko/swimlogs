@@ -295,3 +295,25 @@ func (db *PostgresDbConn) GetTrainingDetails(page, pageSize int) ([]Training, in
 
 	return ts, count, nil
 }
+
+var deleteTraining = "delete from trainings where id = $1"
+
+func (db *PostgresDbConn) DeleteTrainingById(id uuid.UUID) error {
+	return tx(db.DB, func(tx *sql.Tx) error {
+		return db.deleteTrainingById(id, tx)
+	})
+}
+
+func (db *PostgresDbConn) deleteTrainingById(id uuid.UUID, tx *sql.Tx) error {
+	res, err := tx.Exec(deleteTraining, id)
+	if err != nil {
+		return fmt.Errorf("deleteTrainingById: %w", err)
+	}
+	if count, err := res.RowsAffected(); err != nil && count != 1 {
+		return fmt.Errorf("deleteTrainingById: %w", ErrRowsNotFound)
+	} else if err != nil {
+		return fmt.Errorf("deleteTrainingById: %w", err)
+	}
+
+	return nil
+}
