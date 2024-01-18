@@ -19,6 +19,8 @@ interface DismissibleToastProps {
   message: string
 }
 
+const TRANSITION_DURATION = 300
+
 const DismissibleToast: Component<DismissibleToastProps> = (props) => {
   const id = randomId()
 
@@ -26,12 +28,17 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
   let dismissEl: Dismiss
 
   onMount(() => {
-    dismissEl = new Dismiss(target, undefined, {}, { id })
+    dismissEl = new Dismiss(
+      target,
+      undefined,
+      { duration: TRANSITION_DURATION },
+      { id }
+    )
   })
 
   const onDismiss = () => {
-	props.onDismiss()
-	dismissEl.hide()
+    dismissEl.hide()
+    setTimeout(props.onDismiss, TRANSITION_DURATION)
   }
 
   createEffect(() => {
@@ -41,30 +48,26 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
   })
 
   return (
-    <Show when={props.open}>
-      <div
-        class="fixed right-4 top-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-800 shadow shadow-gray-400"
-        role="alert"
-        ref={target!}
-      >
-        <i
-          classList={{
-            [ToastModeOptions[props.mode].color]: true,
-            [ToastModeOptions[props.mode].icon]: true,
-          }}
-          class="fa-solid fa-xl"
-        ></i>
-        <div class="ms-3 text-base font-medium">{props.message}</div>
-        <button
-          type="button"
-          class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5"
-          aria-label="Close"
-          onClick={onDismiss}
-        >
-          <i class="fa-solid fa-xmark fa-xl"></i>
-        </button>
-      </div>
-    </Show>
+    <div role="alert" ref={target!}>
+      <Show when={props.open}>
+        <div class="fixed right-4 top-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-800 shadow shadow-gray-400">
+          <i
+            class={`fa-solid fa-xl ${ToastModeOptions[props.mode].color} ${
+              ToastModeOptions[props.mode].icon
+            }`}
+          ></i>
+          <div class="ms-3 text-base font-medium">{props.message}</div>
+          <button
+            type="button"
+            class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5"
+            aria-label="Close"
+            onClick={onDismiss}
+          >
+            <i class="fa-solid fa-xmark fa-xl"></i>
+          </button>
+        </div>
+      </Show>
+    </div>
   )
 }
 

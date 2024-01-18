@@ -1,22 +1,24 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import DropdownMenu from '../components/common/DropdownMenu'
-import ConfirmationModal from '../components/ConfirmationModal'
 import { EquipmentIcons } from '../components/Equipment'
 import { NewTraining, NewTrainingSet, StartType, Training } from '../generated'
 
+type Option = {
+  text: string
+  icon: string
+  onClick: (setIdx: number) => void
+  disabled?: boolean
+  disabledFunc?: (setIdx: number) => boolean
+}
+
 interface TrainingPreviewPageProps {
   training: NewTraining | Training
-  showOptions?: boolean
-  options?: {
-    onEdit: (setIdx: number) => void
-    onDuplicate: (setIdx: number) => void
-    onMoveUp: (setIdx: number) => void
-    onMoveDown: (setIdx: number) => void
-    onDelete: (setIdx: number) => void
-  }
-  showDeleteTraining?: boolean
-  onDeleteTraining?: () => void
+
+  setOptions?: Option[]
+
+  rightHeaderComponent?: Component
+  leftHeaderComponent?: Component
 }
 
 const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
@@ -55,37 +57,31 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
             </Show>
           </h5>
 
-          <Show when={props.showOptions}>
+          <Show when={props.setOptions && props.setOptions.length > 0}>
             <DropdownMenu
               icon="fa-ellipsis"
-              items={[
-                {
-                  text: t('edit'),
-                  icon: 'fa-pen',
-                  onClick: () => props.options!.onEdit(set.setOrder!),
-                },
-                {
-                  text: t('duplicate'),
-                  icon: 'fa-copy',
-                  onClick: () => props.options!.onDuplicate(set.setOrder!),
-                },
-                {
-                  text: t('move.up'),
-                  icon: 'fa-arrow-up',
-                  onClick: () => props.options!.onMoveUp(set.setOrder!),
-                  disabled: set.setOrder === 0,
-                },
-                {
-                  text: t('move.down'),
-                  icon: 'fa-arrow-down',
-                  onClick: () => props.options!.onMoveDown(set.setOrder!),
-                  disabled: set.setOrder === props.training.sets.length - 1,
-                },
-              ]}
+              items={props.setOptions!.slice(0, -1).map((option) => ({
+                icon: option.icon,
+                text: option.text,
+                onClick: () => option.onClick(set.setOrder!),
+                disabled:
+                  option.disabled ||
+                  option.disabledFunc?.(set.setOrder!) ||
+                  false,
+              }))}
               finalItem={{
-                text: t('delete'),
-                icon: 'fa-trash',
-                onClick: () => props.options!.onDelete(set.setOrder!),
+                icon: props.setOptions![props.setOptions!.length - 1].icon,
+                text: props.setOptions![props.setOptions!.length - 1].text,
+                onClick: () =>
+                  props.setOptions![props.setOptions!.length - 1].onClick(
+                    set.setOrder!
+                  ),
+                disabled:
+                  props.setOptions![props.setOptions!.length - 1].disabled ||
+                  props.setOptions![
+                    props.setOptions!.length - 1
+                  ].disabledFunc?.(set.setOrder!) ||
+                  false,
               }}
             />
           </Show>
@@ -114,21 +110,14 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
       <div class="grid grid-cols-3 items-center">
+        <Show when={props.leftHeaderComponent}>
+          {props.leftHeaderComponent}
+        </Show>
         <div class="col-start-2 me-2 inline-block w-full rounded bg-sky-100 px-2.5 py-0.5 text-center text-xl font-medium text-sky-900">
           <span>{props.training.totalDistance / 1000}km</span>
         </div>
-        <Show when={props.showDeleteTraining}>
-          <div class="text-right">
-            <ConfirmationModal
-              icon="fa-trash"
-			  iconColor='text-red-500'
-              message={t('confirm.training.delete.message')}
-              confirmLabel={t('confirm.delete.training')}
-              cancelLabel={t('reject.delete.training')}
-              onConfirm={props.onDeleteTraining!}
-              onCancel={() => {}}
-            />
-          </div>
+        <Show when={props.rightHeaderComponent}>
+          {props.rightHeaderComponent}
         </Show>
       </div>
       <div class="space-y-2">

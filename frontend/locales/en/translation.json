@@ -88,8 +88,8 @@
 	"move.down": "Move down",
 	"create": "Create",
 	"back": "Back",
+	"no.cancel": "No, cancel",
 	"confirm.training.delete.message": "Are you sure you want to delete this training?",
 	"confirm.delete.training": "Yes, delete training",
-	"reject.delete.training": "No, cancel",
 	"hour": "Hour"
 }

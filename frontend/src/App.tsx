@@ -6,8 +6,10 @@ import Header from './components/Header'
 import Home from './pages/Home'
 import TrainingPage from './pages/TrainingPage'
 import TrainingHistoryPage from './pages/TrainingsHistoryPage'
-import CreateTrainingPage from './pages/CreateTrainingPage'
-import DismissibleToast, { ToastMode } from './components/common/DismissibleToast'
+import DismissibleToast, {
+  ToastMode,
+} from './components/common/DismissibleToast'
+import NewTrainingPage from './pages/NewTrainingPage'
 
 const SessionCreatePage = lazy(() => import('./pages/SessionCreatePage'))
 
@@ -35,7 +37,7 @@ const App: Component = () => {
       <div class="py-2">
         <Routes>
           <Route path="/" component={Home} />
-          <Route path="/training/new" component={CreateTrainingPage} />
+          <Route path="/training/new" component={NewTrainingPage} />
           <Route path="/training/:id" component={TrainingPage} />
           <Route path="/trainings" component={TrainingHistoryPage} />
           <Route path="/session/create" component={SessionCreatePage} />

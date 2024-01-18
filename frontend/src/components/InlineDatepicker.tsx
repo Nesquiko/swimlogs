@@ -26,12 +26,15 @@ const MONDAY = 1
 const SUNDAY = 0
 
 interface InlineDatepickerProps {
+  initialDate?: Date
   onChange: (date: Date) => void
 }
 
 const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
   const [t] = useTransContext()
-  const [date, _setDate] = createSignal(new Date())
+  const [date, _setDate] = createSignal(
+	props.initialDate || new Date()
+  )
   const lastDay = () =>
     new Date(date().getUTCFullYear(), date().getUTCMonth() + 1, 1)
 

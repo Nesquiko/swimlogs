@@ -11,8 +11,12 @@ const defaultBack = () => history.back()
 
 let onBackOverride: (() => void) | undefined
 
-export const setOnBackOverrideOnce = (onBack: () => void) => {
+export const setOnBackOverride = (onBack?: () => void) => {
   onBackOverride = onBack
+}
+
+export const clearOnBackOverride = () => {
+  onBackOverride = undefined
 }
 
 const Header: Component = () => {
@@ -30,7 +34,6 @@ const Header: Component = () => {
         onBack: () => {
           if (onBackOverride) {
             onBackOverride()
-            onBackOverride = undefined
           } else {
             defaultBack()
           }

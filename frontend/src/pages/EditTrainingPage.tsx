@@ -1,37 +1,43 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
-import { useNavigate } from '@solidjs/router'
-import { Component, createSignal, Match, Show, Switch } from 'solid-js'
+import {
+  Component,
+  createSignal,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from 'solid-js'
 import { createStore } from 'solid-js/store'
-import { showToast } from '../App'
-import { ToastMode } from '../components/common/DismissibleToast'
-import { setOnBackOverrideOnce } from '../components/Header'
-import { NewTraining, NewTrainingSet } from '../generated'
+import ConfirmationModal from '../components/ConfirmationModal'
+import { clearOnBackOverride, setOnBackOverride } from '../components/Header'
+import { NewTraining, NewTrainingSet, Training } from '../generated'
 import { cloneSet } from '../lib/clone'
 import {
   clearTrainingFromLocalStorage,
-  loadTrainingFromLocalStorage,
   saveTrainingToLocalStorage,
 } from '../state/local-storage'
-import { addTrainingDetail, trainingApi } from '../state/trainings'
 import EditSetPage from './EditSetPage'
 import EditTrainingSessionPage from './EditTrainingSessionPage'
 import TrainingPreviewPage from './TrainingPreviewPage'
 
-const CreateTrainingPage: Component = () => {
+interface EditTrainingPageProps {
+  training: ReturnType<typeof createStore<NewTraining | Training>>
+  onSubmit: (training: NewTraining | Training) => void
+  onDelete?: () => void
+  onBack: () => void
+  saveToLocalStorage: boolean
+}
+
+const EditTrainingPage: Component<EditTrainingPageProps> = (props) => {
   const [t] = useTransContext()
-  const navigate = useNavigate()
   const [showCreateSet, setShowCreateSet] = createSignal(false)
   const [editedSetIdx, setEditedSetIdx] = createSignal(-1)
   const [showTrainingSession, setShowTrainingSession] = createSignal(false)
+  const [training, setTraining] = props.training
 
-  const [training, setTraining] = createStore<NewTraining>(
-    loadTrainingFromLocalStorage() ?? {
-      start: new Date(),
-      durationMin: 0,
-      totalDistance: 0,
-      sets: [],
-    }
-  )
+  onMount(() => setOnBackOverride(onBack))
+  onCleanup(() => clearOnBackOverride())
 
   const onBack = () => {
     if (showCreateSet()) {
@@ -41,13 +47,15 @@ const CreateTrainingPage: Component = () => {
     } else if (showTrainingSession()) {
       setShowTrainingSession(false)
     } else {
-      history.back()
+      props.onBack()
     }
   }
 
   const onDeleteTraining = () => {
-    clearTrainingFromLocalStorage()
-    history.back()
+    if (props.saveToLocalStorage) {
+      clearTrainingFromLocalStorage()
+    }
+    props.onDelete?.()
   }
 
   const onTrainingSessionSubmit = (trainingSession: {
@@ -57,29 +65,28 @@ const CreateTrainingPage: Component = () => {
     setShowTrainingSession(false)
     setTraining('start', trainingSession.start)
     setTraining('durationMin', trainingSession.durationMin)
+    props.onSubmit(training)
+    if (props.saveToLocalStorage) {
+      clearTrainingFromLocalStorage()
+    }
+  }
 
-    trainingApi
-      .createTraining({ newTraining: training })
-      .then((res) => {
-        addTrainingDetail(res)
-        showToast(t('training.created', 'Training created'))
-		clearTrainingFromLocalStorage()
-      })
-      .catch((e) => {
-        console.error('error', e)
-        showToast(t('training.creation.error'), ToastMode.ERROR)
-      })
-      .finally(() => {
-        navigate('/', { replace: true })
-      })
+  const recalculateTotalDistance = () => {
+    let newTotalDistance = 0
+    training.sets.forEach(
+      (s) => (newTotalDistance += s.repeat * (s.distanceMeters ?? 0))
+    )
+    setTraining('totalDistance', newTotalDistance)
   }
 
   const onCreateSet = (set: NewTrainingSet) => {
     setShowCreateSet(false)
     set.setOrder = training.sets.length
     setTraining('sets', [...training.sets, set])
-    setTraining('totalDistance', training.totalDistance + set.totalDistance)
-    saveTrainingToLocalStorage(training)
+    recalculateTotalDistance()
+    if (props.saveToLocalStorage) {
+      saveTrainingToLocalStorage(training)
+    }
   }
 
   const onEditSet = (set: NewTrainingSet) => {
@@ -90,7 +97,10 @@ const CreateTrainingPage: Component = () => {
       return sets
     })
     setEditedSetIdx(-1)
-    saveTrainingToLocalStorage(training)
+    recalculateTotalDistance()
+    if (props.saveToLocalStorage) {
+      saveTrainingToLocalStorage(training)
+    }
   }
 
   const onMoveUpSet = (setIdx: number) => {
@@ -102,7 +112,9 @@ const CreateTrainingPage: Component = () => {
       sets[setIdx - 1] = tmp
       return sets.map((s, i) => ({ ...s, setOrder: i }))
     })
-    saveTrainingToLocalStorage(training)
+    if (props.saveToLocalStorage) {
+      saveTrainingToLocalStorage(training)
+    }
   }
 
   const onMoveDownSet = (setIdx: number) => {
@@ -114,7 +126,9 @@ const CreateTrainingPage: Component = () => {
       sets[setIdx + 1] = tmp
       return sets.map((s, i) => ({ ...s, setOrder: i }))
     })
-    saveTrainingToLocalStorage(training)
+    if (props.saveToLocalStorage) {
+      saveTrainingToLocalStorage(training)
+    }
   }
 
   const onDeleteSet = (setIdx: number) => {
@@ -125,11 +139,13 @@ const CreateTrainingPage: Component = () => {
     setTraining('sets', (sets) =>
       sets.filter((_, i) => i !== setIdx).map((s, i) => ({ ...s, setOrder: i }))
     )
-    saveTrainingToLocalStorage(training)
+    if (props.saveToLocalStorage) {
+      saveTrainingToLocalStorage(training)
+    }
   }
 
   return (
-    <div class="pb-24 md:pb-4">
+    <div class="pb-4">
       <Switch>
         <Match when={showCreateSet()}>
           <EditSetPage
@@ -148,6 +164,10 @@ const CreateTrainingPage: Component = () => {
         </Match>
         <Match when={showTrainingSession()}>
           <EditTrainingSessionPage
+            initial={{
+              start: new Date(training.start),
+              durationMin: training.durationMin,
+            }}
             onSubmit={onTrainingSessionSubmit}
             onBack={onBack}
           />
@@ -155,31 +175,55 @@ const CreateTrainingPage: Component = () => {
         <Match when={!showCreateSet()}>
           <TrainingPreviewPage
             training={training}
-            showOptions={true}
-            options={{
-              onEdit: (setIdx) => {
-                setOnBackOverrideOnce(onBack)
-                setEditedSetIdx(setIdx)
+            setOptions={[
+              {
+                text: t('edit'),
+                icon: 'fa-pen',
+                onClick: (setIdx) => setEditedSetIdx(setIdx),
               },
-              onDuplicate: (setIdx) => {
-                onCreateSet(cloneSet(training.sets[setIdx]))
-                saveTrainingToLocalStorage(training)
+              {
+                text: t('duplicate'),
+                icon: 'fa-copy',
+                onClick: (setIdx) => {
+                  onCreateSet(cloneSet(training.sets[setIdx]))
+                  if (props.saveToLocalStorage) {
+                    saveTrainingToLocalStorage(training)
+                  }
+                },
               },
-              onMoveUp: onMoveUpSet,
-              onMoveDown: onMoveDownSet,
-              onDelete: onDeleteSet,
-            }}
-            showDeleteTraining={true}
-            onDeleteTraining={onDeleteTraining}
+              {
+                text: t('move.up'),
+                icon: 'fa-arrow-up',
+                onClick: onMoveUpSet,
+                disabledFunc: (setIdx) => setIdx === 0,
+              },
+              {
+                text: t('move.down'),
+                icon: 'fa-arrow-down',
+                onClick: onMoveDownSet,
+                disabledFunc: (setIdx) => setIdx === training.sets.length - 1,
+              },
+              { text: t('delete'), icon: 'fa-trash', onClick: onDeleteSet },
+            ]}
+            rightHeaderComponent={() => (
+              <div class="text-right">
+                <ConfirmationModal
+                  icon="fa-trash"
+                  iconColor="text-red-500"
+                  message={t('confirm.training.delete.message')}
+                  confirmLabel={t('confirm.delete.training')}
+                  cancelLabel={t('no.cancel')}
+                  onConfirm={onDeleteTraining}
+                  onCancel={() => {}}
+                />
+              </div>
+            )}
           />
 
           <div class="py-2 text-center">
             <button
               class="h-12 w-12 rounded-full bg-sky-500"
-              onClick={() => {
-                setOnBackOverrideOnce(onBack)
-                setShowCreateSet(true)
-              }}
+              onClick={() => setShowCreateSet(true)}
             >
               <i class="fa-solid fa-plus fa-2xl text-white"></i>
             </button>
@@ -189,17 +233,14 @@ const CreateTrainingPage: Component = () => {
             <div class="flex items-center justify-between p-4 md:justify-around">
               <button
                 class="w-24 rounded-lg bg-red-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-red-300"
-                onClick={() => onBack()}
+                onClick={onBack}
               >
                 {t('back')}
               </button>
 
               <button
                 class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={() => {
-                  setOnBackOverrideOnce(onBack)
-                  setShowTrainingSession(true)
-                }}
+                onClick={() => setShowTrainingSession(true)}
               >
                 {t('next')}
               </button>
@@ -211,4 +252,4 @@ const CreateTrainingPage: Component = () => {
   )
 }
 
-export default CreateTrainingPage
+export default EditTrainingPage

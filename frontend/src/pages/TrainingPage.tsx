@@ -1,17 +1,25 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate, useParams } from '@solidjs/router'
-import { Component, createResource, Show } from 'solid-js'
+import { Component, createResource, createSignal, Show } from 'solid-js'
+import { createStore } from 'solid-js/store'
 import { showToast } from '../App'
 import { ToastMode } from '../components/common/DismissibleToast'
+import ConfirmationModal from '../components/ConfirmationModal'
+import { setOnBackOverride } from '../components/Header'
 import Spinner from '../components/Spinner'
 import { ResponseError, Training } from '../generated'
 import { removeFromTrainingsDetails, trainingApi } from '../state/trainings'
+import EditTrainingPage from './EditTrainingPage'
 import TrainingPreviewPage from './TrainingPreviewPage'
 
 const TrainingPage: Component = () => {
   const params = useParams()
   const [t] = useTransContext()
-  const [training] = createResource(() => params.id, getTraining)
+  const [training, { mutate, refetch }] = createResource(
+    () => params.id,
+    getTraining
+  )
+  const [editTraining, setEditTraining] = createSignal(false)
 
   const navigate = useNavigate()
   async function getTraining(id: string): Promise<Training> {
@@ -49,12 +57,43 @@ const TrainingPage: Component = () => {
   }
 
   return (
-    <Show when={!training.error}>
-      <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
-        <TrainingPreviewPage
-          training={training()!}
-          showDeleteTraining={true}
-          onDeleteTraining={() => deleteTraining(params.id)}
+    <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
+      <Show
+        when={editTraining()}
+        fallback={
+          <TrainingPreviewPage
+            training={training()!}
+            leftHeaderComponent={() => (
+              <i
+                class="fa-solid fa-pen fa-xl text-sky-900"
+                onClick={() => setEditTraining(true)}
+              ></i>
+            )}
+            rightHeaderComponent={() => (
+              <div class="text-right">
+                <ConfirmationModal
+                  icon="fa-trash"
+                  iconColor="text-red-500"
+                  message={t('confirm.training.delete.message')}
+                  confirmLabel={t('confirm.delete.training')}
+                  cancelLabel={t('no.cancel')}
+                  onConfirm={() => deleteTraining(params.id)}
+                  onCancel={() => {}}
+                />
+              </div>
+            )}
+          />
+        }
+      >
+        <EditTrainingPage
+          saveToLocalStorage={false}
+          training={createStore(JSON.parse(JSON.stringify(training())))}
+          onSubmit={(t) => {
+			// TODO backend for this
+            mutate(t as Training)
+            setEditTraining(false)
+          }}
+          onBack={() => setEditTraining(false)}
         />
       </Show>
     </Show>

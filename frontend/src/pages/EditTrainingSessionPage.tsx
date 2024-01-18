@@ -14,6 +14,7 @@ const TIMES = [
 ] as Time[]
 
 interface EditTrainingSessionPageProps {
+  initial?: { start: Date; durationMin: number }
   onSubmit: (session: { start: Date; durationMin: number }) => void
   onBack: () => void
 }
@@ -22,10 +23,16 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
   props
 ) => {
   const [t] = useTransContext()
-  const [durationMin, setDurationMin] = createSignal(60)
-  const [date, setDate] = createSignal(new Date())
-  const [hours, setHours] = createSignal<String>('18')
-  const [minutes, setMinutes] = createSignal<String>('00')
+  const [durationMin, setDurationMin] = createSignal(
+    props.initial?.durationMin || 60
+  )
+  const [date, setDate] = createSignal(props.initial?.start || new Date())
+  const [hours, setHours] = createSignal<String>(
+    props.initial?.start.getHours().toString().padStart(2, '0') || '18'
+  )
+  const [minutes, setMinutes] = createSignal<String>(
+    props.initial?.start.getMinutes().toString().padStart(2, '0') || '00'
+  )
 
   const timeItem = (time: Time) => {
     return (
@@ -40,15 +47,15 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
   }
 
   const onSubmit = () => {
-	  const start = new Date(date())
-	  start.setHours(Number(hours()))
-	  start.setMinutes(Number(minutes()))
-	  start.setSeconds(0)
+    const start = new Date(date())
+    start.setHours(Number(hours()))
+    start.setMinutes(Number(minutes()))
+    start.setSeconds(0)
 
-	  props.onSubmit({
-		  start,
-		  durationMin: durationMin()
-	  })
+    props.onSubmit({
+      start,
+      durationMin: durationMin(),
+    })
   }
 
   return (
@@ -58,7 +65,7 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
         <div class="flex justify-around">
           <SelectInput<String>
             onChange={(h) => setHours(h!.value)}
-            initialValueIndex={StartTimeHours.findIndex((h) => h === '18')}
+            initialValueIndex={StartTimeHours.findIndex((h) => h === hours())}
             options={Array.from(StartTimeHours).map((h) => ({
               label: h,
               value: h,
@@ -67,7 +74,9 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
 
           <SelectInput<String>
             onChange={(m) => setMinutes(m!.value)}
-            initialValueIndex={StartTimeMinutes.findIndex((m) => m === '00')}
+            initialValueIndex={StartTimeMinutes.findIndex(
+              (m) => m === minutes()
+            )}
             options={Array.from(StartTimeMinutes).map((m) => ({
               label: m,
               value: m,
@@ -85,7 +94,7 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
 
       <div>
         <h1 class="text-xl">{t('date')}</h1>
-        <InlineDatepicker onChange={setDate} />
+        <InlineDatepicker initialDate={date()} onChange={setDate} />
       </div>
 
       <div class="flex items-center justify-between md:justify-around">

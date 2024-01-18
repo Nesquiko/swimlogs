@@ -88,8 +88,10 @@
 	"move.down": "Posunuť dole",
 	"create": "Vytvoriť",
 	"back": "Späť",
+	"confirm.training.clear.message": "Naozaj chcete vymazať tento tréning?", 
+	"confirm.clear.training": "Áno, vymazaž tréning",
+	"no.cancel": "Nie, zrušiť",
 	"confirm.training.delete.message": "Naozaj chcete vymazať tento tréning?",
 	"confirm.delete.training": "Áno, vymazaž tréning",
-	"reject.delete.training": "Nie, zrušiť",
 	"hour": "Hodina"
 }
