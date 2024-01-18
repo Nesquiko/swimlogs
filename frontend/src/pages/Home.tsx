@@ -1,23 +1,10 @@
-import { Component, Show, For, createSignal } from 'solid-js'
+import { Component, Show, For } from 'solid-js'
 import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import { useNavigate } from '@solidjs/router'
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import Message from '../components/common/Info'
 import { Day, TrainingDetail } from '../generated'
 import { dateForDayOfWeek, formatDate, formatTime } from '../lib/datetime'
-import DismissibleToast, {
-  ToastMode,
-} from '../components/common/DismissibleToast'
-
-const [openToast, setOpenToast] = createSignal(false)
-const [toastMessage, setToastMessage] = createSignal('')
-const [toastMode, setToastMode] = createSignal(ToastMode.SUCCESS)
-
-const showToast = (message: string, mode: ToastMode = ToastMode.SUCCESS) => {
-  setToastMessage(message)
-  setToastMode(mode)
-  setOpenToast(true)
-}
 
 const Home: Component = () => {
   const [t] = useTransContext()
@@ -89,12 +76,6 @@ const Home: Component = () => {
 
   return (
     <div class="h-full px-4 pb-28">
-      <DismissibleToast
-        open={openToast()}
-		onDismiss={() => setOpenToast(false)}
-        mode={toastMode()}
-        message={toastMessage()}
-      />
       <button
         class="fixed bottom-2 right-2 h-16 w-16 rounded-lg bg-sky-500"
         onClick={() => navigate('/training/new')}
@@ -125,4 +106,3 @@ const Home: Component = () => {
 }
 
 export default Home
-export { showToast }

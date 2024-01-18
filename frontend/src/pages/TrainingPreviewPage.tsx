@@ -3,10 +3,10 @@ import { Component, For, Show } from 'solid-js'
 import DropdownMenu from '../components/common/DropdownMenu'
 import ConfirmationModal from '../components/ConfirmationModal'
 import { EquipmentIcons } from '../components/Equipment'
-import { NewTraining, NewTrainingSet, StartType } from '../generated'
+import { NewTraining, NewTrainingSet, StartType, Training } from '../generated'
 
 interface TrainingPreviewPageProps {
-  training: NewTraining
+  training: NewTraining | Training
   showOptions?: boolean
   options?: {
     onEdit: (setIdx: number) => void

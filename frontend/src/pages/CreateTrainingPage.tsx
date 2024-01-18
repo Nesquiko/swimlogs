@@ -2,6 +2,7 @@ import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate } from '@solidjs/router'
 import { Component, createSignal, Match, Show, Switch } from 'solid-js'
 import { createStore } from 'solid-js/store'
+import { showToast } from '../App'
 import { ToastMode } from '../components/common/DismissibleToast'
 import { setOnBackOverrideOnce } from '../components/Header'
 import { NewTraining, NewTrainingSet } from '../generated'
@@ -14,7 +15,6 @@ import {
 import { addTrainingDetail, trainingApi } from '../state/trainings'
 import EditSetPage from './EditSetPage'
 import EditTrainingSessionPage from './EditTrainingSessionPage'
-import { showToast } from './Home'
 import TrainingPreviewPage from './TrainingPreviewPage'
 
 const CreateTrainingPage: Component = () => {
