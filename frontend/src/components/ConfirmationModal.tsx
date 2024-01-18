@@ -4,6 +4,7 @@ import { randomId } from '../lib/str'
 
 interface ConfirmationModalProps {
   icon: string
+  iconColor?: string
   message: string
 
   confirmLabel: string
@@ -29,7 +30,7 @@ const ConfirmationModal: Component<ConfirmationModalProps> = (props) => {
         type="button"
         onClick={() => modal.show()}
       >
-        <i class={`${props.icon} fa-solid fa-xl cursor-pointer`}></i>
+        <i class={`${props.icon} ${props.iconColor} fa-solid fa-xl cursor-pointer`}></i>
       </button>
 
       <div

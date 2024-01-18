@@ -121,6 +121,7 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
           <div class="text-right">
             <ConfirmationModal
               icon="fa-trash"
+			  iconColor='text-red-500'
               message={t('confirm.training.delete.message')}
               confirmLabel={t('confirm.delete.training')}
               cancelLabel={t('reject.delete.training')}

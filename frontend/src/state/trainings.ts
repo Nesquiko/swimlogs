@@ -12,7 +12,7 @@ async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
   return trainingApi
     .getTrainingsDetailsCurrentWeek()
     .then((res) => res)
-    .catch((err) => {
+    .catch((_err) => {
       throw Promise.reject(new Error('Error fetching trainings details'))
     })
 }
@@ -30,6 +30,16 @@ function addTrainingDetail(td: TrainingDetail) {
     0
   )
   newDetails.sort(trainingDetailCompare)
+  mutate({ details: newDetails, distance: newDistance })
+}
+
+function removeFromTrainingsDetails(id: string) {
+  const currentDetails = detailsThisWeek()?.details ?? []
+  const newDetails = currentDetails.filter((td) => td.id !== id)
+  const newDistance = newDetails.reduce(
+    (acc, curr) => acc + curr.totalDistance,
+    0
+  )
   mutate({ details: newDetails, distance: newDistance })
 }
 
@@ -60,4 +70,4 @@ function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
   return 0
 }
 
-export { trainingApi, useTrainingsDetailsThisWeek, addTrainingDetail }
+export { trainingApi, useTrainingsDetailsThisWeek, addTrainingDetail, removeFromTrainingsDetails }

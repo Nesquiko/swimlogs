@@ -1,40 +1,62 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate, useParams } from '@solidjs/router'
 import { Component, createResource, Show } from 'solid-js'
+import { showToast } from '../App'
+import { ToastMode } from '../components/common/DismissibleToast'
 import Spinner from '../components/Spinner'
-import { openToast, ToastType } from '../components/Toast'
-import TrainingPreview from '../components/TrainingPreview'
 import { ResponseError, Training } from '../generated'
-import { trainingApi } from '../state/trainings'
+import { removeFromTrainingsDetails, trainingApi } from '../state/trainings'
+import TrainingPreviewPage from './TrainingPreviewPage'
 
 const TrainingPage: Component = () => {
   const params = useParams()
+  const [t] = useTransContext()
   const [training] = createResource(() => params.id, getTraining)
 
-  const [t] = useTransContext()
   const navigate = useNavigate()
   async function getTraining(id: string): Promise<Training> {
-    const result = trainingApi
+    return trainingApi
       .getTrainingById({ id })
-      .then((res) => {
-        return Promise.resolve(res)
-      })
+      .then((res) => res)
       .catch((e: ResponseError) => {
         console.error('error', e)
-        let msg = t('server.error', 'Server error')
+        let msg = t('server.error')
         if (e.response?.status === 404) {
-          msg = t('training.not.found', 'Training not found')
+          msg = t('training.not.found')
         }
-        openToast(msg, ToastType.ERROR)
+        showToast(msg, ToastMode.ERROR)
         navigate('/', { replace: true })
         return Promise.reject(e)
       })
-    return result
+  }
+
+  async function deleteTraining(id: string) {
+    trainingApi
+      .deleteTraining({ id: id })
+      .then(() => removeFromTrainingsDetails(id))
+      .catch((e: ResponseError) => {
+        console.error('error', e)
+        let msg = t('server.error')
+        if (e.response?.status === 404) {
+          msg = t('training.not.found')
+          removeFromTrainingsDetails(id)
+        }
+        showToast(msg, ToastMode.ERROR)
+      })
+      .finally(() => {
+        navigate('/', { replace: true })
+      })
   }
 
   return (
-    <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
-      <TrainingPreview training={training()} />
+    <Show when={!training.error}>
+      <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
+        <TrainingPreviewPage
+          training={training()!}
+          showDeleteTraining={true}
+          onDeleteTraining={() => deleteTraining(params.id)}
+        />
+      </Show>
     </Show>
   )
 }
