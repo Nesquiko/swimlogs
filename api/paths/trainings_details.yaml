@@ -1,0 +1,25 @@
+get:
+  description: Returns paginated list of details about trainings, ordered by when they were created
+  tags:
+    - Trainings
+  operationId: trainingDetails
+  parameters:
+    - name: page
+      in: query
+      required: true
+      description: Which page to return, starts at 0
+      schema:
+        type: integer
+        example: 0
+        minimum: 0
+    - name: pageSize
+      in: query
+      required: true
+      description: How many details to return
+      schema:
+        type: integer
+        example: 10
+        minimum: 1
+  responses:
+    200:
+      $ref: "../components/responses/TrainingDetailsResponse.yaml"

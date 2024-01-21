@@ -1,0 +1,15 @@
+description: Paginated list of training details
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        details:
+          type: array
+          items:
+            $ref: "../schemas/TrainingDetail.yaml"
+        pagination:
+          $ref: "../schemas/Pagination.yaml"
+      required:
+        - details
+        - pagination

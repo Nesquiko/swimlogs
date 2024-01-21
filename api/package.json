@@ -1,0 +1,11 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "scripts": {
+    "preview": "npx @redocly/cli preview-docs api.yaml",
+    "bundle": "npx @redocly/cli bundle -o swimlogsAPI.gen.yaml api.yaml",
+    "lint": "npx @redocly/cli lint api.yaml",
+    "generate-go": "npm run bundle; oapi-codegen -generate types,chi-server,strict-server,spec -o api.gen.go -package apidef swimlogsAPI.gen.yaml"
+  },
+  "license": "MIT"
+}

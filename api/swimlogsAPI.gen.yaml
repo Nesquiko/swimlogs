@@ -1,0 +1,345 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: SwimLogs API
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  description: Openapi specification for SwimLogs API.
+servers:
+  - url: https://www.swimlogs.com/api
+    description: Prod backend server
+tags:
+  - name: Trainings
+paths:
+  /trainings:
+    post:
+      description: Creates new training
+      tags:
+        - Trainings
+      operationId: createTraining
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTrainingRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreateTrainingReponse'
+  /trainings/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Id of a training
+        schema:
+          type: string
+          format: uuid
+    get:
+      description: Get a training with matching id
+      tags:
+        - Trainings
+      operationId: trainingById
+      responses:
+        '200':
+          $ref: '#/components/responses/GetTrainingByIdResponse'
+    put:
+      description: Edits training with matching id
+      tags:
+        - Trainings
+      operationId: editTraining
+      requestBody:
+        $ref: '#/components/requestBodies/EditTrainingRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EditTrainingResponse'
+    delete:
+      description: Deletes a training with matching id
+      tags:
+        - Trainings
+      operationId: deleteTraining
+      responses:
+        '204':
+          description: Training was deleted
+  /trainings/details:
+    get:
+      description: Returns paginated list of details about trainings, ordered by when they were created
+      tags:
+        - Trainings
+      operationId: trainingDetails
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: Which page to return, starts at 0
+          schema:
+            type: integer
+            example: 0
+            minimum: 0
+        - name: pageSize
+          in: query
+          required: true
+          description: How many details to return
+          schema:
+            type: integer
+            example: 10
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/TrainingDetailsResponse'
+  /trainings/details/current-week:
+    get:
+      description: Returns list of all trainings in current week
+      tags:
+        - Trainings
+      operationId: trainingDetailsCurrentWeek
+      responses:
+        '200':
+          $ref: '#/components/responses/TrainingDetailsCurrentWeekResponse'
+components:
+  schemas:
+    EquipmentEnum:
+      type: string
+      enum:
+        - Fins
+        - Monofin
+        - Snorkel
+        - Board
+        - Paddles
+    StartTypeEnum:
+      type: string
+      enum:
+        - None
+        - Interval
+        - Pause
+    NewTrainingSet:
+      type: object
+      properties:
+        setOrder:
+          type: integer
+          description: Indicates on what place in training this set is
+        repeat:
+          type: integer
+          description: How many times to repeat this set
+        distanceMeters:
+          type: integer
+          example: 400
+        description:
+          type: string
+          description: Description of what to swim
+          example: Freestyle
+        totalDistance:
+          type: integer
+          description: Total distance in this set
+          example: 800
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentEnum'
+        startType:
+          $ref: '#/components/schemas/StartTypeEnum'
+        startSeconds:
+          type: integer
+          description: Used by starts which require a time parameter, Interval and Pause
+          example: 60
+      required:
+        - setOrder
+        - repeat
+        - distanceMeters
+        - totalDistance
+        - startType
+    NewTraining:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMin:
+          type: integer
+          description: How long does the session last, in minutes
+          example: 60
+        totalDistance:
+          type: integer
+          description: Sum of all distances in blocks in meters
+          example: 2100
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewTrainingSet'
+      required:
+        - start
+        - durationMin
+        - totalDistance
+        - sets
+    TrainingDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMin:
+          type: integer
+          description: How long does the session last, in minutes
+          example: 60
+        totalDistance:
+          type: integer
+          description: Total distance in the training in meters
+          example: 2200
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
+    TrainingSet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        setOrder:
+          type: integer
+          description: Indicates on what place in training this set is
+        repeat:
+          type: integer
+          description: How many times to repeat this set
+        distanceMeters:
+          type: integer
+          example: 400
+        description:
+          type: string
+          description: Description of what to swim
+          example: Freestyle
+        totalDistance:
+          type: integer
+          description: Total distance in this set
+          example: 800
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentEnum'
+        startType:
+          $ref: '#/components/schemas/StartTypeEnum'
+        startSeconds:
+          type: integer
+          description: Used by starts which require a time parameter, Interval and Pause
+          example: 60
+      required:
+        - id
+        - setOrder
+        - repeat
+        - distanceMeters
+        - totalDistance
+        - startType
+    Training:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMin:
+          type: integer
+          description: How long does the session last, in minutes
+          example: 60
+        totalDistance:
+          type: integer
+          description: Sum of all distances in blocks in meters
+          example: 2100
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingSet'
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
+        - sets
+    Pagination:
+      description: Pagination metadata about paginated response
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total count of all items
+          example: 13
+        page:
+          type: integer
+          description: Number of page returned
+          example: 0
+        pageSize:
+          type: integer
+          description: How many items are in page
+          example: 10
+      required:
+        - total
+        - page
+        - pageSize
+  requestBodies:
+    CreateTrainingRequest:
+      description: Request for creating a training
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewTraining'
+    EditTrainingRequest:
+      description: Request for editing a training
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewTraining'
+  responses:
+    CreateTrainingReponse:
+      description: New training was successfully created and detail about new training is returned
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrainingDetail'
+    GetTrainingByIdResponse:
+      description: Response with a training
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Training'
+    EditTrainingResponse:
+      description: Training successfully edited
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrainingDetail'
+    TrainingDetailsResponse:
+      description: Paginated list of training details
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              details:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingDetail'
+              pagination:
+                $ref: '#/components/schemas/Pagination'
+            required:
+              - details
+              - pagination
+    TrainingDetailsCurrentWeekResponse:
+      description: List of training details in current week, sorted by date and start time
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - details
+            properties:
+              details:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingDetail'
