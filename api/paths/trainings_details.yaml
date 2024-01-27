@@ -23,3 +23,5 @@ get:
   responses:
     200:
       $ref: "../components/responses/TrainingDetailsResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"

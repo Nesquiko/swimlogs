@@ -15,6 +15,8 @@ get:
   responses:
     200:
       $ref: "../components/responses/GetTrainingByIdResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"
 
 put:
   description: Edits training with matching id
@@ -26,6 +28,8 @@ put:
   responses:
     200:
       $ref: "../components/responses/EditTrainingResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"
 
 delete:
   description: Deletes a training with matching id
@@ -35,3 +39,5 @@ delete:
   responses:
     204:
       description: Training was deleted
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"

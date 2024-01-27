@@ -5,15 +5,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/tests/it"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
-var SwimLogsApp app.SwimLogsApp
-var PostgresDbConn *data.PostgresDbConn
+var (
+	SwimLogsApp    app.SwimLogsApp
+	PostgresDbConn *data.PostgresDbConn
+)
 
 func TestMain(m *testing.M) {
 	it.MainFilter()

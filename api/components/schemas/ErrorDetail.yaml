@@ -1,0 +1,20 @@
+type: object
+properties:
+  title:
+    type: string
+    description: Short human-readable summary of the error
+  status:
+    type: integer
+    description: HTTP result status
+  code:
+    type: string
+    description: Machine understandable code of the error instance
+  detail:
+    type: string
+    description: A human-readable explanation of the error
+additionalProperties: true
+required:
+  - title
+  - status
+  - code
+  - detail

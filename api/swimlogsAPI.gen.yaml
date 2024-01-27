@@ -23,6 +23,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/CreateTrainingReponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /trainings/{id}:
     parameters:
       - name: id
@@ -40,6 +42,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/GetTrainingByIdResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     put:
       description: Edits training with matching id
       tags:
@@ -50,6 +54,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EditTrainingResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       description: Deletes a training with matching id
       tags:
@@ -58,6 +64,8 @@ paths:
       responses:
         '204':
           description: Training was deleted
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /trainings/details:
     get:
       description: Returns paginated list of details about trainings, ordered by when they were created
@@ -84,6 +92,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TrainingDetailsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /trainings/details/current-week:
     get:
       description: Returns list of all trainings in current week
@@ -93,6 +103,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TrainingDetailsCurrentWeekResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     EquipmentEnum:
@@ -192,6 +204,27 @@ components:
         - start
         - durationMin
         - totalDistance
+    ErrorDetail:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Short human-readable summary of the error
+        status:
+          type: integer
+          description: HTTP result status
+        code:
+          type: string
+          description: Machine understandable code of the error instance
+        detail:
+          type: string
+          description: A human-readable explanation of the error
+      additionalProperties: true
+      required:
+        - title
+        - status
+        - code
+        - detail
     TrainingSet:
       type: object
       properties:
@@ -302,6 +335,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TrainingDetail'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetail'
     GetTrainingByIdResponse:
       description: Response with a training
       content:
