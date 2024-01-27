@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 
 	"github.com/Nesquiko/swimlogs/apidef"
@@ -39,4 +40,5 @@ func TestCreateTraining(t *testing.T) {
 	response, err := io.ReadAll(res.Body)
 	res.Body.Close()
 	require.NoError(t, err)
+	log.Info().Bytes("response", response).Msg("response from server")
 }
