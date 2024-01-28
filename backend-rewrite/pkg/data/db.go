@@ -48,13 +48,12 @@ func Sql(pool *PostgresDbPool, sql string, args ...any) error {
 	return nil
 }
 
-func SqlWithResult[R any](pool *PostgresDbPool, sql string, args ...any) (R, error) {
-	var res R
-	err := pool.QueryRow(context.Background(), sql, args...).Scan(&res)
+func SqlWithResult(pool *PostgresDbPool, sql string, args, dest []any) error {
+	err := pool.QueryRow(context.Background(), sql, args...).Scan(dest...)
 	if err != nil {
-		return res, fmt.Errorf("SqlWithResult: %w", err)
+		return fmt.Errorf("SqlWithResult: %w", err)
 	}
-	return res, nil
+	return nil
 }
 
 func Tx(pool *PostgresDbPool, f func(pgx.Tx) error) error {

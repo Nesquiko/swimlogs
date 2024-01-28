@@ -11,10 +11,10 @@ get:
   description: Get a training with matching id
   tags:
     - Trainings
-  operationId: trainingById
+  operationId: training
   responses:
     200:
-      $ref: "../components/responses/GetTrainingByIdResponse.yaml"
+      $ref: "../components/responses/TrainingResponse.yaml"
     500:
       $ref: "../components/responses/InternalServerError.yaml"
 

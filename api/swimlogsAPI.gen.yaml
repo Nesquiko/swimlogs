@@ -38,10 +38,10 @@ paths:
       description: Get a training with matching id
       tags:
         - Trainings
-      operationId: trainingById
+      operationId: training
       responses:
         '200':
-          $ref: '#/components/responses/GetTrainingByIdResponse'
+          $ref: '#/components/responses/TrainingResponse'
         '500':
           $ref: '#/components/responses/InternalServerError'
     put:
@@ -327,7 +327,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/NewTraining'
+            $ref: '#/components/schemas/Training'
   responses:
     CreateTrainingReponse:
       description: New training was successfully created and detail about new training is returned
@@ -341,7 +341,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorDetail'
-    GetTrainingByIdResponse:
+    TrainingResponse:
       description: Response with a training
       content:
         application/json:

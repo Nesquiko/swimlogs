@@ -10,6 +10,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -20,10 +21,11 @@ import (
 )
 
 type TestHarness struct {
-	ts *httptest.Server
+	ts   *httptest.Server
+	pool *data.PostgresDbPool
 }
 
-var TH = TestHarness{}
+var TH TestHarness
 
 func TestMain(m *testing.M) {
 	log.Logger = log.Output(
@@ -34,8 +36,8 @@ func TestMain(m *testing.M) {
 		With().
 		Caller().
 		Logger()
-	ctx := context.Background()
 
+	ctx := context.Background()
 	pgContainer, err := postgres.RunContainer(
 		ctx,
 		testcontainers.WithImage("postgres:16.1"),
@@ -77,7 +79,10 @@ func TestMain(m *testing.M) {
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 
-	TH.ts = ts
+	TH = TestHarness{
+		ts:   ts,
+		pool: pool,
+	}
 
 	exitCode := m.Run()
 	if err := pgContainer.Terminate(ctx); err != nil {
@@ -86,4 +91,13 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(exitCode)
+}
+
+func asPtr[T any](v T) *T {
+	return &v
+}
+
+func (th TestHarness) CleanTrainings(t *testing.T) {
+	err := data.Sql(th.pool, "truncate trainings cascade")
+	require.NoError(t, err)
 }
