@@ -40,7 +40,7 @@ jobs:
         with:
           node-version: 21
       - name: Dowloand Oapi-Codegen
-        run: go install github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@ee101e4
+        run: go install github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@v2.1
       - name: Generate from OpenApi spec
         run: npm run --prefix ./api generate-go -y
       - name: Test

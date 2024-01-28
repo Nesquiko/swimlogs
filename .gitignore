@@ -3,3 +3,4 @@ frontend/node_modules
 frontend/src/generated
 api/api.gen.go
 backend/tmp
+api/swimlogsAPI.gen.yaml
