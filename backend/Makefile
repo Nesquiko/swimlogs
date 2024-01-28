@@ -44,24 +44,9 @@ migrations-new: ## [name=$1] create a new database migration with the given name
 	migrate create -seq -ext=.sql -dir=./migrations/ ${name}
 
 .PHONY: test-it
-test-it: ## run integration tests against a dockerized postgres database
+test-it: ## run integration tests against a dockerized postgres database created with testcontainers lib
 	@echo "Running integration tests"
-	docker run --rm --name ${TEST_DB_DOCKER_NAME} \
-		-p ${TEST_DB_PORT}:5432 \
-		-e POSTGRES_USER=${TEST_DB_USER} \
-		-e POSTGRES_PASSWORD=${TEST_DB_PASSWORD} \
-		-e POSTGRES_DB=${TEST_DB_NAME} \
-		-d postgres:15.2
-	sleep 1 # wait for db to start
-	-go test -p 1 -count=1 -v ./...
-	docker stop ${TEST_DB_DOCKER_NAME}
-test-it: export TEST_DB_HOST = localhost 
-test-it: export TEST_DB_PORT = 2345
-test-it: export TEST_DB_USER = swimlogs_test
-test-it: export TEST_DB_PASSWORD = swimlogs_test
-test-it: export TEST_DB_NAME = swimlogs_test
-test-it: export TEST_DB_DOCKER_NAME = swimlogs_testdb
-test-it: export INTEGRATION = true
+	-go test -v ./...
 
 .PHONY: test-ut
 test-ut: ## run unit tests

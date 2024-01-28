@@ -1,19 +1,13 @@
 package data
 
 import (
-	"database/sql"
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
-	"github.com/rs/zerolog/log"
-)
-
-const (
-	NoneStartType     = "None"
-	IntervalStartType = "Interval"
-	PauseStartType    = "Pause"
+	"github.com/jackc/pgx/v5"
 )
 
 type Training struct {
@@ -30,248 +24,56 @@ type Training struct {
 type TrainingSet struct {
 	Id             uuid.UUID
 	TrainingId     uuid.UUID
-	ParentSetId    *uuid.UUID
 	SetOrder       int
-	SubSetOrder    *int
 	TotalDistance  int
 	Repeat         int
-	DistanceMeters *int
-	Description    *string
+	DistanceMeters int
 	StartType      string
+	Description    *string
 	StartSeconds   *int
-	SubSets        *[]TrainingSet
-	Equipment      []string
+	Equipment      *[]string
 }
 
-func (db *PostgresDbConn) SaveTraining(t Training) (Training, error) {
-	return txWithResult(db.DB, func(tx *sql.Tx) (Training, error) {
-		return db.saveTraining(t, tx)
+func (pool *PostgresDbPool) PersistTraining(t Training) (Training, error) {
+	return TxWithResult(pool, func(tx pgx.Tx) (Training, error) {
+		t, err := pool.persistTraining(t, tx)
+		if err != nil {
+			return t, fmt.Errorf("PersistTraining tx: %w", err)
+		}
+		return t, nil
 	})
 }
 
-var insertTraining = `
-insert into trainings (id, start, duration_min, total_distance, created_at, modified_at)
-values ($1, $2, $3, $4, $5, $5)
-returning id, start, duration_min, total_distance, created_at, modified_at
-`
-
-func (db *PostgresDbConn) saveTraining(t Training, tx *sql.Tx) (Training, error) {
-	err := tx.QueryRow(insertTraining, t.Id, t.Start, t.DurationMin, t.TotalDistance, time.Now()).
-		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
-
-	if pqErr, ok := err.(*pq.Error); ok {
-		switch pqErr.Code {
-		case ForeignKeyViolationCode:
-			return Training{}, fmt.Errorf("saveTraining: %w", ErrForeignKeyViolation)
-		case CheckViolationCode:
-			return Training{}, fmt.Errorf("saveTraining: %w", ErrCheckViolation)
-		case InvalidEnumTypeCode:
-			return Training{}, fmt.Errorf("saveTraining: %w", ErrInvalidEnumType)
-		default:
-			return Training{}, fmt.Errorf("saveTraining: %w", err)
-		}
-	} else if err != nil {
-		return Training{}, fmt.Errorf("saveTraining: %w", err)
-	}
-
-	for _, s := range t.Sets {
-		_, err := db.saveSet(tx, s)
+func (pool *PostgresDbPool) DeleteTraining(id uuid.UUID) error {
+	return Tx(pool, func(tx pgx.Tx) error {
+		ct, err := tx.Exec(context.Background(), "delete from trainings where id = $1", id)
 		if err != nil {
-			return Training{}, fmt.Errorf("saveTraining: %w", err)
+			return fmt.Errorf("DeleteTraining: %w", err)
+		} else if ct.RowsAffected() == 0 {
+			return fmt.Errorf("DeleteTraining training doesnt exist: %w", ErrRowsNotFound)
 		}
-	}
-
-	return t, nil
+		return nil
+	})
 }
 
-var insertSet = `
-insert into sets (id, parent_set_id, training_id, set_order, subset_order, repeat,
-		distance_meters, description, start_type, start_seconds, total_distance, equipment)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-returning id, parent_set_id, training_id, set_order, subset_order, repeat, distance_meters, description, start_type,
-    start_seconds, total_distance, equipment
-`
-
-func (db *PostgresDbConn) saveSet(tx *sql.Tx, s TrainingSet) (TrainingSet, error) {
-	err := tx.QueryRow(
-		insertSet,
-		s.Id,
-		s.ParentSetId,
-		s.TrainingId,
-		s.SetOrder,
-		s.SubSetOrder,
-		s.Repeat,
-		s.DistanceMeters,
-		s.Description,
-		s.StartType,
-		s.StartSeconds,
-		s.TotalDistance,
-		pq.Array(s.Equipment),
-	).Scan(
-		&s.Id,
-		&s.ParentSetId,
-		&s.TrainingId,
-		&s.SetOrder,
-		&s.SubSetOrder,
-		&s.Repeat,
-		&s.DistanceMeters,
-		&s.Description,
-		&s.StartType,
-		&s.StartSeconds,
-		&s.TotalDistance,
-		pq.Array(s.Equipment),
-	)
-
-	if pqErr, ok := err.(*pq.Error); ok {
-		switch pqErr.Code {
-		case ForeignKeyViolationCode:
-			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrForeignKeyViolation)
-		case CheckViolationCode:
-			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrCheckViolation)
-		case InvalidEnumTypeCode:
-			return TrainingSet{}, fmt.Errorf("saveSet: %w", ErrInvalidEnumType)
-		default:
-			return TrainingSet{}, fmt.Errorf("saveSet: %w", err)
-		}
-	} else if err != nil {
-		return TrainingSet{}, fmt.Errorf("saveSet: %w", err)
-	}
-
-	return s, nil
-}
-
-var selectTraining = `
-select
-    t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
-    s.id, s.parent_set_id, s.training_id, s.set_order, s.subset_order, s.repeat,
-    s.distance_meters, s.description, s.start_type, s.start_seconds, s.total_distance,
-	s.equipment
-from trainings t
-         join sets s on t.id = s.training_id
-where t.id = $1
-order by s.set_order, s.subset_order nulls first
-`
-
-func (db *PostgresDbConn) GetTrainingById(id uuid.UUID) (Training, error) {
-	var t Training
-	rows, err := db.Query(selectTraining, id)
-	if err != nil {
-		return Training{}, fmt.Errorf("GetTrainingById: %w", err)
-	}
-	defer rows.Close()
-
-	count := 0
-	rootSets := make([]TrainingSet, 0)
-	setsMap := make(map[uuid.UUID]*TrainingSet)
-	for rows.Next() {
-		count++
-		var s TrainingSet
-		err := rows.Scan(
-			&t.Id,
-			&t.Start,
-			&t.DurationMin,
-			&t.TotalDistance,
-			&t.CreatedAt,
-			&t.ModifiedAt,
-			&s.Id,
-			&s.ParentSetId,
-			&s.TrainingId,
-			&s.SetOrder,
-			&s.SubSetOrder,
-			&s.Repeat,
-			&s.DistanceMeters,
-			&s.Description,
-			&s.StartType,
-			&s.StartSeconds,
-			&s.TotalDistance,
-			pq.Array(&s.Equipment),
-		)
-		if err != nil {
-			return Training{}, fmt.Errorf("GetTrainingById: %w", err)
-		}
-
-		if s.ParentSetId == nil {
-			rootSets = append(rootSets, s)
-			setsMap[s.Id] = &rootSets[len(rootSets)-1]
-			continue
-		}
-
-		parentSet, ok := setsMap[*s.ParentSetId]
-		if !ok {
-			log.Error().
-				Str("training_id", t.Id.String()).
-				Str("set_id", s.Id.String()).
-				Str("parent_set_id", s.ParentSetId.String()).
-				Msg("parent set not found")
-			continue
-		}
-
-		if parentSet.SubSets == nil {
-			parentSet.SubSets = &[]TrainingSet{}
-		}
-
-		newSubSets := append(*parentSet.SubSets, s)
-		parentSet.SubSets = &newSubSets
-		setsMap[s.Id] = &(*parentSet.SubSets)[len(*parentSet.SubSets)-1]
-	}
-	if count == 0 {
-		return Training{}, fmt.Errorf("GetTrainingById: %w", ErrRowsNotFound)
-	}
-	t.Sets = rootSets
-
-	return t, nil
-}
-
-var selectTrainingDetailsForThisWeek = `
-select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
-from trainings t
-where date_trunc('week', t.start) = date_trunc('week', $1::date)
-order by t.start, t.duration_min, t.total_distance
-`
-
-func (db *PostgresDbConn) GetTrainingDetailsInWeek(week time.Time) ([]Training, error) {
-	var ts = make([]Training, 0)
-
-	rows, err := db.Query(selectTrainingDetailsForThisWeek, week)
-	if err != nil {
-		return nil, fmt.Errorf("GetTrainingDetailsForThisWeek: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var t Training
-		err := rows.Scan(
-			&t.Id,
-			&t.Start,
-			&t.DurationMin,
-			&t.TotalDistance,
-			&t.CreatedAt,
-			&t.ModifiedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("GetTrainingDetailsForThisWeek: %w", err)
-		}
-		ts = append(ts, t)
-	}
-
-	return ts, nil
-}
-
-var selectTrainingDetails = `
+var selectTrainingDetailsPage = `
 select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at, count(*) over ()
 from trainings t
-order by t.start desc, t.duration_min, t.total_distance
+order by t.start desc, t.duration_min, t.total_distance, t.created_at
 limit $1 offset $2
 `
 
-// GetTrainingDetails returns a paginated list of trainings and total count of trainings.
-// Page starts at 0.
-func (db *PostgresDbConn) GetTrainingDetails(page, pageSize int) ([]Training, int, error) {
-	var ts = make([]Training, 0)
+func (pool *PostgresDbPool) TrainingDetails(page, pageSize int) ([]Training, int, error) {
+	tds := make([]Training, 0)
 
-	rows, err := db.Query(selectTrainingDetails, pageSize, page*pageSize)
+	rows, err := pool.Query(
+		context.Background(),
+		selectTrainingDetailsPage,
+		pageSize,
+		page*pageSize,
+	)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetTrainingDetails: %w", err)
+		return nil, 0, fmt.Errorf("TrainingDetails query error: %w", err)
 	}
 	defer rows.Close()
 
@@ -288,32 +90,259 @@ func (db *PostgresDbConn) GetTrainingDetails(page, pageSize int) ([]Training, in
 			&count,
 		)
 		if err != nil {
-			return nil, 0, fmt.Errorf("GetTrainingDetails: %w", err)
+			return nil, 0, fmt.Errorf("TrainingDetails scanning row: %w", err)
+		}
+		tds = append(tds, t)
+	}
+
+	return tds, count, nil
+}
+
+var selectTrainingDetailsInDateRange = `
+select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
+from trainings t
+where t.start between $1::date and $2::date
+order by t.start, t.duration_min, t.total_distance, t.created_at
+`
+
+func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Training, error) {
+	ts := make([]Training, 0)
+
+	rows, err := pool.Query(context.Background(), selectTrainingDetailsInDateRange, start, end)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"TrainingDetailsInRange from %s to %s query error: %w",
+			start,
+			end,
+			err,
+		)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var t Training
+		err := rows.Scan(
+			&t.Id,
+			&t.Start,
+			&t.DurationMin,
+			&t.TotalDistance,
+			&t.CreatedAt,
+			&t.ModifiedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"TrainingDetailsInRange from %s to %s scanning error: %w",
+				start,
+				end,
+				err,
+			)
 		}
 		ts = append(ts, t)
 	}
 
-	return ts, count, nil
+	return ts, nil
 }
 
-var deleteTraining = "delete from trainings where id = $1"
+var selectTraining = `
+select
+    t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
+    s.id, s.training_id, s.set_order, s.repeat, s.distance_meters, s.description,
+    s.start_type, s.start_seconds, s.total_distance, s.equipment
+from trainings t join sets s on t.id = s.training_id
+where t.id = $1
+order by s.set_order
+`
 
-func (db *PostgresDbConn) DeleteTrainingById(id uuid.UUID) error {
-	return tx(db.DB, func(tx *sql.Tx) error {
-		return db.deleteTrainingById(id, tx)
+func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
+	t := Training{}
+	rows, err := pool.Query(context.Background(), selectTraining, id)
+	if err != nil {
+		return Training{}, fmt.Errorf("Training query error: %w", err)
+	}
+
+	for rows.Next() {
+		s := TrainingSet{}
+		err := rows.Scan(
+			&t.Id,
+			&t.Start,
+			&t.DurationMin,
+			&t.TotalDistance,
+			&t.CreatedAt,
+			&t.ModifiedAt,
+			&s.Id,
+			&s.TrainingId,
+			&s.SetOrder,
+			&s.Repeat,
+			&s.DistanceMeters,
+			&s.Description,
+			&s.StartType,
+			&s.StartSeconds,
+			&s.TotalDistance,
+			&s.Equipment,
+		)
+		if err != nil {
+			return Training{}, fmt.Errorf("Training scanning error: %w", err)
+		}
+		t.Sets = append(t.Sets, s)
+	}
+	rows.Close()
+
+	if rows.CommandTag().RowsAffected() == 0 {
+		return Training{}, fmt.Errorf("Training id doesnt exist: %w", ErrRowsNotFound)
+	}
+
+	return t, nil
+}
+
+func (pool *PostgresDbPool) EditTraining(id uuid.UUID, t Training) (Training, error) {
+	return TxWithResult(pool, func(tx pgx.Tx) (Training, error) {
+		t, err := pool.editTraining(id, t, tx)
+		if err != nil {
+			return t, fmt.Errorf("EditTraining tx: %w", err)
+		}
+		return t, nil
 	})
 }
 
-func (db *PostgresDbConn) deleteTrainingById(id uuid.UUID, tx *sql.Tx) error {
-	res, err := tx.Exec(deleteTraining, id)
+var insertTraining = `
+insert into trainings (id, start, duration_min, total_distance, created_at, modified_at)
+values ($1, $2, $3, $4, now(), now())
+returning id, start, duration_min, total_distance, created_at, modified_at
+`
+
+func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, error) {
+	err := tx.QueryRow(context.Background(), insertTraining, t.Id, t.Start, t.DurationMin, t.TotalDistance).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
 	if err != nil {
-		return fmt.Errorf("deleteTrainingById: %w", err)
-	}
-	if count, err := res.RowsAffected(); err != nil && count != 1 {
-		return fmt.Errorf("deleteTrainingById: %w", ErrRowsNotFound)
-	} else if err != nil {
-		return fmt.Errorf("deleteTrainingById: %w", err)
+		return Training{}, fmt.Errorf("persistTraining persisting training: %w", err)
 	}
 
-	return nil
+	for i, s := range t.Sets {
+		ts, err := pool.persistSet(tx, s)
+		if err != nil {
+			return Training{}, fmt.Errorf("persistTraining set %d: %w", i, err)
+		}
+		t.Sets[i] = ts
+	}
+
+	return t, nil
+}
+
+var insertSet = `
+insert into sets (id, training_id, set_order, repeat, distance_meters,
+    description, start_type, start_seconds, total_distance, equipment)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+returning id, training_id, set_order, repeat, distance_meters,
+    description, start_type, start_seconds, total_distance, equipment
+`
+
+func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
+	err := tx.QueryRow(
+		context.Background(),
+		insertSet,
+		s.Id,
+		s.TrainingId,
+		s.SetOrder,
+		s.Repeat,
+		s.DistanceMeters,
+		s.Description,
+		s.StartType,
+		s.StartSeconds,
+		s.TotalDistance,
+		s.Equipment,
+	).Scan(
+		&s.Id,
+		&s.TrainingId,
+		&s.SetOrder,
+		&s.Repeat,
+		&s.DistanceMeters,
+		&s.Description,
+		&s.StartType,
+		&s.StartSeconds,
+		&s.TotalDistance,
+		s.Equipment,
+	)
+	if err != nil {
+		return TrainingSet{}, fmt.Errorf("persistSet: %w", err)
+	}
+
+	return s, nil
+}
+
+var updateTraining = `
+update trainings
+set start          = $2,
+    duration_min   = $3,
+    total_distance = $4,
+    modified_at    = now()
+where id = $1
+returning id, start, duration_min, total_distance, created_at, modified_at
+`
+
+func (pool *PostgresDbPool) editTraining(id uuid.UUID, t Training, tx pgx.Tx) (Training, error) {
+	err := tx.QueryRow(context.Background(), updateTraining, id, t.Start, t.DurationMin, t.TotalDistance).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Training{}, fmt.Errorf("editTraining not found: %w", ErrRowsNotFound)
+	} else if err != nil {
+		return Training{}, fmt.Errorf("editTraining update training query error: %w", err)
+	}
+
+	for i, s := range t.Sets {
+		ts, err := pool.editSet(tx, s)
+		if err != nil {
+			return Training{}, fmt.Errorf("editTraining set %d: %w", i, err)
+		}
+		t.Sets[i] = ts
+	}
+
+	return t, nil
+}
+
+var updateSet = `
+update sets
+set set_order       = $2,
+    repeat          = $3,
+    distance_meters = $4,
+    description     = $5,
+    start_type      = $6,
+    start_seconds   = $7,
+    total_distance  = $8,
+    equipment       = $9
+where id = $1
+returning id, training_id, set_order, repeat, distance_meters, description,
+    start_type, start_seconds, total_distance, equipment
+`
+
+func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
+	err := tx.QueryRow(
+		context.Background(),
+		updateSet,
+		s.Id,
+		s.SetOrder,
+		s.Repeat,
+		s.DistanceMeters,
+		s.Description,
+		s.StartType,
+		s.StartSeconds,
+		s.TotalDistance,
+		s.Equipment,
+	).Scan(
+		&s.Id,
+		&s.TrainingId,
+		&s.SetOrder,
+		&s.Repeat,
+		&s.DistanceMeters,
+		&s.Description,
+		&s.StartType,
+		&s.StartSeconds,
+		&s.TotalDistance,
+		&s.Equipment,
+	)
+	if err != nil {
+		return TrainingSet{}, fmt.Errorf("editSet query error: %w, id: %s", err, s.Id)
+	}
+
+	return s, nil
 }

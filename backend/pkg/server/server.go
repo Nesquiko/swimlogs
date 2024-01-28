@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Nesquiko/swimlogs/apidef"
 	"github.com/Nesquiko/swimlogs/pkg/app"
-	"github.com/Nesquiko/swimlogs/pkg/openapi"
 )
 
 const (
@@ -21,19 +21,17 @@ const (
 	MaxBytes        = 1_048_576
 )
 
-// SwimLogsServer implements interface openapi.ServerInterface
-// which is generated from OpenApi spec located in documentation.
 type SwimLogsServer struct {
 	app app.SwimLogsApp
 }
 
-func NewServerHandler(swimLogs app.SwimLogsApp, feOrigin string) http.Handler {
-	s := SwimLogsServer{swimLogs}
+func NewServerHandler(app app.SwimLogsApp, feOrigin string) http.Handler {
+	s := SwimLogsServer{app}
 
 	r := chi.NewRouter()
-	serverOpts := openapi.ChiServerOptions{
+	serverOpts := apidef.ChiServerOptions{
 		BaseRouter:  r,
-		Middlewares: PublicMiddleware(feOrigin),
+		Middlewares: publicMiddleware(feOrigin),
 	}
 
 	// group for handling OPTIONS requests
@@ -46,7 +44,7 @@ func NewServerHandler(swimLogs app.SwimLogsApp, feOrigin string) http.Handler {
 		r.Get(serverOpts.BaseURL+"/monitoring/heartbeat", s.Heartbeat)
 	})
 
-	return openapi.HandlerWithOptions(&s, serverOpts)
+	return apidef.HandlerWithOptions(&s, serverOpts)
 }
 
 func respondWithCode(w http.ResponseWriter, code int) {
@@ -59,6 +57,7 @@ func respondWithJSON(w http.ResponseWriter, code int, response any) {
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error().Err(err).Msg("Failed to encode response")
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 

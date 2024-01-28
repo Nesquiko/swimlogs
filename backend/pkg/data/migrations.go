@@ -1,49 +1,38 @@
 package data
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 )
 
-func (db *PostgresDbConn) MigrateUp(showLogs bool) error {
-	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
-	if err != nil {
-		log.Error().Err(err).Msg("failed to create database driver")
-		return err
-	}
+const MigrationsLocationFormat = "file://%s"
 
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
+func (pool *PostgresDbPool) MigrateUp(showLogs bool) error {
+	migrationsFileUrl := fmt.Sprintf(MigrationsLocationFormat, pool.migrationsDir)
+	m, err := migrate.New(migrationsFileUrl, pool.conStr)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to create migration instance")
-		return err
+		return fmt.Errorf("MigrateUp init: %w", err)
 	}
 	m.Log = zerologLogger{showLogs: showLogs, verbose: true}
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Error().Err(err).Msg("failed to migrate up")
-		return err
+		return fmt.Errorf("MigrateUp: %w", err)
 	}
 
 	return nil
 }
 
-func (db *PostgresDbConn) CleanMigrateUp(showLogs bool) error {
-	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+func (pool *PostgresDbPool) CleanMigrateUp(showLogs bool) error {
+	migrationsFileUrl := fmt.Sprintf(MigrationsLocationFormat, pool.migrationsDir)
+	m, err := migrate.New(migrationsFileUrl, pool.conStr)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to create database driver")
-		return err
-	}
-
-	m, err := migrate.NewWithDatabaseInstance("file://"+db.conf.MigrationsDir, "postgres", driver)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to create migration instance")
-		return err
+		return fmt.Errorf("CleanMigrateUp init: %w", err)
 	}
 	m.Log = zerologLogger{showLogs: showLogs, verbose: true}
 

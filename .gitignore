@@ -1,7 +1,5 @@
 frontend/dist
 frontend/node_modules
 frontend/src/generated
-backend/pkg/openapi/models.gen.go
-backend/pkg/openapi/server.gen.go
 api/api.gen.go
-backend-rewrite/tmp
+backend/tmp
