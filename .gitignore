@@ -4,3 +4,10 @@ frontend/src/generated
 api/api.gen.go
 backend/tmp
 api/swimlogsAPI.gen.yaml
+api/node_modules
+api/models
+api/apis
+api/.openapi-generator
+api/.openapi-generator-ignore
+api/index.ts
+api/runtime.ts
