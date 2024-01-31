@@ -1,3 +1,4 @@
+# TODO make this so it deploys the whole prod dir
 name: NGINX config deploy
 on:
   push:
@@ -5,7 +6,6 @@ on:
       - main
     paths:
       - "./prod/nginx.conf"
-      - ".github/workflows/nginx-conf-deploy.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

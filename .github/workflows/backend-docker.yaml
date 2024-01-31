@@ -8,13 +8,11 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
     paths:
       - "backend/**/*.go"
-      - ".github/workflows/backend-docker.yaml"
   pull_request:
     branches:
       - main
     paths:
       - "backend/**/*.go"
-      - ".github/workflows/backend-docker.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -69,7 +67,7 @@ jobs:
       - name: Build & Push image
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
+          context: ./
           tags: ${{ steps.metadata.outputs.tags }}
           push: ${{ github.ref_type == 'tag' }}
 

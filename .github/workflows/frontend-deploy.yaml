@@ -5,7 +5,6 @@ on:
       - main
     paths:
       - "frontend/**"
-      - ".github/workflows/frontend-deploy.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,33 +14,26 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 3
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Remove sym link to OpenApi spec
-        run: rm swimlogsApi.yaml
-      - name: Copy OpenApi spec from backend
-        run: cp ../backend/swimlogsApi.yaml . # hard copy the file
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: 21
+      - name: Generate from OpenApi spec
+        run: npm --prefix ./api run generate-go -y
       - name: Install dependencies
-        run: npm install
+        run: npm --prefix ./frontend install
       - name: Build
-        run: npm run build
+        run: npm --prefix ./frontend run build
       - name: Remove old artifacts
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            rm -f /opt/swimlogs/dist/assets/*
-            rm -rf /opt/swimlogs/dist/locales/*
+          script: rm -rf /opt/swimlogs/dist/*
       - name: Deploy new artifacts
         uses: appleboy/scp-action@v0.1.4
         with:
