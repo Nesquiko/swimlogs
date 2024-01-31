@@ -39,7 +39,7 @@ jobs:
       - name: Generate from OpenApi spec
         run: npm run --prefix ./api generate-go -y
       - name: Test
-        working-directory: ./backend-rewrite
+        working-directory: backend
         run: go test -v ./...
 
   build-push-docker:
