@@ -1,10 +1,15 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
+import { type Component, For, Show, type JSX } from 'solid-js'
 import DropdownMenu from '../components/common/DropdownMenu'
 import { EquipmentIcons } from '../components/Equipment'
-import { NewTraining, NewTrainingSet, StartType, Training } from '../generated'
+import {
+  NewTraining,
+  NewTrainingSet,
+  StartTypeEnum,
+  Training,
+} from 'swimlogs-api'
 
-type Option = {
+interface Option {
   text: string
   icon: string
   onClick: (setIdx: number) => void
@@ -24,43 +29,51 @@ interface TrainingPreviewPageProps {
 const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
   const [t] = useTransContext()
 
-  const setCard = (set: NewTrainingSet) => {
+  const setCard = (set: NewTrainingSet): JSX.Element => {
     const setContent =
       set.repeat > 1
         ? `${set.repeat}x${set.distanceMeters}m`
         : `${set.distanceMeters}m`
 
-    const startSeconds =
-      set.startType !== StartType.None ? set.startSeconds! % 60 : 0
-    const startMinutes =
-      set.startType !== StartType.None
-        ? (set.startSeconds! - startSeconds) / 60
-        : 0
-    const start = `${t(set.startType.toLowerCase())}: ${
-      startMinutes !== 0 ? startMinutes + "'" : ''
-    }${startSeconds !== 0 ? startSeconds + '"' : ''}`
+    const start = (): string => {
+      if (set.startSeconds === undefined) {
+        return ''
+      }
+
+      const startSeconds =
+        set.startType !== StartTypeEnum.None ? set.startSeconds % 60 : 0
+      const startMinutes =
+        set.startType !== StartTypeEnum.None
+          ? (set.startSeconds - startSeconds) / 60
+          : 0
+      return `${t(set.startType.toLowerCase())}: ${
+        startMinutes !== 0 ? startMinutes + "'" : ''
+      }${startSeconds !== 0 ? startSeconds + '"' : ''}`
+    }
 
     return (
       <div class="mx-auto block max-w-xl rounded-lg border border-gray-200 bg-white shadow">
         <div
           classList={{
             'rounded-lg':
-              !set.description &&
-              (!set.equipment || set.equipment.length === 0),
+              set.description === undefined &&
+              (set.equipment === undefined || set.equipment.length === 0),
           }}
           class="w-full rounded-t-lg bg-sky-200 p-2 text-sky-900"
         >
           <h5 class="inline-block w-11/12 text-xl font-bold">
             <span class="pr-8">{setContent}</span>
-            <Show when={set.startType !== StartType.None}>
-              <span>{start}</span>
+            <Show when={set.startType !== StartTypeEnum.None}>
+              <span>{start()}</span>
             </Show>
           </h5>
 
-          <Show when={props.setOptions && props.setOptions.length > 0}>
+          <Show
+            when={props.setOptions !== undefined && props.setOptions.length > 0}
+          >
             <DropdownMenu
               icon="fa-ellipsis"
-              items={props.setOptions!.slice(0, -1).map((option) => ({
+              items={(props.setOptions ?? []).slice(0, -1).map((option) => ({
                 icon: option.icon,
                 text: option.text,
                 onClick: () => option.onClick(set.setOrder!),

@@ -1,6 +1,6 @@
 import { Trans } from '@mbarzda/solid-i18next'
 import { Component } from 'solid-js'
-import { TrainingDetail } from '../generated'
+import { TrainingDetail } from 'swimlogs-api'
 import { formatDate } from '../lib/datetime'
 
 interface DetailProps {

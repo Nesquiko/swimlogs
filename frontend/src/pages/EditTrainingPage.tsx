@@ -11,7 +11,7 @@ import {
 import { createStore } from 'solid-js/store'
 import ConfirmationModal from '../components/ConfirmationModal'
 import { clearOnBackOverride, setOnBackOverride } from '../components/Header'
-import { NewTraining, NewTrainingSet, Training } from '../generated'
+import { NewTraining, NewTrainingSet, Training } from 'swimlogs-api'
 import { cloneSet } from '../lib/clone'
 import {
   clearTrainingFromLocalStorage,

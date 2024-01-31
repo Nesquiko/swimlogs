@@ -32,7 +32,7 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
       target,
       undefined,
       { duration: TRANSITION_DURATION },
-      { id }
+      { id },
     )
   })
 

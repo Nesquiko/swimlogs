@@ -1,4 +1,4 @@
-import { NewTraining } from '../generated'
+import { NewTraining } from 'swimlogs-api'
 
 const NEW_TRAINING_LOCAL_STORAGE_KEY = 'new-training'
 

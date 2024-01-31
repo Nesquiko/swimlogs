@@ -2,7 +2,26 @@ import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createSignal, For } from 'solid-js'
 import { SelectInput } from '../components/common/Input'
 import InlineDatepicker from '../components/InlineDatepicker'
-import { StartTimeHours, StartTimeMinutes } from '../lib/consts'
+
+const StartTimeHours = [
+  '06',
+  '07',
+  '08',
+  '09',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15',
+  '16',
+  '17',
+  '18',
+  '19',
+  '20',
+]
+
+const StartTimeMinutes = ['00', '15', '30', '45']
 
 type Time = { label: string; value: number }
 

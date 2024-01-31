@@ -1,10 +1,9 @@
-import { NewTrainingSet } from '../generated'
+import { NewTrainingSet } from 'swimlogs-api'
 
 export function cloneSet(s: NewTrainingSet) {
   const newSet = {} as NewTrainingSet
   newSet.repeat = s.repeat
   newSet.setOrder = s.setOrder
-  newSet.subSets = s.subSets
   newSet.startType = s.startType
   newSet.description = s.description
   newSet.startSeconds = s.startSeconds
@@ -17,5 +16,3 @@ export function cloneSet(s: NewTrainingSet) {
   })
   return newSet
 }
-
-

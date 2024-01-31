@@ -1,3 +1,14 @@
+export const DayEnum = {
+  Monday: 'Monday',
+  Tuesday: 'Tuesday',
+  Wednesday: 'Wednesday',
+  Thursday: 'Thursday',
+  Friday: 'Friday',
+  Saturday: 'Saturday',
+  Sunday: 'Sunday',
+} as const
+export type DayEnum = (typeof DayEnum)[keyof typeof DayEnum]
+
 export function formatDate(date: Date | undefined): string {
   if (!date) {
     return ''

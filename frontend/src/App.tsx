@@ -1,6 +1,6 @@
 import 'flowbite'
 import { Routes, Route } from '@solidjs/router'
-import { Component, createSignal, lazy } from 'solid-js'
+import { type Component, createSignal } from 'solid-js'
 import { Drawer } from './components/Drawer'
 import Header from './components/Header'
 import Home from './pages/Home'
@@ -11,13 +11,14 @@ import DismissibleToast, {
 } from './components/common/DismissibleToast'
 import NewTrainingPage from './pages/NewTrainingPage'
 
-const SessionCreatePage = lazy(() => import('./pages/SessionCreatePage'))
-
 const [openToast, setOpenToast] = createSignal(false)
 const [toastMessage, setToastMessage] = createSignal('')
 const [toastMode, setToastMode] = createSignal(ToastMode.SUCCESS)
 
-const showToast = (message: string, mode: ToastMode = ToastMode.SUCCESS) => {
+const showToast = (
+  message: string,
+  mode: ToastMode = ToastMode.SUCCESS,
+): void => {
   setToastMessage(message)
   setToastMode(mode)
   setOpenToast(true)
@@ -40,7 +41,6 @@ const App: Component = () => {
           <Route path="/training/new" component={NewTrainingPage} />
           <Route path="/training/:id" component={TrainingPage} />
           <Route path="/trainings" component={TrainingHistoryPage} />
-          <Route path="/session/create" component={SessionCreatePage} />
         </Routes>
       </div>
     </div>

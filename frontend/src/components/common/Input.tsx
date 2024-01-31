@@ -25,7 +25,7 @@ const TextAreaInput: Component<TextAreaProps> = (props) => {
     return newHeightWithLines
   }
   const [textAreaHeight, setTextAreaHeight] = createSignal(
-    props.value ? calculateHeight() : INITIAL_HEIGHT
+    props.value ? calculateHeight() : INITIAL_HEIGHT,
   )
 
   return (

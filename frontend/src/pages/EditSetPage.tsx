@@ -7,7 +7,7 @@ import {
   TextAreaInput,
 } from '../components/common/Input'
 import { EquipmentIcons } from '../components/Equipment'
-import { Equipment, NewTrainingSet, StartType } from '../generated'
+import { EquipmentEnum, NewTrainingSet, StartTypeEnum } from 'swimlogs-api'
 import { SmallIntMax } from '../lib/consts'
 
 const DISTANCES = [25, 50, 75, 100, 200, 400]
@@ -38,7 +38,7 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
   const [minutes, setMinutes] = createSignal<number>(
     ((props.set?.startSeconds ?? 0) - seconds()) / 60 ?? 0
   )
-  const [equipment, setEquipment] = createSignal<Equipment[]>(
+  const [equipment, setEquipment] = createSignal<EquipmentEnum[]>(
     props.set?.equipment ?? []
   )
   const [description, setDescription] = createSignal<string | undefined>(
@@ -47,7 +47,7 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
 
   const isValid = () => {
     const isStartValid =
-      start() === StartType.None ||
+      start() === StartTypeEnum.None ||
       (seconds() === 0 && minutes() > 0) ||
       (seconds() > 0 && minutes() === 0) ||
       (seconds() > 0 && minutes() > 0)
@@ -59,10 +59,11 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
     const startInSeconds = seconds() + minutes() * 60
 
     const set: NewTrainingSet = {
+      setOrder: -1,
       repeat: repeat(),
       distanceMeters: distance(),
       description: description(),
-      startType: start() as StartType,
+      startType: start() as StartTypeEnum,
       startSeconds: startInSeconds,
       totalDistance: repeat() * distance(),
       equipment: equipment().length > 0 ? equipment() : undefined,
@@ -83,7 +84,7 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
     )
   }
 
-  const equipmentButton = (eq: Equipment) => {
+  const equipmentButton = (eq: EquipmentEnum) => {
     let imgSrc = EquipmentIcons.get(eq)
     return (
       <button
@@ -136,11 +137,11 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
         <SelectInput<String>
           label={t('start')}
           onChange={(opt) => setStart(opt!.value)}
-          options={Object.keys(StartType).map((st) => {
+          options={Object.keys(StartTypeEnum).map((st) => {
             return { label: st, value: st }
           })}
         />
-        <Show when={start() !== undefined && start() !== StartType.None}>
+        <Show when={start() !== undefined && start() !== StartTypeEnum.None}>
           <div class="space-y-2 pb-2 pl-8">
             <IncrementalCounter
               label={t('seconds')}
@@ -161,11 +162,11 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
         </Show>
         <h1 class="text-xl">{t('equipment')}</h1>
         <div class="flex items-center justify-between">
-          {equipmentButton(Equipment.Fins)}
-          {equipmentButton(Equipment.Monofin)}
-          {equipmentButton(Equipment.Snorkel)}
-          {equipmentButton(Equipment.Paddles)}
-          {equipmentButton(Equipment.Board)}
+          {equipmentButton(EquipmentEnum.Fins)}
+          {equipmentButton(EquipmentEnum.Monofin)}
+          {equipmentButton(EquipmentEnum.Snorkel)}
+          {equipmentButton(EquipmentEnum.Paddles)}
+          {equipmentButton(EquipmentEnum.Board)}
         </div>
       </div>
       <TextAreaInput

@@ -1,20 +1,22 @@
 import { createResource } from 'solid-js'
 import {
-  GetDetailsCurrWeekResponse,
-  TrainingApi,
+  BASE_PATH,
+  Configuration,
   TrainingDetail,
-} from '../generated'
-import config from './api'
+  TrainingDetailsCurrentWeekResponse,
+  TrainingsApi,
+} from 'swimlogs-api'
 
-const trainingApi = new TrainingApi(config)
+const config = new Configuration({
+  basePath: import.meta.env.DEV ? 'http://localhost:42069' : BASE_PATH,
+})
 
-async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
-  return trainingApi
-    .getTrainingsDetailsCurrentWeek()
-    .then((res) => res)
-    .catch((_err) => {
-      throw Promise.reject(new Error('Error fetching trainings details'))
-    })
+const trainingApi = new TrainingsApi(config)
+
+async function getTrainingsThisWeek(): Promise<TrainingDetailsCurrentWeekResponse> {
+  return trainingApi.trainingDetailsCurrentWeek().catch((_err) => {
+    throw Promise.reject(new Error('Error fetching trainings details'))
+  })
 }
 const [detailsThisWeek, { mutate }] = createResource(getTrainingsThisWeek)
 const useTrainingsDetailsThisWeek = () => [detailsThisWeek]
@@ -70,4 +72,9 @@ function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
   return 0
 }
 
-export { trainingApi, useTrainingsDetailsThisWeek, addTrainingDetail, removeFromTrainingsDetails }
+export {
+  trainingApi,
+  useTrainingsDetailsThisWeek,
+  addTrainingDetail,
+  removeFromTrainingsDetails,
+}

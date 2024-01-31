@@ -32,15 +32,13 @@ interface InlineDatepickerProps {
 
 const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
   const [t] = useTransContext()
-  const [date, _setDate] = createSignal(
-	props.initialDate || new Date()
-  )
+  const [date, _setDate] = createSignal(props.initialDate || new Date())
   const lastDay = () =>
     new Date(date().getUTCFullYear(), date().getUTCMonth() + 1, 1)
 
   const setDate = (newDate: Date) => {
-	_setDate(newDate)
-	props.onChange(newDate)
+    _setDate(newDate)
+    props.onChange(newDate)
   }
 
   const days = () => {
@@ -59,7 +57,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
         fromPrevious = new Date(
           fromPrevious.getFullYear(),
           fromPrevious.getMonth(),
-          fromPrevious.getDate() - 1
+          fromPrevious.getDate() - 1,
         )
       }
     }
@@ -82,7 +80,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
       nextDay = new Date(
         nextDay.getFullYear(),
         nextDay.getMonth(),
-        nextDay.getDate() + 1
+        nextDay.getDate() + 1,
       )
     }
 
@@ -109,12 +107,12 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
         onClick={() => {
           if (day.month === 'previous') {
             const newDate = new Date()
-			newDate.setMonth(date().getMonth() - 1)
+            newDate.setMonth(date().getMonth() - 1)
             newDate.setDate(day.day)
             setDate(newDate)
           } else if (day.month === 'next') {
             const newDate = new Date()
-			newDate.setMonth(date().getMonth() + 1)
+            newDate.setMonth(date().getMonth() + 1)
             newDate.setDate(day.day)
             setDate(newDate)
           } else {
@@ -136,7 +134,9 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
 
         <p class="text-lg font-bold">
           {t(
-            date().toLocaleDateString(locale(), { month: 'long' }).toLowerCase()
+            date()
+              .toLocaleDateString(locale(), { month: 'long' })
+              .toLowerCase(),
           )}
           {', '}
           {date().getFullYear()}

@@ -1,13 +1,12 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate, useParams } from '@solidjs/router'
-import { Component, createResource, createSignal, Show } from 'solid-js'
+import { type Component, createResource, createSignal, Show } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { showToast } from '../App'
 import { ToastMode } from '../components/common/DismissibleToast'
 import ConfirmationModal from '../components/ConfirmationModal'
-import { setOnBackOverride } from '../components/Header'
 import Spinner from '../components/Spinner'
-import { ResponseError, Training } from '../generated'
+import { ResponseError, Training } from 'swimlogs-api'
 import { removeFromTrainingsDetails, trainingApi } from '../state/trainings'
 import EditTrainingPage from './EditTrainingPage'
 import TrainingPreviewPage from './TrainingPreviewPage'
@@ -15,16 +14,13 @@ import TrainingPreviewPage from './TrainingPreviewPage'
 const TrainingPage: Component = () => {
   const params = useParams()
   const [t] = useTransContext()
-  const [training, { mutate, refetch }] = createResource(
-    () => params.id,
-    getTraining
-  )
+  const [training, { mutate }] = createResource(() => params.id, getTraining)
   const [editTraining, setEditTraining] = createSignal(false)
 
   const navigate = useNavigate()
   async function getTraining(id: string): Promise<Training> {
-    return trainingApi
-      .getTrainingById({ id })
+    return await trainingApi
+      .training({ id })
       .then((res) => res)
       .catch((e: ResponseError) => {
         console.error('error', e)
@@ -34,12 +30,12 @@ const TrainingPage: Component = () => {
         }
         showToast(msg, ToastMode.ERROR)
         navigate('/', { replace: true })
-        return Promise.reject(e)
+        throw e
       })
   }
 
   async function deleteTraining(id: string) {
-    trainingApi
+    await trainingApi
       .deleteTraining({ id: id })
       .then(() => removeFromTrainingsDetails(id))
       .catch((e: ResponseError) => {
@@ -77,7 +73,9 @@ const TrainingPage: Component = () => {
                   message={t('confirm.training.delete.message')}
                   confirmLabel={t('confirm.delete.training')}
                   cancelLabel={t('no.cancel')}
-                  onConfirm={() => deleteTraining(params.id)}
+                  onConfirm={() => {
+                    deleteTraining(params.id)
+                  }}
                   onCancel={() => {}}
                 />
               </div>
@@ -89,7 +87,7 @@ const TrainingPage: Component = () => {
           saveToLocalStorage={false}
           training={createStore(JSON.parse(JSON.stringify(training())))}
           onSubmit={(t) => {
-			// TODO backend for this
+            // TODO backend for this
             mutate(t as Training)
             setEditTraining(false)
           }}

@@ -1,34 +1,44 @@
-import { Component, Show, For } from 'solid-js'
-import { useTrainingsDetailsThisWeek } from '../state/trainings'
+import { type Component, Show, For, type JSX } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
+import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import Message from '../components/common/Info'
-import { Day, TrainingDetail } from '../generated'
-import { dateForDayOfWeek, formatDate, formatTime } from '../lib/datetime'
+import {
+  dateForDayOfWeek,
+  DayEnum,
+  formatDate,
+  formatTime,
+} from '../lib/datetime'
+import { type TrainingDetail } from 'swimlogs-api'
 
 const Home: Component = () => {
   const [t] = useTransContext()
   const [details] = useTrainingsDetailsThisWeek()
   const navigate = useNavigate()
 
-  const detailItem = (detail: TrainingDetail) => {
+  const detailItem = (detail: TrainingDetail): JSX.Element => {
     return (
       <div
-        onClick={() => navigate('/training/' + detail.id)}
+        onClick={() => {
+          navigate('/training/' + detail.id)
+        }}
         class="flex cursor-pointer justify-between rounded-lg border border-solid border-slate-200 px-8 py-2"
       >
         <span class="text-lg">{formatTime(detail.start)}</span>
-        <span class="text-lg">{detail.totalDistance / 1000}km</span>
+        <span class="text-lg">
+          {detail.totalDistance / 1000}
+          km
+        </span>
       </div>
     )
   }
 
-  const sortedTrainingsPerDay = (details: TrainingDetail[]) => {
+  const sortedTrainingsPerDay = (details: TrainingDetail[]): JSX.Element => {
     if (details.length === 0) return <></>
 
-    const dayNames: Day[] = Object.values(Day)
+    const dayNames: DayEnum[] = Object.values(DayEnum)
     const dayToDetails: {
-      [K in Day]: { details: TrainingDetail[]; date: Date }
+      [K in DayEnum]: { details: TrainingDetail[]; date: Date }
     } = {
       Monday: { details: [], date: dateForDayOfWeek(1) },
       Tuesday: { details: [], date: dateForDayOfWeek(2) },
@@ -94,7 +104,13 @@ const Home: Component = () => {
         </h1>
         <div class="flex justify-between">
           <Trans key="total.distance.swam" />
-          <p>{(details()?.distance ?? 0) / 1000}km</p>
+          <p>
+            {(details()?.details?.reduce(
+              (acc, td) => acc + td.totalDistance,
+              0
+            ) ?? 0) / 1000}
+            km
+          </p>
         </div>
         <Show when={details()?.details?.length === 0}>
           <Message type="info" message={t('no.trainings')} />
