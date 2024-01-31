@@ -2,183 +2,90 @@ package data
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
-	_ "github.com/lib/pq"
-	"github.com/rs/zerolog/log"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 )
 
-const (
-	UniqueViolationCode      = "23505"
-	ForeignKeyViolationCode  = "23503"
-	CheckViolationCode       = "23514"
-	SerializationFailureCode = "40001"
-	InvalidEnumTypeCode      = "22P02"
-)
+var ErrRowsNotFound = errors.New("didn't find row")
 
-var (
-	ErrRowsNotFound         = errors.New("didn't find row")
-	ErrCheckViolation       = errors.New("check constraint violated")
-	ErrUniqueViolation      = errors.New("unique constraint violated")
-	ErrSerializationFailure = errors.New("serialization failure")
-	ErrInvalidEnumType      = errors.New("invalid enum type")
-	ErrForeignKeyViolation  = errors.New("foreign key constraint violated")
-)
+type PostgresDbPool struct {
+	conStr        string
+	migrationsDir string
+	*pgxpool.Pool
+}
 
-// NewPostgresConn attempts to connect to a DB specified by the PostgresConnConf.
-// If the config is invalid, the program exits.
-// If the connection fails, an error is returned.
-func NewPostgresConn(conf PostgresConnConf) (*PostgresDbConn, error) {
-	checkDbConf(conf)
-
-	db, err := sql.Open("postgres", conf.dsn())
+func NewPostgresPool(conStr, migrationsDir string) (*PostgresDbPool, error) {
+	dbConfig, err := pgxpool.ParseConfig(conStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("NewPostgresPool parse config: %w", err)
+	}
+	dbConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		pgxUUID.Register(conn.TypeMap())
+		return nil
 	}
 
-	err = db.Ping()
+	dbPool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("NewPostgresPool new: %w", err)
 	}
 
-	return &PostgresDbConn{conf, db}, nil
+	return &PostgresDbPool{conStr, migrationsDir, dbPool}, nil
 }
 
-type PostgresDbConn struct {
-	conf PostgresConnConf
-	*sql.DB
+func (psql *PostgresDbPool) Close() {
+	psql.Pool.Close()
 }
 
-func (psql *PostgresDbConn) Close() error {
-	return psql.DB.Close()
-}
-
-type PostgresConnConf struct {
-	Host          string
-	Port          string
-	Db            string
-	User          string
-	Pass          string
-	MigrationsDir string
-}
-
-func (conf PostgresConnConf) dsn() string {
-	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		conf.Host,
-		conf.Port,
-		conf.User,
-		conf.Pass,
-		conf.Db,
-	)
-}
-
-// checkDbConf checks that the required fields are set in the PostgresConnConf,
-// and exits the program if one is missing.
-func checkDbConf(conf PostgresConnConf) {
-	isValid := true
-	if conf.Host == "" {
-		log.Error().Msg("host is not set")
-		isValid = false
-	}
-	if conf.Port == "" {
-		log.Error().Msg("port is not set")
-		isValid = false
-	}
-	if conf.Db == "" {
-		log.Error().Msg("db is not set")
-		isValid = false
-	}
-	if conf.User == "" {
-		log.Error().Msg("user is not set")
-		isValid = false
-	}
-	if conf.Pass == "" {
-		log.Error().Msg("pass is not set")
-		isValid = false
-	}
-
-	if !isValid {
-		log.Fatal().Msg("invalid db config")
-	}
-}
-
-func Sql(db *sql.DB, sql string, args ...any) error {
-	_, err := db.Exec(sql, args...)
+func Sql(pool *PostgresDbPool, sql string, args ...any) error {
+	_, err := pool.Exec(context.Background(), sql, args...)
 	if err != nil {
-		log.Error().Err(err).Msg("sql")
-		return fmt.Errorf("sql: %w", err)
+		return fmt.Errorf("Sql: %w", err)
 	}
 	return nil
 }
 
-func SqlWithResult[R any](db *sql.DB, sql string, args ...any) (R, error) {
-	var res R
-	err := db.QueryRow(sql, args...).Scan(&res)
+func SqlWithResult(pool *PostgresDbPool, sql string, args, dest []any) error {
+	err := pool.QueryRow(context.Background(), sql, args...).Scan(dest...)
 	if err != nil {
-		log.Error().Err(err).Msg("sql with result")
-		return res, fmt.Errorf("sql with result: %w", err)
+		return fmt.Errorf("SqlWithResult: %w", err)
 	}
-	return res, nil
+	return nil
 }
 
-func tx(db *sql.DB, f func(*sql.Tx) error) error {
-	return txWithOpts(db, nil, f)
-}
-
-func txWithOpts(db *sql.DB, opts *sql.TxOptions, f func(*sql.Tx) error) error {
-	tx, err := db.BeginTx(context.Background(), opts)
+func Tx(pool *PostgresDbPool, f func(pgx.Tx) error) error {
+	err := pgx.BeginFunc(context.Background(), pool.Pool, f)
 	if err != nil {
-		log.Error().Err(err).Msg("begin tx")
-		return err
-	}
-
-	err = f(tx)
-	if err != nil {
-		_ = tx.Rollback()
-		log.Warn().Err(err).Msg("rolling back tx")
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Error().Err(err).Msg("commit tx")
-		return err
+		return fmt.Errorf("Tx: %w", err)
 	}
 
 	return nil
 }
 
-func txWithResult[R any](db *sql.DB, f func(*sql.Tx) (R, error)) (R, error) {
-	return txWithResultAndOpts(db, nil, f)
-}
-
-func txWithResultAndOpts[R any](
-	db *sql.DB,
-	opts *sql.TxOptions,
-	f func(*sql.Tx) (R, error),
-) (R, error) {
+func TxWithResult[R any](pool *PostgresDbPool, f func(pgx.Tx) (R, error)) (R, error) {
 	var res R
-	tx, err := db.BeginTx(context.Background(), opts)
+	tx, err := pool.Begin(context.Background())
 	if err != nil {
-		log.Error().Err(err).Msg("begin txWithResult")
-		return res, err
+		return res, fmt.Errorf("TxWithResult init: %w", err)
 	}
+	defer tx.Rollback(context.Background())
 
 	res, err = f(tx)
 	if err != nil {
-		_ = tx.Rollback()
-		log.Warn().Err(err).Msg("rolling back txWithResult")
-		return res, err
+		return res, fmt.Errorf("TxWithResult: %w", err)
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(context.Background())
 	if err != nil {
-		log.Error().Err(err).Msg("commit txWithResult")
-		return res, err
+		return res, fmt.Errorf("TxWithResult commit: %w", err)
 	}
 
 	return res, nil
+}
+
+func ConnectionString(user, pass, host, db, port string) string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, db)
 }

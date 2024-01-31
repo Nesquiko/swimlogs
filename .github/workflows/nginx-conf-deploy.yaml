@@ -1,11 +1,11 @@
+# TODO make this so it deploys the whole prod dir
 name: NGINX config deploy
 on:
   push:
     branches:
       - main
     paths:
-      - 'nginx.conf'
-      - '.github/workflows/nginx-conf-deploy.yaml'
+      - "./prod/nginx.conf"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,7 +24,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: 'nginx.conf'
+          source: "./prod/nginx.conf"
           target: /opt/swimlogs/nginx
       - name: Restart NGINX container
         uses: appleboy/ssh-action@v0.1.10

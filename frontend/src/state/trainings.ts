@@ -1,17 +1,22 @@
 import { createResource } from 'solid-js'
 import {
-  GetDetailsCurrWeekResponse,
-  TrainingApi,
+  BASE_PATH,
+  Configuration,
   TrainingDetail,
-} from '../generated'
-import config from './api'
+  TrainingDetailsCurrentWeekResponse,
+  TrainingsApi,
+} from 'swimlogs-api'
 
-const trainingApi = new TrainingApi(config)
+const config = new Configuration({
+  basePath: import.meta.env.DEV ? 'http://localhost:42069' : BASE_PATH,
+})
 
-async function getTrainingsThisWeek(): Promise<GetDetailsCurrWeekResponse> {
-  const result = trainingApi.getTrainingsDetailsCurrentWeek()
-  const trainings = result.then((res) => res)
-  return trainings
+const trainingApi = new TrainingsApi(config)
+
+async function getTrainingsThisWeek(): Promise<TrainingDetailsCurrentWeekResponse> {
+  return trainingApi.trainingDetailsCurrentWeek().catch((_err) => {
+    throw Promise.reject(new Error('Error fetching trainings details'))
+  })
 }
 const [detailsThisWeek, { mutate }] = createResource(getTrainingsThisWeek)
 const useTrainingsDetailsThisWeek = () => [detailsThisWeek]
@@ -22,8 +27,22 @@ function addTrainingDetail(td: TrainingDetail) {
   }
   const currentDetails = detailsThisWeek()?.details ?? []
   const newDetails = [...currentDetails, td]
+  const newDistance = newDetails.reduce(
+    (acc, curr) => acc + curr.totalDistance,
+    0
+  )
   newDetails.sort(trainingDetailCompare)
-  mutate({ details: newDetails })
+  mutate({ details: newDetails, distance: newDistance })
+}
+
+function removeFromTrainingsDetails(id: string) {
+  const currentDetails = detailsThisWeek()?.details ?? []
+  const newDetails = currentDetails.filter((td) => td.id !== id)
+  const newDistance = newDetails.reduce(
+    (acc, curr) => acc + curr.totalDistance,
+    0
+  )
+  mutate({ details: newDetails, distance: newDistance })
 }
 
 function isThisInThisWeek(date: Date): boolean {
@@ -53,4 +72,9 @@ function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
   return 0
 }
 
-export { trainingApi, useTrainingsDetailsThisWeek, addTrainingDetail }
+export {
+  trainingApi,
+  useTrainingsDetailsThisWeek,
+  addTrainingDetail,
+  removeFromTrainingsDetails,
+}

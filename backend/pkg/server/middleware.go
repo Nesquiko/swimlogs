@@ -5,30 +5,34 @@ import (
 	"os"
 	"time"
 
-	"github.com/Nesquiko/swimlogs/pkg/openapi"
-	middleware "github.com/deepmap/oapi-codegen/pkg/chi-middleware"
 	chiMidleware "github.com/go-chi/chi/v5/middleware"
+	nethttpmiddleware "github.com/oapi-codegen/nethttp-middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/Nesquiko/swimlogs/apidef"
 )
 
-func PublicMiddleware(feOrigin string) []openapi.MiddlewareFunc {
+// type StrictHTTPHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (response interface{}, err error)
+// type StrictHTTPMiddlewareFunc func(f StrictHTTPHandlerFunc, operationID string) StrictHTTPHandlerFunc
+
+func publicMiddleware(feOrigin string) []apidef.MiddlewareFunc {
 	l := zerolog.New(os.Stdout).
 		With().
 		Timestamp().
 		Logger().
 		Output(zerolog.ConsoleWriter{Out: os.Stdout, FormatTimestamp: func(i interface{}) string { return time.Now().Format("2006-01-02 15:04:05.000") }})
 
-	oas, err := openapi.GetSwagger()
+	oas, err := apidef.GetSwagger()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load OpenAPI spec")
 	}
 	oas.Servers = nil // removes validation of server, since we are using proxy
 
 	// dont move things around, order matters, executes last to first
-	return []openapi.MiddlewareFunc{
-		middleware.OapiRequestValidator(oas),
+	return []apidef.MiddlewareFunc{
+		nethttpmiddleware.OapiRequestValidator(oas),
 		hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 			hlog.FromRequest(r).Info().
 				Int("status", status).

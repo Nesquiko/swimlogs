@@ -1,40 +1,99 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { useNavigate, useParams } from '@solidjs/router'
-import { Component, createResource, Show } from 'solid-js'
+import { type Component, createResource, createSignal, Show } from 'solid-js'
+import { createStore } from 'solid-js/store'
+import { showToast } from '../App'
+import { ToastMode } from '../components/common/DismissibleToast'
+import ConfirmationModal from '../components/ConfirmationModal'
 import Spinner from '../components/Spinner'
-import { openToast, ToastType } from '../components/Toast'
-import TrainingPreview from '../components/TrainingPreview'
-import { ResponseError, Training } from '../generated'
-import { trainingApi } from '../state/trainings'
+import { ResponseError, Training } from 'swimlogs-api'
+import { removeFromTrainingsDetails, trainingApi } from '../state/trainings'
+import EditTrainingPage from './EditTrainingPage'
+import TrainingPreviewPage from './TrainingPreviewPage'
 
 const TrainingPage: Component = () => {
   const params = useParams()
-  const [training] = createResource(() => params.id, getTraining)
-
   const [t] = useTransContext()
+  const [training, { mutate }] = createResource(() => params.id, getTraining)
+  const [editTraining, setEditTraining] = createSignal(false)
+
   const navigate = useNavigate()
   async function getTraining(id: string): Promise<Training> {
-    const result = trainingApi
-      .getTrainingById({ id })
-      .then((res) => {
-        return Promise.resolve(res)
-      })
+    return await trainingApi
+      .training({ id })
+      .then((res) => res)
       .catch((e: ResponseError) => {
         console.error('error', e)
-        let msg = t('server.error', 'Server error')
+        let msg = t('server.error')
         if (e.response?.status === 404) {
-          msg = t('training.not.found', 'Training not found')
+          msg = t('training.not.found')
         }
-        openToast(msg, ToastType.ERROR)
+        showToast(msg, ToastMode.ERROR)
         navigate('/', { replace: true })
-        return Promise.reject(e)
+        throw e
       })
-    return result
+  }
+
+  async function deleteTraining(id: string) {
+    await trainingApi
+      .deleteTraining({ id: id })
+      .then(() => removeFromTrainingsDetails(id))
+      .catch((e: ResponseError) => {
+        console.error('error', e)
+        let msg = t('server.error')
+        if (e.response?.status === 404) {
+          msg = t('training.not.found')
+          removeFromTrainingsDetails(id)
+        }
+        showToast(msg, ToastMode.ERROR)
+      })
+      .finally(() => {
+        navigate('/', { replace: true })
+      })
   }
 
   return (
     <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
-      <TrainingPreview training={training()} />
+      <Show
+        when={editTraining()}
+        fallback={
+          <TrainingPreviewPage
+            training={training()!}
+            leftHeaderComponent={() => (
+              <i
+                class="fa-solid fa-pen fa-xl text-sky-900"
+                onClick={() => setEditTraining(true)}
+              ></i>
+            )}
+            rightHeaderComponent={() => (
+              <div class="text-right">
+                <ConfirmationModal
+                  icon="fa-trash"
+                  iconColor="text-red-500"
+                  message={t('confirm.training.delete.message')}
+                  confirmLabel={t('confirm.delete.training')}
+                  cancelLabel={t('no.cancel')}
+                  onConfirm={() => {
+                    deleteTraining(params.id)
+                  }}
+                  onCancel={() => {}}
+                />
+              </div>
+            )}
+          />
+        }
+      >
+        <EditTrainingPage
+          saveToLocalStorage={false}
+          training={createStore(JSON.parse(JSON.stringify(training())))}
+          onSubmit={(t) => {
+            // TODO backend for this
+            mutate(t as Training)
+            setEditTraining(false)
+          }}
+          onBack={() => setEditTraining(false)}
+        />
+      </Show>
     </Show>
   )
 }

@@ -1,0 +1,10 @@
+get:
+  description: Returns list of all trainings in current week
+  tags:
+    - Trainings
+  operationId: trainingDetailsCurrentWeek
+  responses:
+    200:
+      $ref: "../components/responses/TrainingDetailsCurrentWeekResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"

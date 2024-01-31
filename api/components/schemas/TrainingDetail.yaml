@@ -1,0 +1,22 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+  start:
+    type: string
+    format: date-time
+    description: On what date and time does the training occur
+  durationMin:
+    type: integer
+    description: How long does the session last, in minutes
+    example: 60
+  totalDistance:
+    type: integer
+    description: Total distance in the training in meters
+    example: 2200
+required:
+  - id
+  - start
+  - durationMin
+  - totalDistance

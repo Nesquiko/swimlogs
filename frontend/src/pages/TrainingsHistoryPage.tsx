@@ -3,7 +3,7 @@ import { useNavigate } from '@solidjs/router'
 import { Component, createResource, createSignal, For, Show } from 'solid-js'
 import DetailCard from '../components/DetailCard'
 import Pagination from '../components/Pagination'
-import { ResponseError, TrainingDetail } from '../generated'
+import { ResponseError, TrainingDetail } from 'swimlogs-api'
 import { trainingApi } from '../state/trainings'
 
 const PAGE_SIZE = 8
@@ -25,7 +25,7 @@ const TrainingHistoryPage: Component = () => {
     }
 
     return trainingApi
-      .getTrainingsDetails({ page, pageSize: PAGE_SIZE })
+      .trainingDetails({ page, pageSize: PAGE_SIZE })
       .then((res) => {
         setTotalDetails(res.pagination.total)
         setServerError(false)

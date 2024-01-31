@@ -1,0 +1,35 @@
+type: object
+properties:
+  setOrder:
+    type: integer
+    description: Indicates on what place in training this set is
+  repeat:
+    type: integer
+    description: How many times to repeat this set
+  distanceMeters:
+    type: integer
+    example: 400
+  description:
+    type: string
+    description: Description of what to swim
+    example: Freestyle
+  totalDistance:
+    type: integer
+    description: Total distance in this set
+    example: 800
+  equipment:
+    type: array
+    items:
+      $ref: "./EquipmentEnum.yaml"
+  startType:
+    $ref: "./StartTypeEnum.yaml"
+  startSeconds:
+    type: integer
+    description: Used by starts which require a time parameter, Interval and Pause
+    example: 60
+required:
+  - setOrder
+  - repeat
+  - distanceMeters
+  - totalDistance
+  - startType

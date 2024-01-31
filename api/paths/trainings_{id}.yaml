@@ -1,0 +1,43 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Id of a training
+    schema:
+      type: string
+      format: uuid
+
+get:
+  description: Get a training with matching id
+  tags:
+    - Trainings
+  operationId: training
+  responses:
+    200:
+      $ref: "../components/responses/TrainingResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"
+
+put:
+  description: Edits training with matching id
+  tags:
+    - Trainings
+  operationId: editTraining
+  requestBody:
+    $ref: "../components/requestBodies/EditTrainingRequest.yaml"
+  responses:
+    200:
+      $ref: "../components/responses/EditTrainingResponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"
+
+delete:
+  description: Deletes a training with matching id
+  tags:
+    - Trainings
+  operationId: deleteTraining
+  responses:
+    204:
+      description: Training was deleted
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"

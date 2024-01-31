@@ -1,0 +1,12 @@
+post:
+  description: Creates new training
+  tags:
+    - Trainings
+  operationId: createTraining
+  requestBody:
+    $ref: "../components/requestBodies/CreateTrainingRequest.yaml"
+  responses:
+    201:
+      $ref: "../components/responses/CreateTrainingReponse.yaml"
+    500:
+      $ref: "../components/responses/InternalServerError.yaml"

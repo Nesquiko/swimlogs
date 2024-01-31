@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"os"
 	"time"
-	_ "time/tzdata"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/pkg/server"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -44,8 +44,11 @@ func main() {
 	dbName := flag.String("db-name", os.Getenv(DbNameEnvVar), "to which db to connnect")
 
 	feOrigin := flag.String("fe-origin", os.Getenv(FEOriginEnvVar), "frontend origin")
+	_ = feOrigin
 
 	jsonLogs := flag.Bool("json-logs", false, "whether to log in json format")
+
+	tz := flag.String("tz", os.Getenv("TZ"), "timezone in which the app is running")
 	flag.Parse()
 
 	zerolog.SetGlobalLevel(zerolog.Level(*appDebugLevel))
@@ -57,31 +60,25 @@ func main() {
 			Logger()
 	}
 
-	loc, err := time.LoadLocation(os.Getenv("TZ"))
+	loc, err := time.LoadLocation(*tz)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load timezone")
 	}
 	log.Info().Str("tz", loc.String()).Msg("loaded timezone")
 	time.Local = loc
 
-	conf := data.PostgresConnConf{
-		Host: *dbHost,
-		Port: *dbPort,
-		User: *dbUser,
-		Pass: *dbPass,
-		Db:   *dbName,
-	}
-	db, err := data.NewPostgresConn(conf)
+	conStr := data.ConnectionString(*dbUser, *dbPass, *dbHost, *dbName, *dbPort)
+	pool, err := data.NewPostgresPool(conStr, "migrations")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to database")
 	}
-	defer db.Close()
+	defer pool.Close()
 
-	if err := db.MigrateUp(true); err != nil {
+	if err := pool.MigrateUp(true); err != nil {
 		log.Fatal().Err(err).Msg("failed to migrate up")
 	}
 
-	swimlogs := app.New(db)
+	swimlogs := app.New(pool)
 	h := server.NewServerHandler(swimlogs, *feOrigin)
 
 	addr := *appHost + ":" + *appPort

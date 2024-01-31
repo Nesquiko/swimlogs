@@ -1,0 +1,19 @@
+description: Pagination metadata about paginated response
+type: object
+properties:
+  total:
+    type: integer
+    description: Total count of all items
+    example: 13
+  page:
+    type: integer
+    description: Number of page returned
+    example: 0
+  pageSize:
+    type: integer
+    description: How many items are in page
+    example: 10
+required:
+  - total
+  - page
+  - pageSize

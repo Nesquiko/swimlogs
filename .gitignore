@@ -1,5 +1,13 @@
 frontend/dist
 frontend/node_modules
 frontend/src/generated
-backend/pkg/openapi/models.gen.go
-backend/pkg/openapi/server.gen.go
+api/api.gen.go
+backend/tmp
+api/swimlogsAPI.gen.yaml
+api/node_modules
+api/models
+api/apis
+api/.openapi-generator
+api/.openapi-generator-ignore
+api/index.ts
+api/runtime.ts

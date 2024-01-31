@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  version: "1.0.0"
+  title: SwimLogs API
+  license:
+    name: MIT License
+    url: "https://opensource.org/licenses/MIT"
+  description: Openapi specification for SwimLogs API.
+
+servers:
+  - url: https://www.swimlogs.com/api
+    description: Prod backend server
+
+tags:
+  - name: Trainings
+
+paths:
+  /trainings:
+    $ref: "./paths/trainings.yaml"
+  /trainings/{id}:
+    $ref: "./paths/trainings_{id}.yaml"
+  /trainings/details:
+    $ref: "./paths/trainings_details.yaml"
+  /trainings/details/current-week:
+    $ref: "./paths/trainings_details_current-week.yaml"

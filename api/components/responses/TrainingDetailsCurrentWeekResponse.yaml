@@ -1,0 +1,12 @@
+description: List of training details in current week, sorted by date and start time
+content:
+  application/json:
+    schema:
+      type: object
+      required:
+        - details
+      properties:
+        details:
+          type: array
+          items:
+            $ref: "../schemas/TrainingDetail.yaml"

@@ -5,16 +5,14 @@ on:
     branches:
       - main
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - "v[0-9]+.[0-9]+.[0-9]+"
     paths:
-      - 'backend/**/*.go'
-      - '.github/workflows/backend-docker.yaml'
+      - "backend/**/*.go"
   pull_request:
     branches:
       - main
     paths:
-      - 'backend/**/*.go'
-      - '.github/workflows/backend-docker.yaml'
+      - "backend/**/*.go"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,46 +22,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: ./backend
-    services:
-      postgres:
-        image: postgres:15.3
-        env:
-          POSTGRES_USER: swimlogs_test_user
-          POSTGRES_PASSWORD: swimlogs_test_pass
-          POSTGRES_DB: swimlogs_test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      TEST_DB_HOST: localhost
-      TEST_DB_PORT: 5432
-      TEST_DB_USER: swimlogs_test_user
-      TEST_DB_PASSWORD: swimlogs_test_pass
-      TEST_DB_NAME: swimlogs_test_db
-      INTEGRATION: true
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
-          cache: false # since it will be rebuilt in docker
-      - name: Dowloand dependencies
-        run: go get .
+          go-version: "1.21"
+          cache: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
       - name: Dowloand Oapi-Codegen
-        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.13.0
+        run: go install github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@v2.1
       - name: Generate from OpenApi spec
-        run: make generate
+        run: npm run --prefix ./api generate-go -y
       - name: Test
-        run: go test -p 1 -count=1 -v ./...
+        working-directory: backend
+        run: go test -v ./...
 
   build-push-docker:
     if: github.ref_type == 'tag'
@@ -87,7 +64,7 @@ jobs:
       - name: Build & Push image
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
+          context: ./
           tags: ${{ steps.metadata.outputs.tags }}
           push: ${{ github.ref_type == 'tag' }}
 
@@ -110,7 +87,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: 'docker-compose.yaml'
+          source: "docker-compose.yaml"
           target: /opt/swimlogs
       - name: Restart Docker compose
         uses: appleboy/ssh-action@v0.1.10
