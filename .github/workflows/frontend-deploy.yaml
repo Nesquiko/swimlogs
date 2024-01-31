@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - "frontend/**"
+      - ".github/workflows/frontend-deploy.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,7 +23,7 @@ jobs:
         with:
           node-version: 21
       - name: Generate from OpenApi spec
-        run: npm --prefix ./api run generate-go -y
+        run: npm --prefix ./api install; npm --prefix ./api run generate-ts -y
       - name: Install dependencies
         run: npm --prefix ./frontend install
       - name: Build
