@@ -17,7 +17,7 @@ export default [
       '@typescript-eslint': parserTs,
       parserTs,
     },
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    files: ['**/*.ts', '**/*.tsx'],
     ignores: ['dist/**', 'node_modules/**', 'bin/**', 'build/**'],
   },
 ]

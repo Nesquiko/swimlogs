@@ -5,7 +5,7 @@ import snorkelBlackSvg from '../assets/snorkel-black.svg'
 import monofinBlackSvg from '../assets/monofin-black.svg'
 import { EquipmentEnum } from 'swimlogs-api'
 
-export const EquipmentIcons = new Map<Equipment, string>([
+export const EquipmentIcons = new Map<EquipmentEnum, string>([
   [EquipmentEnum.Fins, finsBlackSvg],
   [EquipmentEnum.Board, boardBlackSvg],
   [EquipmentEnum.Paddles, paddlesBlackSvg],
