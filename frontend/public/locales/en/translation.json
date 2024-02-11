@@ -92,5 +92,6 @@
   "confirm.training.delete.message": "Are you sure you want to delete this training?",
   "confirm.delete.training": "Yes, delete training",
   "hour": "Hour",
-  "training.details": "Training details"
+  "training.details": "Training details",
+  "training.edited": "Training successfully edited"
 }

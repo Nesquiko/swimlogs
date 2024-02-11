@@ -7,7 +7,11 @@ import { ToastMode } from '../components/common/DismissibleToast'
 import ConfirmationModal from '../components/ConfirmationModal'
 import Spinner from '../components/Spinner'
 import { ResponseError, Training } from 'swimlogs-api'
-import { removeFromTrainingsDetails, trainingApi } from '../state/trainings'
+import {
+  removeFromTrainingsDetails,
+  trainingApi,
+  updateTrainintDetails,
+} from '../state/trainings'
 import EditTrainingPage from './EditTrainingPage'
 import TrainingPreviewPage from './TrainingPreviewPage'
 
@@ -31,6 +35,25 @@ const TrainingPage: Component = () => {
         showToast(msg, ToastMode.ERROR)
         navigate('/', { replace: true })
         throw e
+      })
+  }
+
+  async function updateTraining(training: Training) {
+    trainingApi
+      .editTraining({ id: params.id, training })
+      .then((res) => {
+        showToast(t('training.edited'))
+        setEditTraining(false)
+        updateTrainintDetails(res)
+      })
+      .catch((e: ResponseError) => {
+        console.error('error', e)
+        let msg = t('server.error')
+        if (e.response?.status === 404) {
+          msg = t('training.not.found')
+        }
+        showToast(msg, ToastMode.ERROR)
+        setEditTraining(false)
       })
   }
 
@@ -86,11 +109,7 @@ const TrainingPage: Component = () => {
         <EditTrainingPage
           saveToLocalStorage={false}
           training={createStore(JSON.parse(JSON.stringify(training())))}
-          onSubmit={(t) => {
-            // TODO backend for this
-            mutate(t as Training)
-            setEditTraining(false)
-          }}
+          onSubmit={(tr) => updateTraining(tr as Training)}
           onBack={() => setEditTraining(false)}
         />
       </Show>

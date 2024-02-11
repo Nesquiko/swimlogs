@@ -21,6 +21,8 @@ interface DismissibleToastProps {
 
 const TRANSITION_DURATION = 300
 
+// TODO the dismiss doesn't work... remake it so that I can spam the toas,
+//  when the toast is triggered 2 in row, the second time it isn't shown...
 const DismissibleToast: Component<DismissibleToastProps> = (props) => {
   const id = randomId()
 
@@ -32,7 +34,7 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
       target,
       undefined,
       { duration: TRANSITION_DURATION },
-      { id },
+      { id }
     )
   })
 
@@ -43,6 +45,7 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
 
   createEffect(() => {
     if (props.open) {
+      dismissEl.removeInstance
       setTimeout(onDismiss, 3000)
     }
   })

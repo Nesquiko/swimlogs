@@ -101,12 +101,12 @@ func (pool *PostgresDbPool) TrainingDetails(page, pageSize int) ([]Training, int
 var selectTrainingDetailsInDateRange = `
 select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
 from trainings t
-where t.start between $1::date and $2::date
+where date(t.start) between $1::date and $2::date
 order by t.start, t.duration_min, t.total_distance, t.created_at
 `
 
 func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Training, error) {
-	ts := make([]Training, 0)
+	tds := make([]Training, 0)
 
 	rows, err := pool.Query(context.Background(), selectTrainingDetailsInDateRange, start, end)
 	if err != nil {
@@ -137,10 +137,10 @@ func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Trai
 				err,
 			)
 		}
-		ts = append(ts, t)
+		tds = append(tds, t)
 	}
 
-	return ts, nil
+	return tds, nil
 }
 
 var selectTraining = `

@@ -92,7 +92,26 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
   }
 
   const addMonth = () => {
-    setDate(new Date(date().setMonth(date().getMonth() + 1)))
+    const lastDayOfNextMonth = new Date(
+      date().getFullYear(),
+      date().getMonth() + 2,
+      0
+    )
+    const day =
+      date().getDate() > lastDayOfNextMonth.getDate()
+        ? lastDayOfNextMonth.getDate()
+        : date().getDate()
+
+    const newDate = new Date(
+      date().getFullYear(),
+      (date().getMonth() + 1) % 12,
+      day,
+      date().getHours(),
+      date().getMinutes(),
+      0
+    )
+
+    setDate(newDate)
   }
 
   const dayButton = (day: CalendarDay) => {

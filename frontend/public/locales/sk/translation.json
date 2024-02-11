@@ -94,5 +94,6 @@
   "confirm.training.delete.message": "Naozaj chcete vymazať tento tréning?",
   "confirm.delete.training": "Áno, vymazaž tréning",
   "hour": "Hodina",
-  "training.details": "Detaily tréningu"
+  "training.details": "Detaily tréningu",
+  "training.edited": "Tréning úspešne upravený"
 }

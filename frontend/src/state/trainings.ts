@@ -6,6 +6,7 @@ import {
   TrainingDetailsCurrentWeekResponse,
   TrainingsApi,
 } from 'swimlogs-api'
+import { isThisInThisWeek } from '../lib/datetime'
 
 const config = new Configuration({
   basePath: import.meta.env.DEV ? 'http://localhost:42069' : BASE_PATH,
@@ -27,40 +28,26 @@ function addTrainingDetail(td: TrainingDetail) {
   }
   const currentDetails = detailsThisWeek()?.details ?? []
   const newDetails = [...currentDetails, td]
-  const newDistance = newDetails.reduce(
-    (acc, curr) => acc + curr.totalDistance,
-    0
-  )
   newDetails.sort(trainingDetailCompare)
-  mutate({ details: newDetails, distance: newDistance })
+  mutate({ details: newDetails })
 }
 
 function removeFromTrainingsDetails(id: string) {
   const currentDetails = detailsThisWeek()?.details ?? []
   const newDetails = currentDetails.filter((td) => td.id !== id)
-  const newDistance = newDetails.reduce(
-    (acc, curr) => acc + curr.totalDistance,
-    0
-  )
-  mutate({ details: newDetails, distance: newDistance })
+  mutate({ details: newDetails })
 }
 
-function isThisInThisWeek(date: Date): boolean {
-  const todayObj = new Date()
-  const todayDate = todayObj.getDate()
-  const todayDay = (todayObj.getDay() - 1) % 7
+function updateTrainintDetails(td: TrainingDetail) {
+  if (!isThisInThisWeek(td.start)) {
+    return
+  }
 
-  // get first date of week
-  const firstDayOfWeek = new Date(todayObj.setDate(todayDate - todayDay))
-  firstDayOfWeek.setHours(0, 0, 0, 0)
-
-  // get last date of week
-  const lastDayOfWeek = new Date(firstDayOfWeek)
-  lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6)
-  lastDayOfWeek.setHours(23, 59, 59, 999)
-
-  // if date is equal or within the first and last dates of the week
-  return date >= firstDayOfWeek && date <= lastDayOfWeek
+  const details = detailsThisWeek()?.details ?? []
+  const tdIdx = details.findIndex((detail) => detail.id === td.id)
+  details[tdIdx] = td
+  details.sort(trainingDetailCompare)
+  mutate({ details: details })
 }
 
 function trainingDetailCompare(a: TrainingDetail, b: TrainingDetail): number {
@@ -77,4 +64,5 @@ export {
   useTrainingsDetailsThisWeek,
   addTrainingDetail,
   removeFromTrainingsDetails,
+  updateTrainintDetails,
 }
