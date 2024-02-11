@@ -242,7 +242,7 @@ const EditTrainingPage: Component<EditTrainingPageProps> = (props) => {
                 class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
                 onClick={() => setShowTrainingSession(true)}
               >
-                {t('next')}
+                {t('finish')}
               </button>
             </div>
           </Show>

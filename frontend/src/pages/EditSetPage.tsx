@@ -138,7 +138,7 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
           label={t('start')}
           onChange={(opt) => setStart(opt!.value)}
           options={Object.keys(StartTypeEnum).map((st) => {
-            return { label: st, value: st }
+            return { label: t(st.toLowerCase()), value: st }
           })}
         />
         <Show when={start() !== undefined && start() !== StartTypeEnum.None}>

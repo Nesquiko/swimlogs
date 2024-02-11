@@ -93,5 +93,6 @@
   "no.cancel": "Nie, zrušiť",
   "confirm.training.delete.message": "Naozaj chcete vymazať tento tréning?",
   "confirm.delete.training": "Áno, vymazaž tréning",
-  "hour": "Hodina"
+  "hour": "Hodina",
+  "training.details": "Detaily tréningu"
 }

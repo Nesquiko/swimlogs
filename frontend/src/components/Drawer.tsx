@@ -47,7 +47,7 @@ const Drawer: Component = () => {
           'translate-x-0': open(),
           '-translate-x-full': !open(),
         }}
-        class="fixed left-0 top-0 z-20 h-full w-1/2 transform transition-transform duration-300 ease-in-out sm:w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6"
+        class="fixed left-0 top-0 z-20 h-full transform transition-transform duration-300 ease-in-out sm:w-2/3 md:w-1/3 lg:w-1/5 xl:w-1/6"
       >
         <div class="h-full bg-white pt-4">
           <Item path="/" label={t('home')} icon="fa-house" />

@@ -79,6 +79,7 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
 
   return (
     <div class="space-y-4 px-4">
+      <h1 class="text-2xl">{t('training.details')}</h1>
       <div>
         <h1 class="text-xl">{t('starttime')}</h1>
         <div class="flex justify-around">
