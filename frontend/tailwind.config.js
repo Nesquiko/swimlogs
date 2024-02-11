@@ -6,5 +6,5 @@ module.exports = {
       colors: {},
     },
   },
-  plugins: [require('flowbite/plugin')],
+  plugins: [require('flowbite/plugin')({ forms: false })],
 }

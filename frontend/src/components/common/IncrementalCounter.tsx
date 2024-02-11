@@ -46,7 +46,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
             'text-slate-300 pointer-events-none select-none bg-red-100':
               props.error && isLessEqualThanMin(),
           }}
-          class="w-14 cursor-pointer rounded-l-lg border-r border-slate-300 leading-10"
+          class="w-14 cursor-pointer rounded-l-lg border-r-0 border-slate-300 leading-10"
           onClick={() => props.onChange(props.value - step)}
         >
           <i class="fa-solid fa-minus"></i>
@@ -55,7 +55,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
           id={id}
           type="number"
           classList={{ 'text-red-500': props.error }}
-          class="w-16 p-2 text-center text-lg"
+          class="w-16 p-2 text-center text-lg border-x-0 border-y border-slate-200 focus:outline focus:outline-sky-300"
           min={props.min}
           max={props.max}
           value={props.value}
@@ -87,7 +87,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
             'text-slate-300 pointer-events-none select-none bg-red-100':
               props.error && isMoreEqualThanMax(),
           }}
-          class="w-14 cursor-pointer rounded-r-lg border-l border-slate-300 leading-10"
+          class="w-14 cursor-pointer rounded-r-lg border-l-0 border-slate-300 leading-10"
           onClick={() => props.onChange(props.value + step)}
         >
           <i class="fa-solid fa-plus"></i>

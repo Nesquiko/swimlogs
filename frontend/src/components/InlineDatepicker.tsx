@@ -57,7 +57,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
         fromPrevious = new Date(
           fromPrevious.getFullYear(),
           fromPrevious.getMonth(),
-          fromPrevious.getDate() - 1,
+          fromPrevious.getDate() - 1
         )
       }
     }
@@ -80,7 +80,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
       nextDay = new Date(
         nextDay.getFullYear(),
         nextDay.getMonth(),
-        nextDay.getDate() + 1,
+        nextDay.getDate() + 1
       )
     }
 
@@ -99,11 +99,11 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
     return (
       <button
         classList={{
-          'text-gray-500': day.month !== 'current',
-          '!bg-gray-400':
+          'text-gray-400': day.month !== 'current',
+          '!bg-sky-300':
             date().getDate() === day.day && day.month === 'current',
         }}
-        class="h-10 rounded-lg text-center align-middle leading-10 hover:bg-gray-200"
+        class="h-10 rounded-lg text-center align-middle leading-10 hover:bg-sky-100"
         onClick={() => {
           if (day.month === 'previous') {
             const newDate = new Date()
@@ -134,9 +134,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
 
         <p class="text-lg font-bold">
           {t(
-            date()
-              .toLocaleDateString(locale(), { month: 'long' })
-              .toLowerCase(),
+            date().toLocaleDateString(locale(), { month: 'long' }).toLowerCase()
           )}
           {', '}
           {date().getFullYear()}

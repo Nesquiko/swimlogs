@@ -25,7 +25,7 @@ const TextAreaInput: Component<TextAreaProps> = (props) => {
     return newHeightWithLines
   }
   const [textAreaHeight, setTextAreaHeight] = createSignal(
-    props.value ? calculateHeight() : INITIAL_HEIGHT,
+    props.value ? calculateHeight() : INITIAL_HEIGHT
   )
 
   return (
@@ -40,7 +40,7 @@ const TextAreaInput: Component<TextAreaProps> = (props) => {
         classList={{
           'border-red-500 text-red-500 focus:border-red-500':
             props.error !== undefined,
-          'border-slate-300 focus:border-sky-500': props.error === undefined,
+          'border-slate-300 focus:border-sky-300': props.error === undefined,
         }}
         class="w-full overflow-y-hidden rounded-lg border p-2 text-base focus:outline-none"
         value={props.value ?? ''}
@@ -80,7 +80,7 @@ const NumberInput: Component<NumberInputProps> = (props) => {
         classList={{
           'border-red-500 text-red-500 focus:border-red-500':
             props.error !== undefined,
-          'border-slate-300 focus:border-sky-500': props.error === undefined,
+          'border-slate-300 focus:border-sky-300': props.error === undefined,
         }}
         class="w-full rounded-lg border p-2 text-center text-lg shadow focus:outline-none md:float-right md:w-44"
         onChange={(e) => {
@@ -132,7 +132,7 @@ const SelectInput = <T extends object>(props: SelectInputProps<T>) => {
         classList={{
           'border-red-500 text-red-500 focus:border-red-500':
             props.error !== undefined,
-          'border-slate-300 focus:border-sky-500': props.error === undefined,
+          'border-slate-300 focus:border-sky-300': props.error === undefined,
         }}
         onChange={(e) => {
           let option: SelectOption<T> | undefined
