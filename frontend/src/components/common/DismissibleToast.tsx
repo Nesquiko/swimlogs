@@ -1,6 +1,4 @@
-import { Dismiss } from 'flowbite'
-import { Component, createEffect, onMount, Show } from 'solid-js'
-import { randomId } from '../../lib/str'
+import { Component, createEffect, createSignal, onMount, Show } from 'solid-js'
 
 enum ToastMode {
   SUCCESS = 'SUCCESS',
@@ -19,39 +17,37 @@ interface DismissibleToastProps {
   message: string
 }
 
-const TRANSITION_DURATION = 300
+const TRANSITION_DURATION = 1000
+const AUTOMATIC_CLOSE_DURATION = 3000
 
-// TODO the dismiss doesn't work... remake it so that I can spam the toas,
-//  when the toast is triggered 2 in row, the second time it isn't shown...
 const DismissibleToast: Component<DismissibleToastProps> = (props) => {
-  const id = randomId()
-
-  let target: HTMLDivElement
-  let dismissEl: Dismiss
-
-  onMount(() => {
-    dismissEl = new Dismiss(
-      target,
-      undefined,
-      { duration: TRANSITION_DURATION },
-      { id }
-    )
-  })
+  let closeTimeout: NodeJS.Timeout
+  const [easeOut, setEaseOut] = createSignal(false)
 
   const onDismiss = () => {
-    dismissEl.hide()
-    setTimeout(props.onDismiss, TRANSITION_DURATION)
+    clearTimeout(closeTimeout)
+    setEaseOut(true)
+    setTimeout(() => {
+      props.onDismiss()
+      setEaseOut(false)
+    }, TRANSITION_DURATION)
   }
 
   createEffect(() => {
     if (props.open) {
-      dismissEl.removeInstance
-      setTimeout(onDismiss, 3000)
+      closeTimeout = setTimeout(onDismiss, AUTOMATIC_CLOSE_DURATION)
     }
   })
 
   return (
-    <div role="alert" ref={target!}>
+    <div
+      role="alert"
+      classList={{
+        'opacity-100': !easeOut(),
+        'opacity-0': easeOut(),
+      }}
+      class="transition-opacity ease-in duration-300"
+    >
       <Show when={props.open}>
         <div class="fixed right-4 top-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-800 shadow shadow-gray-400">
           <i

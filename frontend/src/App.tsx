@@ -17,7 +17,7 @@ const [toastMode, setToastMode] = createSignal(ToastMode.SUCCESS)
 
 const showToast = (
   message: string,
-  mode: ToastMode = ToastMode.SUCCESS,
+  mode: ToastMode = ToastMode.SUCCESS
 ): void => {
   setToastMessage(message)
   setToastMode(mode)
