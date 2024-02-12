@@ -30,22 +30,34 @@ export function formatTime(date: Date | undefined): string {
   return `${hours}:${minutes}`
 }
 
-/** Monday = 1, Tuesday = 2, ..., Sunday = 7 */
-export function dateForDayOfWeek(targetDayIndex: number): Date {
-  const today = new Date()
-
+export function datesThisWeek(): Date[] {
   const curr = new Date()
-  const first = curr.getDate() - (6 - curr.getDay())
-  const target = first + targetDayIndex - 1
+  const daysInWeek: Date[] = []
+  const dayOfWeek = curr.getDay()
 
-  const date = new Date(today.getFullYear(), today.getMonth(), target)
+  const firstDay = new Date(curr)
+  firstDay.setDate(curr.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
-  return new Date(date)
+  for (let i = 0; i < 7; i++) {
+    const currentDate = new Date(firstDay)
+    currentDate.setDate(firstDay.getDate() + i)
+    daysInWeek.push(currentDate)
+  }
+
+  return daysInWeek
 }
+
+const SUNDAY = 0
 
 export function isThisInThisWeek(date: Date): boolean {
   const curr = new Date()
-  const first = curr.getDate() - (6 - curr.getDay())
+  let first: number
+  if (curr.getDay() === SUNDAY) {
+    first = curr.getDate() - 6
+  } else {
+    first = curr.getDate() - (-curr.getDay() + 1)
+  }
+
   const last = first + 6
 
   return first <= date.getDate() && date.getDate() <= last

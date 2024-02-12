@@ -45,6 +45,7 @@ const TrainingPage: Component = () => {
         showToast(t('training.edited'))
         setEditTraining(false)
         updateTrainintDetails(res)
+        navigate('/', { replace: true })
       })
       .catch((e: ResponseError) => {
         console.error('error', e)

@@ -3,12 +3,7 @@ import { useNavigate } from '@solidjs/router'
 import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import Message from '../components/common/Info'
-import {
-  dateForDayOfWeek,
-  DayEnum,
-  formatDate,
-  formatTime,
-} from '../lib/datetime'
+import { datesThisWeek, DayEnum, formatDate, formatTime } from '../lib/datetime'
 import { type TrainingDetail } from 'swimlogs-api'
 
 const Home: Component = () => {
@@ -37,16 +32,17 @@ const Home: Component = () => {
     if (details.length === 0) return <></>
 
     const dayNames: DayEnum[] = Object.values(DayEnum)
+    const dates = datesThisWeek()
     const dayToDetails: {
       [K in DayEnum]: { details: TrainingDetail[]; date: Date }
     } = {
-      Monday: { details: [], date: dateForDayOfWeek(1) },
-      Tuesday: { details: [], date: dateForDayOfWeek(2) },
-      Wednesday: { details: [], date: dateForDayOfWeek(3) },
-      Thursday: { details: [], date: dateForDayOfWeek(4) },
-      Friday: { details: [], date: dateForDayOfWeek(5) },
-      Saturday: { details: [], date: dateForDayOfWeek(6) },
-      Sunday: { details: [], date: dateForDayOfWeek(7) },
+      Monday: { details: [], date: dates[0] },
+      Tuesday: { details: [], date: dates[1] },
+      Wednesday: { details: [], date: dates[2] },
+      Thursday: { details: [], date: dates[3] },
+      Friday: { details: [], date: dates[4] },
+      Saturday: { details: [], date: dates[5] },
+      Sunday: { details: [], date: dates[6] },
     }
 
     for (const detail of details) {

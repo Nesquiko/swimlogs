@@ -40,11 +40,15 @@ function removeFromTrainingsDetails(id: string) {
 
 function updateTrainintDetails(td: TrainingDetail) {
   if (!isThisInThisWeek(td.start)) {
+    removeFromTrainingsDetails(td.id)
     return
   }
 
   const details = detailsThisWeek()?.details ?? []
-  const tdIdx = details.findIndex((detail) => detail.id === td.id)
+  const tdIdx = Math.max(
+    details.findIndex((detail) => detail.id === td.id),
+    0
+  )
   details[tdIdx] = td
   details.sort(trainingDetailCompare)
   mutate({ details: details })
