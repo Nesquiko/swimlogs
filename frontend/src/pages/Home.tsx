@@ -51,7 +51,11 @@ const Home: Component = () => {
     }
 
     return (
-      <For each={Object.entries(dayToDetails)}>
+      <For
+        each={Object.entries(dayToDetails).filter(
+          (entry) => entry[1].details.length !== 0
+        )}
+      >
         {(entry) => {
           const day = entry[0].toLowerCase()
           return (
