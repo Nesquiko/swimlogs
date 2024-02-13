@@ -11,7 +11,12 @@ import {
 import { createStore } from 'solid-js/store'
 import ConfirmationModal from '../components/ConfirmationModal'
 import { clearOnBackOverride, setOnBackOverride } from '../components/Header'
-import { NewTraining, NewTrainingSet, Training } from 'swimlogs-api'
+import {
+  NewTraining,
+  NewTrainingSet,
+  Training,
+  TrainingSet,
+} from 'swimlogs-api'
 import { cloneSet } from '../lib/clone'
 import {
   clearTrainingFromLocalStorage,
@@ -89,10 +94,14 @@ const EditTrainingPage: Component<EditTrainingPageProps> = (props) => {
     }
   }
 
-  const onEditSet = (set: NewTrainingSet) => {
+  const onEditSet = (set: NewTrainingSet | TrainingSet) => {
     setTraining('sets', (sets) => {
       const tmp = sets[editedSetIdx()]
       set.setOrder = tmp.setOrder
+      if ('id' in tmp) {
+        // @ts-ignore
+        set['id'] = tmp.id
+      }
       sets[editedSetIdx()] = set
       return sets
     })
