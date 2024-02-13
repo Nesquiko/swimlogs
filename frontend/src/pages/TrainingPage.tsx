@@ -13,7 +13,9 @@ import {
   updateTrainintDetails,
 } from '../state/trainings'
 import EditTrainingPage from './EditTrainingPage'
-import TrainingPreviewPage from './TrainingPreviewPage'
+import TrainingPreviewPage, {
+  SkeletonTrainingPreviewPage,
+} from './TrainingPreviewPage'
 
 const TrainingPage: Component = () => {
   const params = useParams()
@@ -77,7 +79,7 @@ const TrainingPage: Component = () => {
   }
 
   return (
-    <Show when={!training.loading} fallback={<Spinner remSize={8} />}>
+    <Show when={!training.loading} fallback={<SkeletonTrainingPreviewPage />}>
       <Show
         when={editTraining()}
         fallback={
