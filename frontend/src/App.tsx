@@ -1,14 +1,18 @@
 import 'flowbite'
-import { Routes, Route } from '@solidjs/router'
-import { type Component, createSignal } from 'solid-js'
+import { Component, createSignal } from 'solid-js'
 import { Drawer } from './components/Drawer'
 import Header from './components/Header'
-import Home from './pages/Home'
-import TrainingPage from './pages/TrainingPage'
-import TrainingHistoryPage from './pages/TrainingsHistoryPage'
 import DismissibleToast, {
   ToastMode,
 } from './components/common/DismissibleToast'
+import { Route, Router } from '@solidjs/router'
+import { TransProvider } from '@mbarzda/solid-i18next'
+import i18next from 'i18next'
+import I18NextHttpBackend from 'i18next-http-backend'
+import I18nextBrowserLanguageDetector from 'i18next-browser-languagedetector'
+import Home from './pages/Home'
+import TrainingPage from './pages/TrainingPage'
+import TrainingHistoryPage from './pages/TrainingsHistoryPage'
 import NewTrainingPage from './pages/NewTrainingPage'
 
 const [openToast, setOpenToast] = createSignal(false)
@@ -25,25 +29,36 @@ const showToast = (
 }
 
 const App: Component = () => {
+  i18next.use(I18NextHttpBackend)
+  i18next.use(I18nextBrowserLanguageDetector)
+  const backend = { loadPath: '/locales/{{lng}}/{{ns}}.json' }
+
   return (
-    <div>
-      <Header />
-      <Drawer />
-      <DismissibleToast
-        open={openToast()}
-        onDismiss={() => setOpenToast(false)}
-        mode={toastMode()}
-        message={toastMessage()}
-      />
-      <div class="py-2">
-        <Routes>
-          <Route path="/" component={Home} />
-          <Route path="/training/new" component={NewTrainingPage} />
-          <Route path="/training/:id" component={TrainingPage} />
-          <Route path="/trainings" component={TrainingHistoryPage} />
-        </Routes>
-      </div>
-    </div>
+    <Router
+      root={(props) => (
+        <TransProvider
+          options={{
+            backend,
+            fallbackLng: 'en',
+          }}
+        >
+          <Header />
+          <Drawer />
+          <DismissibleToast
+            open={openToast()}
+            onDismiss={() => setOpenToast(false)}
+            mode={toastMode()}
+            message={toastMessage()}
+          />
+          <div class="py-2">{props.children}</div>
+        </TransProvider>
+      )}
+    >
+      <Route path="/" component={Home} />
+      <Route path="/training/new" component={NewTrainingPage} />
+      <Route path="/training/:id" component={TrainingPage} />
+      <Route path="/trainings" component={TrainingHistoryPage} />
+    </Router>
   )
 }
 

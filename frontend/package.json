@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.20.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@mbarzda/solid-i18next": "^1.4.1",
-    "@solidjs/router": "^0.8.4",
+    "@solidjs/router": "^0.12.0",
     "flowbite": "^2.2.1",
     "i18next": "^23.7.16",
     "i18next-browser-languagedetector": "^7.2.0",
