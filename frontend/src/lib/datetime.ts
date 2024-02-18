@@ -47,9 +47,13 @@ export function datesThisWeek(): Date[] {
   return daysInWeek
 }
 
+export function isThisInThisWeek(date: Date): boolean {
+  return isThisInWeek(new Date(), date)
+}
+
 const SUNDAY = 0
 
-export function isThisInThisWeek(date: Date): boolean {
+export function isThisInWeek(referenceDate: Date, date: Date): boolean {
   const curr = new Date()
   let first: number
   if (curr.getDay() === SUNDAY) {
