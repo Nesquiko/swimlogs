@@ -120,7 +120,7 @@ const SelectInput = <T extends object>(props: SelectInputProps<T>) => {
   >(props.options[props.initialValueIndex ?? 0])
 
   return (
-    <div class="w-44 py-2">
+    <div class="w-full py-2 flex justify-between items-center">
       <div class="block">
         <Show when={props.label}>
           <Label id={id} label={props.label!} error={props.error} />
