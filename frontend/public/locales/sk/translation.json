@@ -95,5 +95,7 @@
   "confirm.delete.training": "Áno, vymazaž tréning",
   "hour": "Hodina",
   "training.details": "Detaily tréningu",
-  "training.edited": "Tréning úspešne upravený"
+  "training.edited": "Tréning úspešne upravený",
+  "distance.error.too.small": "Minimalna vzdialenosť je 25m",
+  "distance.error.too.big": "Maximálna vzdialenosť je 32000m"
 }

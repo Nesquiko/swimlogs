@@ -26,9 +26,9 @@ const EditSetPage: Component<EditSetPageProps> = (props) => {
   const [distance, setDistance] = createSignal(props.set?.distanceMeters ?? 100)
   const distanceErr = () => {
     if (distance() < 25) {
-      return 'Too small'
+      return t('distance.error.too.small')
     } else if (distance() > SmallIntMax) {
-      return 'Too big'
+      return t('distance.error.too.big')
     }
   }
   const [start, setStart] = createSignal<String>(props.set?.startType ?? 'None')

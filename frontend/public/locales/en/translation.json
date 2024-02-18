@@ -93,5 +93,7 @@
   "confirm.delete.training": "Yes, delete training",
   "hour": "Hour",
   "training.details": "Training details",
-  "training.edited": "Training successfully edited"
+  "training.edited": "Training successfully edited",
+  "distance.error.too.small": "Minimal distance is 25m",
+  "distance.error.too.big": "Max distance is 32000m"
 }
