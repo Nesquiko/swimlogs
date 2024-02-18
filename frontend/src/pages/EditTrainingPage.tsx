@@ -229,32 +229,39 @@ const EditTrainingPage: Component<EditTrainingPageProps> = (props) => {
             )}
           />
 
-          <div class="py-2 text-center">
-            <button
-              class="h-12 w-12 rounded-full bg-sky-500"
-              onClick={() => setShowCreateSet(true)}
-            >
-              <i class="fa-solid fa-plus fa-2xl text-white"></i>
-            </button>
-          </div>
-
-          <Show when={training.sets.length > 0}>
-            <div class="flex items-center justify-between p-4 md:justify-around">
+          <div
+            class="flex items-center p-4"
+            classList={{
+              'justify-between md:justify-around': training.sets.length > 0,
+              'justify-center': training.sets.length === 0,
+            }}
+          >
+            <Show when={training.sets.length > 0}>
               <button
                 class="w-24 rounded-lg bg-red-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-red-300"
                 onClick={onBack}
               >
                 {t('back')}
               </button>
+            </Show>
+            <div class="py-2 text-center">
+              <button
+                class="h-12 w-12 rounded-full bg-sky-500"
+                onClick={() => setShowCreateSet(true)}
+              >
+                <i class="fa-solid fa-plus fa-2xl text-white"></i>
+              </button>
+            </div>
 
+            <Show when={training.sets.length > 0}>
               <button
                 class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
                 onClick={() => setShowTrainingSession(true)}
               >
                 {t('finish')}
               </button>
-            </div>
-          </Show>
+            </Show>
+          </div>
         </Match>
       </Switch>
     </div>
