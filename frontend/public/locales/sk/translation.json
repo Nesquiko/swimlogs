@@ -76,7 +76,7 @@
   "total": "Spolu",
   "session.fetch.error": "Chyba pri načítaní termínov.",
   "no.sessions.created": "Žiadne termíny neboli vytvorené. Vytvorte termín, alebo ho nastavte.",
-  "set.session": "Nastaviť termín",
+  "set.session": "Nastaviť",
   "please.select.session": "Prosím vyberte termín",
   "total.distance.set": "Celková vzdialenosť v sérii",
   "trainings.history": "História tréningov",
@@ -94,8 +94,10 @@
   "confirm.training.delete.message": "Naozaj chcete vymazať tento tréning?",
   "confirm.delete.training": "Áno, vymazaž tréning",
   "hour": "Hodina",
-  "training.details": "Detaily tréningu",
+  "training.details": "Termín tréningu",
   "training.edited": "Tréning úspešne upravený",
   "distance.error.too.small": "Minimalna vzdialenosť je 25m",
-  "distance.error.too.big": "Maximálna vzdialenosť je 32000m"
+  "distance.error.too.big": "Maximálna vzdialenosť je 32000m",
+  "training.deleted": "Tréning úspešne vymazaný",
+  "save": "Uložiť"
 }

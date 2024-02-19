@@ -1,28 +1,19 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { type Component, For, Show, type JSX } from 'solid-js'
-import DropdownMenu from '../components/common/DropdownMenu'
-import { EquipmentIcons } from '../components/Equipment'
-import {
-  EquipmentEnum,
-  NewTraining,
-  NewTrainingSet,
-  StartTypeEnum,
-  Training,
-} from 'swimlogs-api'
-import SetCard, { Option, SkeletonSetCard } from '../components/SetCard'
+import { type Component, For, Show } from 'solid-js'
+import { NewTraining, Training } from 'swimlogs-api'
+import { locale, minutesToHoursAndMintes } from '../lib/datetime'
+import SetCard, { Option, SkeletonSetCard } from './SetCard'
 
 interface TrainingPreviewPageProps {
   training: NewTraining | Training
 
+  showSession?: boolean
   setOptions?: Option[]
 
   rightHeaderComponent?: Component
   leftHeaderComponent?: Component
 }
 
-const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
-  const [t] = useTransContext()
-
+const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
       <div class="grid grid-cols-3 items-center">
@@ -36,6 +27,24 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
           {props.rightHeaderComponent}
         </Show>
       </div>
+
+      <Show when={props.showSession}>
+        <div class="grid grid-cols-3">
+          <p class="text-xl text-left">
+            {props.training.start.toLocaleDateString(locale())}
+          </p>
+          <p class="text-xl text-center">
+            {props.training.start.toLocaleTimeString(locale(), {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+          <p class="text-xl text-right">
+            {minutesToHoursAndMintes(props.training.durationMin)}
+          </p>
+        </div>
+      </Show>
+
       <div class="space-y-2">
         <For each={props.training.sets}>
           {(set) => <SetCard set={set} setOptions={props.setOptions} />}
@@ -45,7 +54,7 @@ const TrainingPreviewPage: Component<TrainingPreviewPageProps> = (props) => {
   )
 }
 
-const SkeletonTrainingPreviewPage: Component = () => {
+const SkeletonTrainingPreview: Component = () => {
   return (
     <div class="space-y-4 px-4 animate-pulse">
       <div class="grid grid-cols-3 items-center">
@@ -58,5 +67,5 @@ const SkeletonTrainingPreviewPage: Component = () => {
   )
 }
 
-export default TrainingPreviewPage
-export { SkeletonTrainingPreviewPage }
+export default TrainingPreview
+export { SkeletonTrainingPreview }

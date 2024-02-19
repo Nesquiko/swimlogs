@@ -1,6 +1,6 @@
 import { Dropdown } from 'flowbite'
 import { Component, For, onMount, Show } from 'solid-js'
-import { randomId } from '../../lib/str'
+import { randomId } from '../lib/str'
 
 interface MenuItem {
   text: string
@@ -47,7 +47,7 @@ const DropdownMenu: Component<DropdownMenuProps> = (props) => {
   }
 
   return (
-    <div class="inline-block">
+    <div class="inline-block text-left">
       <button
         ref={triggerEl!}
         class="inline-flex items-center text-center text-sm font-medium text-sky-900"

@@ -1,6 +1,6 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createSignal, For } from 'solid-js'
-import { SelectInput } from '../components/common/Input'
+import { SelectInput } from '../components/Input'
 import InlineDatepicker from '../components/InlineDatepicker'
 
 const StartTimeHours = [
@@ -34,6 +34,7 @@ const TIMES = [
 
 interface EditTrainingSessionPageProps {
   initial?: { start: Date; durationMin: number }
+  submitLabel?: string
   onSubmit: (session: { start: Date; durationMin: number }) => void
   onBack: () => void
 }
@@ -129,7 +130,7 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
           class="w-24 rounded-lg bg-green-500 py-2 text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-green-300"
           onClick={onSubmit}
         >
-          {t('finish')}
+          {props.submitLabel ?? t('finish')}
         </button>
       </div>
     </div>

@@ -1,11 +1,7 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createSignal, For } from 'solid-js'
+import { locale } from '../lib/datetime'
 import { capitalize } from '../lib/str'
-
-function locale() {
-  if (navigator.languages != undefined) return navigator.languages[0]
-  return navigator.language
-}
 
 const DAY_NAME_KEYS = [
   'monday',

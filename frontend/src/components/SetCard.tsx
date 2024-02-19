@@ -1,12 +1,7 @@
 import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
-import {
-  EquipmentEnum,
-  NewTrainingSet,
-  StartTypeEnum,
-  TrainingSet,
-} from 'swimlogs-api'
-import DropdownMenu from './common/DropdownMenu'
+import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api'
+import DropdownMenu from './DropdownMenu'
 import { EquipmentIcons } from './Equipment'
 
 interface Option {

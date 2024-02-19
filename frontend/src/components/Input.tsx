@@ -1,5 +1,5 @@
 import { Component, createSignal, For, Show } from 'solid-js'
-import { randomId } from '../../lib/str'
+import { randomId } from '../lib/str'
 
 type TextAreaProps = {
   onInput: (value: string) => void

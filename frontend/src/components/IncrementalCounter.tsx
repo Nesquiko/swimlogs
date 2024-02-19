@@ -1,5 +1,5 @@
 import { Component, Show } from 'solid-js'
-import { randomId } from '../../lib/str'
+import { randomId } from '../lib/str'
 
 interface CounterProps {
   onChange: (n: number) => void
