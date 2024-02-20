@@ -316,7 +316,17 @@ returning id, training_id, set_order, repeat, distance_meters, description,
 `
 
 func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
-	err := tx.QueryRow(
+	isNew, err := pool.isSetNew(tx, s)
+	if err != nil {
+		return TrainingSet{}, fmt.Errorf("editSet exists query: %w", err)
+	}
+
+	if !isNew {
+		s.Id = uuid.New()
+		return pool.persistSet(tx, s)
+	}
+
+	err = tx.QueryRow(
 		context.Background(),
 		updateSet,
 		s.Id,
@@ -345,4 +355,15 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 	}
 
 	return s, nil
+}
+
+var setExists = "select exists(select 1 from sets where id = $1)"
+
+func (pool *PostgresDbPool) isSetNew(tx pgx.Tx, s TrainingSet) (bool, error) {
+	var exists bool
+	err := tx.QueryRow(context.Background(), setExists, s.Id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("isSetNew query error: %w, id: %s", err, s.Id)
+	}
+	return exists, nil
 }
