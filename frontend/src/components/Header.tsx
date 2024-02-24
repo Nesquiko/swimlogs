@@ -1,5 +1,6 @@
 import { A, useLocation } from '@solidjs/router'
 import { Component, createEffect, createSignal, Match, Switch } from 'solid-js'
+import { useOnBackcontext } from '../pages/Routing'
 import { openDrawer } from './Drawer'
 
 type HeaderState = {
@@ -7,23 +8,12 @@ type HeaderState = {
   onBack?: () => void
 }
 
-const defaultBack = () => history.back()
-
-let onBackOverride: (() => void) | undefined
-
-export const setOnBackOverride = (onBack?: () => void) => {
-  onBackOverride = onBack
-}
-
-export const clearOnBackOverride = () => {
-  onBackOverride = undefined
-}
-
 const Header: Component = () => {
   const [headerState, setHeaderState] = createSignal<HeaderState>({
     state: 'menu',
   })
   const location = useLocation()
+  const [onBack] = useOnBackcontext()
 
   createEffect(() => {
     if (location.pathname === '/') {
@@ -31,13 +21,7 @@ const Header: Component = () => {
     } else {
       setHeaderState({
         state: 'back',
-        onBack: () => {
-          if (onBackOverride) {
-            onBackOverride()
-          } else {
-            defaultBack()
-          }
-        },
+        onBack,
       })
     }
   })

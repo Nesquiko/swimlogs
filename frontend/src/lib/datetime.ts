@@ -54,15 +54,36 @@ export function isThisInThisWeek(date: Date): boolean {
 const SUNDAY = 0
 
 export function isThisInWeek(referenceDate: Date, date: Date): boolean {
-  const curr = new Date()
   let first: number
-  if (curr.getDay() === SUNDAY) {
-    first = curr.getDate() - 6
+  if (referenceDate.getDay() === SUNDAY) {
+    first = referenceDate.getDate() - 6
   } else {
-    first = curr.getDate() - (-curr.getDay() + 1)
+    first = referenceDate.getDate() + (-referenceDate.getDay() + 1)
   }
 
   const last = first + 6
 
   return first <= date.getDate() && date.getDate() <= last
+}
+
+export function locale() {
+  if (navigator.languages != undefined) return navigator.languages[0]
+  return navigator.language
+}
+
+export function minutesToHoursAndMintes(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+
+  let result = ''
+
+  if (hours > 0) {
+    result += `${hours}h `
+  }
+
+  if (remainingMinutes > 0 || result === '') {
+    result += `${remainingMinutes}min`
+  }
+
+  return result
 }

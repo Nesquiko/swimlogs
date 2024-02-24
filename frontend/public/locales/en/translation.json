@@ -76,7 +76,7 @@
   "total": "Total",
   "session.fetch.error": "Error loading sessions",
   "no.sessions.created": "No sessions created.",
-  "set.session": "Set session",
+  "set.session": "Set",
   "please.select.session": "Please select a session",
   "total.distance.set": "Total distance in set",
   "trainings.history": "Trainings history",
@@ -92,8 +92,10 @@
   "confirm.training.delete.message": "Are you sure you want to delete this training?",
   "confirm.delete.training": "Yes, delete training",
   "hour": "Hour",
-  "training.details": "Training details",
+  "training.details": "Training schedule ",
   "training.edited": "Training successfully edited",
   "distance.error.too.small": "Minimal distance is 25m",
-  "distance.error.too.big": "Max distance is 32000m"
+  "distance.error.too.big": "Max distance is 32000m",
+  "training.deleted": "Training successfully deleted",
+  "save": "Save"
 }

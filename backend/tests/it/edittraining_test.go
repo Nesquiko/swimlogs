@@ -80,6 +80,16 @@ func TestEditTraining(t *testing.T) {
 	training.Sets[1].DistanceMeters = 200
 	training.Sets[1].Equipment = nil
 
+	training.Sets = append(training.Sets, apidef.TrainingSet{
+		DistanceMeters: 50,
+		Equipment:      &[]apidef.EquipmentEnum{apidef.Monofin, apidef.Snorkel},
+		Id:             uuid.New(),
+		Repeat:         5,
+		SetOrder:       2,
+		StartType:      apidef.None,
+		TotalDistance:  250,
+	})
+
 	client := http.Client{}
 	url := TH.ts.URL + "/trainings/" + training.Id.String()
 	req, err := json.Marshal(training)
@@ -99,12 +109,23 @@ func TestEditTraining(t *testing.T) {
 
 	assert := assert.New(t)
 	assert.Equal(training.DurationMin, response.DurationMin)
-	assert.Equal(2400, response.TotalDistance)
+	assert.Equal(2650, response.TotalDistance)
 	assert.Equal(training.Start.Year(), response.Start.Year())
 	assert.Equal(training.Start.Month(), response.Start.Month())
 	assert.Equal(training.Start.Day(), response.Start.Day())
 	assert.Equal(training.Start.Hour(), response.Start.Hour())
 	assert.Equal(training.Start.Minute(), response.Start.Minute())
+
+	var count int
+	err = data.SqlWithResult(
+		TH.pool,
+		"select count(*) from sets where training_id = $1",
+		[]any{training.Id},
+		[]any{&count},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(3, count)
 
 	result := struct {
 		repeat         int
@@ -137,4 +158,22 @@ func TestEditTraining(t *testing.T) {
 	assert.Equal(200, result.distanceMeters)
 	assert.Equal(800, result.totalDistance)
 	assert.Nil(result.equipment)
+
+	err = data.SqlWithResult(
+		TH.pool,
+		"select repeat, distance_meters, equipment, total_distance from sets where id != $1 and id != $2 and training_id = $3",
+		[]any{
+			training.Sets[0].Id,
+			training.Sets[1].Id,
+			training.Id,
+		}, // I don't have the Id of the newly created set
+		[]any{&result.repeat, &result.distanceMeters, &result.equipment, &result.totalDistance},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(5, result.repeat)
+	assert.Equal(50, result.distanceMeters)
+	assert.Equal(250, result.totalDistance)
+	assert.Equal(string(apidef.Monofin), result.equipment[0])
+	assert.Equal(string(apidef.Snorkel), result.equipment[1])
 }

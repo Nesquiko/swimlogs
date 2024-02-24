@@ -1,4 +1,4 @@
-import { NewTrainingSet } from 'swimlogs-api'
+import { NewTrainingSet, TrainingSet } from 'swimlogs-api'
 
 export function cloneSet(s: NewTrainingSet) {
   const newSet = {} as NewTrainingSet
@@ -12,6 +12,25 @@ export function cloneSet(s: NewTrainingSet) {
 
   newSet.equipment = []
   s.equipment?.forEach((e) => {
+    newSet.equipment?.push(e)
+  })
+  return newSet
+}
+
+export function cloneToSet(ns: NewTrainingSet): TrainingSet {
+  const newSet = {} as TrainingSet
+
+  newSet.id = ''
+  newSet.repeat = ns.repeat
+  newSet.setOrder = ns.setOrder
+  newSet.startType = ns.startType
+  newSet.description = ns.description
+  newSet.startSeconds = ns.startSeconds
+  newSet.distanceMeters = ns.distanceMeters
+  newSet.totalDistance = ns.totalDistance
+
+  newSet.equipment = []
+  ns.equipment?.forEach((e) => {
     newSet.equipment?.push(e)
   })
   return newSet

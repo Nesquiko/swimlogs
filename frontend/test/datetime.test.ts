@@ -8,7 +8,6 @@ test('per day matrix, all in given week', () => {
     const referenceDate = addDays(date, d)
     for (const d of [0, 1, 2, 3, 4, 5, 6]) {
       const day = addDays(date, d)
-
       expect(isThisInWeek(referenceDate, day)).toBeTruthy()
     }
   }

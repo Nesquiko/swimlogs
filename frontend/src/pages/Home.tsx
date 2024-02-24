@@ -2,7 +2,7 @@ import { type Component, Show, For, type JSX } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import { useTrainingsDetailsThisWeek } from '../state/trainings'
 import { Trans, useTransContext } from '@mbarzda/solid-i18next'
-import Message from '../components/common/Info'
+import Message from '../components/Info'
 import { datesThisWeek, DayEnum, formatDate, formatTime } from '../lib/datetime'
 import { type TrainingDetail } from 'swimlogs-api'
 
@@ -14,9 +14,7 @@ const Home: Component = () => {
   const detailItem = (detail: TrainingDetail): JSX.Element => {
     return (
       <div
-        onClick={() => {
-          navigate('/training/' + detail.id)
-        }}
+        onClick={() => navigate('/training/' + detail.id + '/display')}
         class="flex cursor-pointer justify-between rounded-lg border border-solid border-slate-200 px-8 py-2"
       >
         <span class="text-lg">{formatTime(detail.start)}</span>

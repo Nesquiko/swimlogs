@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
@@ -49,7 +49,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Extract tags for Docker
         uses: docker/metadata-action@v4
         id: metadata
@@ -75,7 +75,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Extract latest version
         id: extract_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT

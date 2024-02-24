@@ -1,7 +1,10 @@
+import { RouteLoadFunc } from '@solidjs/router'
 import { createResource } from 'solid-js'
 import {
   BASE_PATH,
   Configuration,
+  ResponseError,
+  Training,
   TrainingDetail,
   TrainingDetailsCurrentWeekResponse,
   TrainingsApi,
@@ -13,6 +16,55 @@ const config = new Configuration({
 })
 
 const trainingApi = new TrainingsApi(config)
+
+type TrainingCacheEntry = { id: string; t: Promise<Training> }
+let trainingCache: { entry: TrainingCacheEntry | undefined } = {
+  entry: undefined,
+}
+
+export const loadTrainingById: RouteLoadFunc<Promise<Training>> = ({
+  params,
+}): Promise<Training> => {
+  if (trainingCache.entry && trainingCache.entry.id === params.id) {
+    return trainingCache.entry.t
+  }
+
+  const t = trainingApi
+    .training({ id: params.id })
+    .catch((e: ResponseError) => {
+      trainingCache.entry = undefined
+      throw e
+    })
+  trainingCache.entry = { id: params.id, t }
+  return t
+}
+
+export const deleteTrainingById = async (id: string): Promise<void> => {
+  return await trainingApi
+    .deleteTraining({ id })
+    .then(() => removeFromTrainingsDetails(id))
+    .catch(() => {
+      removeFromTrainingsDetails(id)
+    })
+    .finally(() => (trainingCache.entry = undefined))
+}
+
+export const updateTrainingById = async (
+  id: string,
+  training: Training
+): Promise<TrainingDetail> => {
+  return trainingApi
+    .editTraining({ id, training })
+    .then((res) => {
+      updateTrainintDetails(res)
+      trainingCache.entry = undefined
+      return res
+    })
+    .catch((e: ResponseError) => {
+      trainingCache.entry = undefined
+      throw e
+    })
+}
 
 async function getTrainingsThisWeek(): Promise<TrainingDetailsCurrentWeekResponse> {
   return trainingApi.trainingDetailsCurrentWeek().catch((_err) => {
