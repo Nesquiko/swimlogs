@@ -75,6 +75,7 @@ const NumberInput: Component<NumberInputProps> = (props) => {
       <input
         id={id}
         type="number"
+        inputmode="numeric"
         value={props.value ?? ''}
         placeholder={props.placeholder ?? ''}
         classList={{

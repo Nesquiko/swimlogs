@@ -54,6 +54,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
         <input
           id={id}
           type="number"
+          inputmode="numeric"
           classList={{ 'text-red-500': props.error }}
           class="w-16 p-2 text-center text-lg border-x-0 border-y border-slate-200 focus:outline focus:outline-sky-300"
           min={props.min}
