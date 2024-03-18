@@ -52,7 +52,9 @@ const TrainingHistoryPage: Component = () => {
         </Show>
         <For each={details()}>
           {(detail) => (
-            <div onClick={() => navigate('/training/' + detail.id)}>
+            <div
+              onClick={() => navigate('/training/' + detail.id + '/display')}
+            >
               <DetailCard detail={detail} />
             </div>
           )}

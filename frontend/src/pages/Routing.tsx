@@ -50,7 +50,6 @@ const Routes: Component = () => {
     <>
       <Route path="/" component={Home} />
       <Route path="/training/new" component={NewTrainingPage} />
-      {/* <Route path="/training/:id" component={EditTrainingPage}> */}
       <Route path="/training/:id">
         <Route
           path="/display"
