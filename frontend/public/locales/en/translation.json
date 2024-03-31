@@ -97,5 +97,10 @@
   "distance.error.too.small": "Minimal distance is 25m",
   "distance.error.too.big": "Max distance is 32000m",
   "training.deleted": "Training successfully deleted",
-  "save": "Save"
+  "save": "Save",
+  "bifi": "Bifi",
+  "long": "Long",
+  "middle": "Middle",
+  "mono": "Mono",
+  "sprint": "Sprint"
 }

@@ -2,7 +2,8 @@ import { useTransContext } from '@mbarzda/solid-i18next'
 import { Component, For, Show } from 'solid-js'
 import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api'
 import DropdownMenu from './DropdownMenu'
-import { EquipmentIcons } from './Equipment'
+import { EquipmentIcons } from '../lib/equipment-svgs'
+import { GroupColors } from '../lib/set-groups'
 
 interface Option {
   text: string
@@ -53,43 +54,57 @@ const SetCard: Component<SetCardProps> = (props) => {
         }}
         class="w-full rounded-t-lg bg-sky-200 p-2 text-sky-900"
       >
-        <h5 class="inline-block w-11/12 text-xl font-bold">
-          <span class="pr-8">{setContent}</span>
+        <div class="grid grid-cols-4 gap-x-4">
+          <span class="text-xl font-bold pr-8 col-start-1">{setContent}</span>
           <Show when={props.set.startType !== StartTypeEnum.None}>
-            <span>{start()}</span>
+            <span class="col-start-2 col-span-2 text-xl font-bold">
+              {start()}
+            </span>
           </Show>
-        </h5>
+          <Show when={props.set.group} keyed>
+            {(group) => (
+              <span
+                classList={{ [GroupColors.get(group)!]: true }}
+                class="col-start-4 rounded-lg text-white bg-sky-500 text-center w-full h-6"
+              >
+                {t(group.toLowerCase())}
+              </span>
+            )}
+          </Show>
 
-        <Show
-          when={props.setOptions !== undefined && props.setOptions.length > 0}
-        >
-          <DropdownMenu
-            icon="fa-ellipsis"
-            items={(props.setOptions ?? []).slice(0, -1).map((option) => ({
-              icon: option.icon,
-              text: option.text,
-              onClick: () => option.onClick(props.set.setOrder!),
-              disabled:
-                option.disabled ||
-                option.disabledFunc?.(props.set.setOrder!) ||
-                false,
-            }))}
-            finalItem={{
-              icon: props.setOptions![props.setOptions!.length - 1].icon,
-              text: props.setOptions![props.setOptions!.length - 1].text,
-              onClick: () =>
-                props.setOptions![props.setOptions!.length - 1].onClick(
-                  props.set.setOrder!
-                ),
-              disabled:
-                props.setOptions![props.setOptions!.length - 1].disabled ||
-                props.setOptions![props.setOptions!.length - 1].disabledFunc?.(
-                  props.set.setOrder!
-                ) ||
-                false,
-            }}
-          />
-        </Show>
+          <Show
+            when={props.setOptions !== undefined && props.setOptions.length > 0}
+          >
+            <div class="col-start-5">
+              <DropdownMenu
+                icon="fa-ellipsis"
+                items={(props.setOptions ?? []).slice(0, -1).map((option) => ({
+                  icon: option.icon,
+                  text: option.text,
+                  onClick: () => option.onClick(props.set.setOrder!),
+                  disabled:
+                    option.disabled ||
+                    option.disabledFunc?.(props.set.setOrder!) ||
+                    false,
+                }))}
+                finalItem={{
+                  icon: props.setOptions![props.setOptions!.length - 1].icon,
+                  text: props.setOptions![props.setOptions!.length - 1].text,
+                  onClick: () =>
+                    props.setOptions![props.setOptions!.length - 1].onClick(
+                      props.set.setOrder!
+                    ),
+                  disabled:
+                    props.setOptions![props.setOptions!.length - 1].disabled ||
+                    props.setOptions![
+                      props.setOptions!.length - 1
+                    ].disabledFunc?.(props.set.setOrder!) ||
+                    false,
+                }}
+              />
+            </div>
+          </Show>
+        </div>
       </div>
       <Show when={props.set.description}>
         <p class="whitespace-pre-wrap p-2 text-gray-500">

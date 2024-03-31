@@ -2,7 +2,7 @@ import { Trans, useTransContext } from '@mbarzda/solid-i18next'
 import { Component, createSignal, For, Show } from 'solid-js'
 import IncrementalCounter from '../components/IncrementalCounter'
 import { NumberInput, SelectInput, TextAreaInput } from '../components/Input'
-import { EquipmentIcons } from '../components/Equipment'
+import { EquipmentIcons } from '../lib/Equipment'
 import { EquipmentEnum, NewTrainingSet, StartTypeEnum } from 'swimlogs-api'
 import { SmallIntMax } from '../lib/consts'
 

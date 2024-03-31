@@ -99,5 +99,10 @@
   "distance.error.too.small": "Minimalna vzdialenosť je 25m",
   "distance.error.too.big": "Maximálna vzdialenosť je 32000m",
   "training.deleted": "Tréning úspešne vymazaný",
-  "save": "Uložiť"
+  "save": "Uložiť",
+  "bifi": "Bifi",
+  "long": "Dlho",
+  "middle": "Stredno",
+  "mono": "Mono",
+  "sprint": "Šprint"
 }
