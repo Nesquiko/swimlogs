@@ -45,6 +45,7 @@ func newSetToDataSet(set apidef.NewTrainingSet, tId uuid.UUID) data.TrainingSet 
 		StartType:      string(set.StartType),
 		StartSeconds:   set.StartSeconds,
 		Equipment:      &equipment,
+		Group:          (*string)(set.Group),
 	}
 
 	if set.StartType == apidef.None {
@@ -91,6 +92,7 @@ func dataSetToApiSet(s data.TrainingSet) apidef.TrainingSet {
 		StartType:      apidef.StartTypeEnum(s.StartType),
 		StartSeconds:   s.StartSeconds,
 		TotalDistance:  s.TotalDistance,
+		Group:          (*apidef.GroupEnum)(s.Group),
 	}
 
 	if s.Equipment == nil {
@@ -142,6 +144,7 @@ func setToDataSet(set apidef.TrainingSet, tId uuid.UUID) data.TrainingSet {
 		StartType:      string(set.StartType),
 		StartSeconds:   set.StartSeconds,
 		Equipment:      &equipment,
+		Group:          (*string)(set.Group),
 	}
 
 	if set.StartType == apidef.None {

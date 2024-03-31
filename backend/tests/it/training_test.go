@@ -21,7 +21,7 @@ func TestTraining_NotFound(t *testing.T) {
 }
 
 func TestTraining(t *testing.T) {
-	newTraining := apidef.CreateTrainingRequest{
+	exptectedTraining := apidef.CreateTrainingRequest{
 		DurationMin: 120,
 		Sets: []apidef.NewTrainingSet{
 			{
@@ -30,6 +30,7 @@ func TestTraining(t *testing.T) {
 				SetOrder:       0,
 				StartType:      apidef.None,
 				TotalDistance:  400,
+				Group:          asPtr(apidef.Bifi),
 			},
 			{
 				Description:    asPtr("some Description"),
@@ -45,41 +46,42 @@ func TestTraining(t *testing.T) {
 		Start:         time.Now(),
 		TotalDistance: 800,
 	}
-	id := createTraining(t, &newTraining).Id
+	id := createTraining(t, &exptectedTraining).Id
 
 	url := TH.ts.URL + "/trainings/" + id.String()
 	res, err := http.Get(url)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
-	var training apidef.Training
-	err = json.NewDecoder(res.Body).Decode(&training)
+	var actualTraining apidef.Training
+	err = json.NewDecoder(res.Body).Decode(&actualTraining)
 	res.Body.Close()
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(id, training.Id)
-	assert.Equal(newTraining.DurationMin, training.DurationMin)
-	assert.Equal(newTraining.TotalDistance, training.TotalDistance)
-	assert.Equal(newTraining.Start.Year(), training.Start.Year())
-	assert.Equal(newTraining.Start.Month(), training.Start.Month())
-	assert.Equal(newTraining.Start.Day(), training.Start.Day())
-	assert.Equal(newTraining.Start.Hour(), training.Start.Hour())
-	assert.Equal(newTraining.Start.Minute(), training.Start.Minute())
-	assert.Len(training.Sets, 2)
+	assert.Equal(id, actualTraining.Id)
+	assert.Equal(exptectedTraining.DurationMin, actualTraining.DurationMin)
+	assert.Equal(exptectedTraining.TotalDistance, actualTraining.TotalDistance)
+	assert.Equal(exptectedTraining.Start.Year(), actualTraining.Start.Year())
+	assert.Equal(exptectedTraining.Start.Month(), actualTraining.Start.Month())
+	assert.Equal(exptectedTraining.Start.Day(), actualTraining.Start.Day())
+	assert.Equal(exptectedTraining.Start.Hour(), actualTraining.Start.Hour())
+	assert.Equal(exptectedTraining.Start.Minute(), actualTraining.Start.Minute())
+	assert.Len(actualTraining.Sets, 2)
 
-	for i := 0; i < len(newTraining.Sets); i++ {
-		newSet := newTraining.Sets[i]
-		set := training.Sets[i]
+	for i := 0; i < len(exptectedTraining.Sets); i++ {
+		exptectedSet := exptectedTraining.Sets[i]
+		actualSet := actualTraining.Sets[i]
 
-		assert.Equal(newSet.DistanceMeters, set.DistanceMeters)
-		assert.Equal(newSet.TotalDistance, set.TotalDistance)
-		assert.Equal(newSet.Repeat, set.Repeat)
-		assert.Equal(newSet.SetOrder, set.SetOrder)
-		assert.Equal(newSet.Description, set.Description)
-		assert.Equal(newSet.Equipment, set.Equipment)
-		assert.Equal(newSet.StartSeconds, set.StartSeconds)
-		assert.Equal(newSet.StartType, set.StartType)
+		assert.Equal(exptectedSet.DistanceMeters, actualSet.DistanceMeters)
+		assert.Equal(exptectedSet.TotalDistance, actualSet.TotalDistance)
+		assert.Equal(exptectedSet.Repeat, actualSet.Repeat)
+		assert.Equal(exptectedSet.SetOrder, actualSet.SetOrder)
+		assert.Equal(exptectedSet.Description, actualSet.Description)
+		assert.Equal(exptectedSet.Equipment, actualSet.Equipment)
+		assert.Equal(exptectedSet.StartSeconds, actualSet.StartSeconds)
+		assert.Equal(exptectedSet.StartType, actualSet.StartType)
+		assert.Equal(exptectedSet.Group, actualSet.Group)
 	}
 }
 
