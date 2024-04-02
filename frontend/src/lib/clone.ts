@@ -28,6 +28,7 @@ export function cloneToSet(ns: NewTrainingSet): TrainingSet {
   newSet.startSeconds = ns.startSeconds
   newSet.distanceMeters = ns.distanceMeters
   newSet.totalDistance = ns.totalDistance
+  newSet.group = ns.group
 
   newSet.equipment = []
   ns.equipment?.forEach((e) => {
