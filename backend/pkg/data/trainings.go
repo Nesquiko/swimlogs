@@ -32,6 +32,7 @@ type TrainingSet struct {
 	Description    *string
 	StartSeconds   *int
 	Equipment      *[]string
+	Group          *string
 }
 
 func (pool *PostgresDbPool) PersistTraining(t Training) (Training, error) {
@@ -147,7 +148,7 @@ var selectTraining = `
 select
     t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
     s.id, s.training_id, s.set_order, s.repeat, s.distance_meters, s.description,
-    s.start_type, s.start_seconds, s.total_distance, s.equipment
+    s.start_type, s.start_seconds, s.total_distance, s.equipment, s.group
 from trainings t join sets s on t.id = s.training_id
 where t.id = $1
 order by s.set_order
@@ -179,6 +180,7 @@ func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
 			&s.StartSeconds,
 			&s.TotalDistance,
 			&s.Equipment,
+			&s.Group,
 		)
 		if err != nil {
 			return Training{}, fmt.Errorf("Training scanning error: %w", err)
@@ -230,10 +232,10 @@ func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, er
 
 var insertSet = `
 insert into sets (id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    description, start_type, start_seconds, total_distance, equipment, group)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 returning id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment
+    description, start_type, start_seconds, total_distance, equipment, group
 `
 
 func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
@@ -250,6 +252,7 @@ func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, e
 		s.StartSeconds,
 		s.TotalDistance,
 		s.Equipment,
+		s.Group,
 	).Scan(
 		&s.Id,
 		&s.TrainingId,
@@ -260,7 +263,8 @@ func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, e
 		&s.StartType,
 		&s.StartSeconds,
 		&s.TotalDistance,
-		s.Equipment,
+		&s.Equipment,
+		&s.Group,
 	)
 	if err != nil {
 		return TrainingSet{}, fmt.Errorf("persistSet: %w", err)
@@ -309,19 +313,20 @@ set set_order       = $2,
     start_type      = $6,
     start_seconds   = $7,
     total_distance  = $8,
-    equipment       = $9
+    equipment       = $9,
+    group             = $10
 where id = $1
 returning id, training_id, set_order, repeat, distance_meters, description,
-    start_type, start_seconds, total_distance, equipment
+    start_type, start_seconds, total_distance, equipment, group
 `
 
 func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
-	isNew, err := pool.isSetNew(tx, s)
+	setExists, err := pool.setExists(tx, s)
 	if err != nil {
 		return TrainingSet{}, fmt.Errorf("editSet exists query: %w", err)
 	}
 
-	if !isNew {
+	if !setExists {
 		s.Id = uuid.New()
 		return pool.persistSet(tx, s)
 	}
@@ -338,6 +343,7 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 		s.StartSeconds,
 		s.TotalDistance,
 		s.Equipment,
+		s.Group,
 	).Scan(
 		&s.Id,
 		&s.TrainingId,
@@ -349,6 +355,7 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 		&s.StartSeconds,
 		&s.TotalDistance,
 		&s.Equipment,
+		&s.Group,
 	)
 	if err != nil {
 		return TrainingSet{}, fmt.Errorf("editSet query error: %w, id: %s", err, s.Id)
@@ -359,7 +366,7 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 
 var setExists = "select exists(select 1 from sets where id = $1)"
 
-func (pool *PostgresDbPool) isSetNew(tx pgx.Tx, s TrainingSet) (bool, error) {
+func (pool *PostgresDbPool) setExists(tx pgx.Tx, s TrainingSet) (bool, error) {
 	var exists bool
 	err := tx.QueryRow(context.Background(), setExists, s.Id).Scan(&exists)
 	if err != nil {

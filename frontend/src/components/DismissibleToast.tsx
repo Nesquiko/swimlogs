@@ -1,4 +1,4 @@
-import { Component, createEffect, createSignal, Show } from 'solid-js'
+import { Component, createEffect, createSignal, Show } from 'solid-js';
 
 enum ToastMode {
   SUCCESS = 'SUCCESS',
@@ -8,36 +8,36 @@ enum ToastMode {
 const ToastModeOptions = {
   [ToastMode.SUCCESS]: { icon: 'fa-check ', color: 'text-green-500' },
   [ToastMode.ERROR]: { icon: 'fa-exclamation', color: 'text-red-500' },
-} as const
+} as const;
 
 interface DismissibleToastProps {
-  open: boolean
-  mode: ToastMode
-  onDismiss: () => void
-  message: string
+  open: boolean;
+  mode: ToastMode;
+  onDismiss: () => void;
+  message: string;
 }
 
-const TRANSITION_DURATION = 1000
-const AUTOMATIC_CLOSE_DURATION = 3000
+const TRANSITION_DURATION = 1000;
+const AUTOMATIC_CLOSE_DURATION = 3000;
 
 const DismissibleToast: Component<DismissibleToastProps> = (props) => {
-  let closeTimeout: NodeJS.Timeout
-  const [easeOut, setEaseOut] = createSignal(false)
+  let closeTimeout: NodeJS.Timeout;
+  const [easeOut, setEaseOut] = createSignal(false);
 
   const onDismiss = () => {
-    clearTimeout(closeTimeout)
-    setEaseOut(true)
+    clearTimeout(closeTimeout);
+    setEaseOut(true);
     setTimeout(() => {
-      props.onDismiss()
-      setEaseOut(false)
-    }, TRANSITION_DURATION)
-  }
+      props.onDismiss();
+      setEaseOut(false);
+    }, TRANSITION_DURATION);
+  };
 
   createEffect(() => {
     if (props.open) {
-      closeTimeout = setTimeout(onDismiss, AUTOMATIC_CLOSE_DURATION)
+      closeTimeout = setTimeout(onDismiss, AUTOMATIC_CLOSE_DURATION);
     }
-  })
+  });
 
   return (
     <div
@@ -67,8 +67,8 @@ const DismissibleToast: Component<DismissibleToastProps> = (props) => {
         </div>
       </Show>
     </div>
-  )
-}
+  );
+};
 
-export default DismissibleToast
-export { ToastMode }
+export default DismissibleToast;
+export { ToastMode };

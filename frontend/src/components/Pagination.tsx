@@ -1,10 +1,10 @@
-import { Component } from 'solid-js'
+import { Component } from 'solid-js';
 
 interface PaginationProps {
-  onPrevPage: () => void
-  onNextPage: () => void
-  prevDisabled: boolean
-  nextDisabled: boolean
+  onPrevPage: () => void;
+  onNextPage: () => void;
+  prevDisabled: boolean;
+  nextDisabled: boolean;
 }
 
 const Pagination: Component<PaginationProps> = (props) => {
@@ -51,7 +51,7 @@ const Pagination: Component<PaginationProps> = (props) => {
         </svg>
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default Pagination
+export default Pagination;

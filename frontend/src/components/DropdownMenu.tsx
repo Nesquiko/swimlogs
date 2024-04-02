@@ -1,41 +1,41 @@
-import { Dropdown } from 'flowbite'
-import { Component, For, onMount, Show } from 'solid-js'
-import { randomId } from '../lib/str'
+import { Dropdown } from 'flowbite';
+import { Component, For, onMount, Show } from 'solid-js';
+import { randomId } from '../lib/str';
 
 interface MenuItem {
-  text: string
-  icon: string
-  onClick: () => void
-  disabled?: boolean
+  text: string;
+  icon: string;
+  onClick: () => void;
+  disabled?: boolean;
 }
 
 interface DropdownMenuProps {
-  icon: string
-  items: MenuItem[]
-  finalItem?: MenuItem
+  icon: string;
+  items: MenuItem[];
+  finalItem?: MenuItem;
 }
 
 const DropdownMenu: Component<DropdownMenuProps> = (props) => {
-  const id = randomId()
+  const id = randomId();
 
-  let target: HTMLDivElement
-  let triggerEl: HTMLButtonElement
-  let dropdown: Dropdown
+  let target: HTMLDivElement;
+  let triggerEl: HTMLButtonElement;
+  let dropdown: Dropdown;
 
   onMount(() => {
-    dropdown = new Dropdown(target, triggerEl, {}, { id })
-  })
+    dropdown = new Dropdown(target, triggerEl, {}, { id });
+  });
 
   const menuItem = (opts: MenuItem) => {
     if (opts.disabled) {
-      return
+      return;
     }
     return (
       <a
         class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
         onClick={() => {
-          opts.onClick()
-          dropdown.hide()
+          opts.onClick();
+          dropdown.hide();
         }}
       >
         <div>
@@ -43,8 +43,8 @@ const DropdownMenu: Component<DropdownMenuProps> = (props) => {
           {opts.text}
         </div>
       </a>
-    )
-  }
+    );
+  };
 
   return (
     <div class="inline-block text-left">
@@ -71,7 +71,7 @@ const DropdownMenu: Component<DropdownMenuProps> = (props) => {
         </Show>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DropdownMenu
+export default DropdownMenu;

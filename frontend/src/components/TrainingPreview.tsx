@@ -1,16 +1,16 @@
-import { type Component, For, Show } from 'solid-js'
-import { NewTraining, Training } from 'swimlogs-api'
-import { locale, minutesToHoursAndMintes } from '../lib/datetime'
-import SetCard, { Option, SkeletonSetCard } from './SetCard'
+import { type Component, For, Show } from 'solid-js';
+import { NewTraining, Training } from 'swimlogs-api';
+import { locale, minutesToHoursAndMintes } from '../lib/datetime';
+import SetCard, { Option, SkeletonSetCard } from './SetCard';
 
 interface TrainingPreviewPageProps {
-  training: NewTraining | Training
+  training: NewTraining | Training;
 
-  showSession?: boolean
-  setOptions?: Option[]
+  showSession?: boolean;
+  setOptions?: Option[];
 
-  rightHeaderComponent?: Component
-  leftHeaderComponent?: Component
+  rightHeaderComponent?: Component;
+  leftHeaderComponent?: Component;
 }
 
 const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
@@ -51,8 +51,8 @@ const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
         </For>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const SkeletonTrainingPreview: Component = () => {
   return (
@@ -64,8 +64,8 @@ const SkeletonTrainingPreview: Component = () => {
         <For each={Array(8)}>{(_) => <SkeletonSetCard />}</For>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TrainingPreview
-export { SkeletonTrainingPreview }
+export default TrainingPreview;
+export { SkeletonTrainingPreview };

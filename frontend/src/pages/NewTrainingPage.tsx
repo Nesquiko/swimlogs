@@ -1,15 +1,15 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { useNavigate } from '@solidjs/router'
-import { createStore } from 'solid-js/store'
-import { showToast } from '../App'
-import { ToastMode } from '../components/DismissibleToast'
-import { NewTraining, NewTrainingSet } from 'swimlogs-api'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { useNavigate } from '@solidjs/router';
+import { createStore } from 'solid-js/store';
+import { showToast } from '../App';
+import { ToastMode } from '../components/DismissibleToast';
+import { NewTraining, NewTrainingSet } from 'swimlogs-api';
 import {
   clearTrainingFromLocalStorage,
   loadTrainingFromLocalStorage,
   saveTrainingToLocalStorage,
-} from '../state/local-storage'
-import { addTrainingDetail, trainingApi } from '../state/trainings'
+} from '../state/local-storage';
+import { addTrainingDetail, trainingApi } from '../state/trainings';
 import {
   Component,
   createSignal,
@@ -17,31 +17,31 @@ import {
   onCleanup,
   onMount,
   Switch,
-} from 'solid-js'
-import EditSetPage from './EditSetPage'
+} from 'solid-js';
+import EditSetPage from './EditSetPage';
 import {
   deleteSetInNewTraining,
   moveSetDownInNewTraining,
   moveSetUpInNewTraining,
   recalculateTotalDistance,
-} from '../lib/training'
-import TrainingPreview from '../components/TrainingPreview'
-import { cloneSet } from '../lib/clone'
-import EditTrainingSessionPage from './EditTrainingSessionPage'
-import DismissibleModal from '../components/DismissibleModal'
-import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup'
-import { useOnBackcontext } from './Routing'
+} from '../lib/training';
+import TrainingPreview from '../components/TrainingPreview';
+import { cloneSet } from '../lib/clone';
+import EditTrainingSessionPage from './EditTrainingSessionPage';
+import DismissibleModal from '../components/DismissibleModal';
+import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup';
+import { useOnBackcontext } from './Routing';
 
 const NewTrainingPage: Component = () => {
-  const [t] = useTransContext()
-  const navigate = useNavigate()
-  const [onBack, setOnBack] = useOnBackcontext()
+  const [t] = useTransContext();
+  const navigate = useNavigate();
+  const [onBack, setOnBack] = useOnBackcontext();
 
-  const [showTrainingSession, setShowTrainingSession] = createSignal(false)
-  const [showCreateSet, setShowCreateSet] = createSignal(false)
-  const [editedSetIdx, setEditedSetIdx] = createSignal(-1)
+  const [showTrainingSession, setShowTrainingSession] = createSignal(false);
+  const [showCreateSet, setShowCreateSet] = createSignal(false);
+  const [editedSetIdx, setEditedSetIdx] = createSignal(-1);
 
-  const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false)
+  const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false);
   const [training, setTraining] = createStore<NewTraining>(
     loadTrainingFromLocalStorage() ?? {
       start: new Date(new Date().setHours(18, 0, 0, 0)),
@@ -49,70 +49,70 @@ const NewTrainingPage: Component = () => {
       totalDistance: 0,
       sets: [],
     }
-  )
+  );
 
   function onBackOverride() {
     if (showCreateSet()) {
-      setShowCreateSet(false)
+      setShowCreateSet(false);
     } else if (editedSetIdx() !== -1) {
-      setEditedSetIdx(-1)
+      setEditedSetIdx(-1);
     } else if (showTrainingSession()) {
-      setShowTrainingSession(false)
+      setShowTrainingSession(false);
     } else {
-      setOnBack()
-      onBack()
+      setOnBack();
+      onBack();
     }
   }
 
-  onMount(() => setOnBack(onBackOverride))
-  onCleanup(() => setOnBack())
+  onMount(() => setOnBack(onBackOverride));
+  onCleanup(() => setOnBack());
 
   const onSubmit = (training: NewTraining) => {
     trainingApi
       .createTraining({ newTraining: training })
       .then((res) => {
-        addTrainingDetail(res)
-        showToast(t('training.created', 'Training created'))
+        addTrainingDetail(res);
+        showToast(t('training.created', 'Training created'));
       })
       .catch((e) => {
-        console.error('error', e)
-        showToast(t('training.creation.error'), ToastMode.ERROR)
+        console.error('error', e);
+        showToast(t('training.creation.error'), ToastMode.ERROR);
       })
       .finally(() => {
-        navigate('/', { replace: true })
-      })
-  }
+        navigate('/', { replace: true });
+      });
+  };
 
   const onTrainingSessionSubmit = (trainingSession: {
-    start: Date
-    durationMin: number
+    start: Date;
+    durationMin: number;
   }) => {
-    setShowTrainingSession(false)
-    setTraining('start', trainingSession.start)
-    setTraining('durationMin', trainingSession.durationMin)
-    onSubmit(training)
-    clearTrainingFromLocalStorage()
-  }
+    setShowTrainingSession(false);
+    setTraining('start', trainingSession.start);
+    setTraining('durationMin', trainingSession.durationMin);
+    onSubmit(training);
+    clearTrainingFromLocalStorage();
+  };
 
   const onCreateSet = (set: NewTrainingSet) => {
-    setShowCreateSet(false)
-    set.setOrder = training.sets.length
-    setTraining('sets', [...training.sets, set])
-    setTraining('totalDistance', recalculateTotalDistance(training))
-    saveTrainingToLocalStorage(training)
-  }
+    setShowCreateSet(false);
+    set.setOrder = training.sets.length;
+    setTraining('sets', [...training.sets, set]);
+    setTraining('totalDistance', recalculateTotalDistance(training));
+    saveTrainingToLocalStorage(training);
+  };
 
   const onEditSet = (set: NewTrainingSet) => {
     setTraining('sets', (sets) => {
-      const tmp = sets[editedSetIdx()]
-      set.setOrder = tmp.setOrder
-      sets[editedSetIdx()] = set
-      return sets
-    })
-    setEditedSetIdx(-1)
-    setTraining('totalDistance', recalculateTotalDistance(training))
-    saveTrainingToLocalStorage(training)
-  }
+      const tmp = sets[editedSetIdx()];
+      set.setOrder = tmp.setOrder;
+      sets[editedSetIdx()] = set;
+      return sets;
+    });
+    setEditedSetIdx(-1);
+    setTraining('totalDistance', recalculateTotalDistance(training));
+    saveTrainingToLocalStorage(training);
+  };
 
   return (
     <Switch
@@ -125,8 +125,8 @@ const NewTrainingPage: Component = () => {
             confirmLabel={t('confirm.delete.training')}
             cancelLabel={t('no.cancel')}
             onConfirm={() => {
-              clearTrainingFromLocalStorage()
-              navigate('/', { replace: true })
+              clearTrainingFromLocalStorage();
+              navigate('/', { replace: true });
             }}
           />
           <TrainingPreview
@@ -141,16 +141,16 @@ const NewTrainingPage: Component = () => {
                 text: t('duplicate'),
                 icon: 'fa-copy',
                 onClick: (setIdx) => {
-                  onCreateSet(cloneSet(training.sets[setIdx]))
-                  saveTrainingToLocalStorage(training)
+                  onCreateSet(cloneSet(training.sets[setIdx]));
+                  saveTrainingToLocalStorage(training);
                 },
               },
               {
                 text: t('move.up'),
                 icon: 'fa-arrow-up',
                 onClick: (setIdx) => {
-                  moveSetUpInNewTraining(setIdx, setTraining)
-                  saveTrainingToLocalStorage(training)
+                  moveSetUpInNewTraining(setIdx, setTraining);
+                  saveTrainingToLocalStorage(training);
                 },
                 disabledFunc: (setIdx) => setIdx === 0,
               },
@@ -162,8 +162,8 @@ const NewTrainingPage: Component = () => {
                     setIdx,
                     training.sets.length,
                     setTraining
-                  )
-                  saveTrainingToLocalStorage(training)
+                  );
+                  saveTrainingToLocalStorage(training);
                 },
                 disabledFunc: (setIdx) => setIdx === training.sets.length - 1,
               },
@@ -171,8 +171,8 @@ const NewTrainingPage: Component = () => {
                 text: t('delete'),
                 icon: 'fa-trash',
                 onClick: (setIdx) => {
-                  deleteSetInNewTraining(setIdx, setTraining)
-                  saveTrainingToLocalStorage(training)
+                  deleteSetInNewTraining(setIdx, setTraining);
+                  saveTrainingToLocalStorage(training);
                 },
               },
             ]}
@@ -223,7 +223,7 @@ const NewTrainingPage: Component = () => {
         />
       </Match>
     </Switch>
-  )
-}
+  );
+};
 
-export default NewTrainingPage
+export default NewTrainingPage;

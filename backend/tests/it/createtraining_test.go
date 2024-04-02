@@ -24,6 +24,7 @@ func TestCreateTraining_ResponseMatches(t *testing.T) {
 				Repeat:         1,
 				SetOrder:       0,
 				StartType:      apidef.None,
+				Group:          asPtr(apidef.Mono),
 			},
 			{
 				Description:    asPtr("some Description"),

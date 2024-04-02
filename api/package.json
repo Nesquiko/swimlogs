@@ -5,8 +5,11 @@
     "preview": "npx @redocly/cli preview-docs api.yaml",
     "bundle": "npx @redocly/cli bundle -o swimlogsAPI.gen.yaml api.yaml",
     "lint": "npx @redocly/cli lint api.yaml",
+    "clean-generate": "npm run clean;npm run generate-go; npm run generate-ts",
+    "generate": "npm run generate-go; npm run generate-ts",
     "generate-go": "npm run bundle; oapi-codegen -generate types,chi-server,strict-server,spec -o api.gen.go -package apidef swimlogsAPI.gen.yaml",
     "generate-ts": "npm run bundle; openapi-generator-cli generate -g typescript-fetch -i ./swimlogsAPI.gen.yaml --inline-schema-name-mappings trainingDetails_200_response=TrainingDetailsResponse,trainingDetailsCurrentWeek_200_response=TrainingDetailsCurrentWeekResponse",
+    "clean": "npm run clean-go; npm run clean-ts",
     "clean-go": "rm api.gen.go",
     "clean-ts": "rm -rf ./runtime.ts ./index.ts ./models ./apis"
   },

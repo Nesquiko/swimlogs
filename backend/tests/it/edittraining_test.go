@@ -68,19 +68,20 @@ func TestEditTraining(t *testing.T) {
 		Start: time.Now(),
 	}
 	id := createTraining(t, &newTraining).Id
-	training := trainingById(t, id)
+	exptectedTraining := trainingById(t, id)
 
-	training.DurationMin = 120
+	exptectedTraining.DurationMin = 120
 
-	training.Sets[0].Repeat = 2
-	training.Sets[0].DistanceMeters = 800
-	training.Sets[0].Equipment = &[]apidef.EquipmentEnum{apidef.Board}
+	exptectedTraining.Sets[0].Repeat = 2
+	exptectedTraining.Sets[0].DistanceMeters = 800
+	exptectedTraining.Sets[0].Equipment = &[]apidef.EquipmentEnum{apidef.Board}
+	exptectedTraining.Sets[0].Group = asPtr(apidef.Long)
 
-	training.Sets[1].Repeat = 4
-	training.Sets[1].DistanceMeters = 200
-	training.Sets[1].Equipment = nil
+	exptectedTraining.Sets[1].Repeat = 4
+	exptectedTraining.Sets[1].DistanceMeters = 200
+	exptectedTraining.Sets[1].Equipment = nil
 
-	training.Sets = append(training.Sets, apidef.TrainingSet{
+	exptectedTraining.Sets = append(exptectedTraining.Sets, apidef.TrainingSet{
 		DistanceMeters: 50,
 		Equipment:      &[]apidef.EquipmentEnum{apidef.Monofin, apidef.Snorkel},
 		Id:             uuid.New(),
@@ -91,8 +92,8 @@ func TestEditTraining(t *testing.T) {
 	})
 
 	client := http.Client{}
-	url := TH.ts.URL + "/trainings/" + training.Id.String()
-	req, err := json.Marshal(training)
+	url := TH.ts.URL + "/trainings/" + exptectedTraining.Id.String()
+	req, err := json.Marshal(exptectedTraining)
 	require.NoError(t, err)
 
 	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(req))
@@ -108,19 +109,19 @@ func TestEditTraining(t *testing.T) {
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(training.DurationMin, response.DurationMin)
+	assert.Equal(exptectedTraining.DurationMin, response.DurationMin)
 	assert.Equal(2650, response.TotalDistance)
-	assert.Equal(training.Start.Year(), response.Start.Year())
-	assert.Equal(training.Start.Month(), response.Start.Month())
-	assert.Equal(training.Start.Day(), response.Start.Day())
-	assert.Equal(training.Start.Hour(), response.Start.Hour())
-	assert.Equal(training.Start.Minute(), response.Start.Minute())
+	assert.Equal(exptectedTraining.Start.Year(), response.Start.Year())
+	assert.Equal(exptectedTraining.Start.Month(), response.Start.Month())
+	assert.Equal(exptectedTraining.Start.Day(), response.Start.Day())
+	assert.Equal(exptectedTraining.Start.Hour(), response.Start.Hour())
+	assert.Equal(exptectedTraining.Start.Minute(), response.Start.Minute())
 
 	var count int
 	err = data.SqlWithResult(
 		TH.pool,
 		"select count(*) from sets where training_id = $1",
-		[]any{training.Id},
+		[]any{exptectedTraining.Id},
 		[]any{&count},
 	)
 	require.NoError(t, err)
@@ -132,12 +133,19 @@ func TestEditTraining(t *testing.T) {
 		distanceMeters int
 		totalDistance  int
 		equipment      []string
+		group          *string
 	}{}
 	err = data.SqlWithResult(
 		TH.pool,
-		"select repeat, distance_meters, equipment, total_distance from sets where id = $1",
-		[]any{training.Sets[0].Id},
-		[]any{&result.repeat, &result.distanceMeters, &result.equipment, &result.totalDistance},
+		"select repeat, distance_meters, equipment, total_distance, group from sets where id = $1",
+		[]any{exptectedTraining.Sets[0].Id},
+		[]any{
+			&result.repeat,
+			&result.distanceMeters,
+			&result.equipment,
+			&result.totalDistance,
+			&result.group,
+		},
 	)
 	require.NoError(t, err)
 
@@ -145,12 +153,19 @@ func TestEditTraining(t *testing.T) {
 	assert.Equal(800, result.distanceMeters)
 	assert.Equal(1600, result.totalDistance)
 	assert.Equal(string(apidef.Board), result.equipment[0])
+	assert.Equal(apidef.Long, apidef.GroupEnum(*result.group))
 
 	err = data.SqlWithResult(
 		TH.pool,
-		"select repeat, distance_meters, equipment, total_distance from sets where id = $1",
-		[]any{training.Sets[1].Id},
-		[]any{&result.repeat, &result.distanceMeters, &result.equipment, &result.totalDistance},
+		"select repeat, distance_meters, equipment, total_distance, group from sets where id = $1",
+		[]any{exptectedTraining.Sets[1].Id},
+		[]any{
+			&result.repeat,
+			&result.distanceMeters,
+			&result.equipment,
+			&result.totalDistance,
+			&result.group,
+		},
 	)
 	require.NoError(t, err)
 
@@ -163,9 +178,9 @@ func TestEditTraining(t *testing.T) {
 		TH.pool,
 		"select repeat, distance_meters, equipment, total_distance from sets where id != $1 and id != $2 and training_id = $3",
 		[]any{
-			training.Sets[0].Id,
-			training.Sets[1].Id,
-			training.Id,
+			exptectedTraining.Sets[0].Id,
+			exptectedTraining.Sets[1].Id,
+			exptectedTraining.Id,
 		}, // I don't have the Id of the newly created set
 		[]any{&result.repeat, &result.distanceMeters, &result.equipment, &result.totalDistance},
 	)

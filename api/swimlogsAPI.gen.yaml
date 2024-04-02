@@ -121,6 +121,14 @@ components:
         - None
         - Interval
         - Pause
+    GroupEnum:
+      type: string
+      enum:
+        - sprint
+        - middle
+        - long
+        - mono
+        - bifi
     NewTrainingSet:
       type: object
       properties:
@@ -151,6 +159,8 @@ components:
           type: integer
           description: Used by starts which require a time parameter, Interval and Pause
           example: 60
+        group:
+          $ref: '#/components/schemas/GroupEnum'
       required:
         - setOrder
         - repeat
@@ -258,6 +268,8 @@ components:
           type: integer
           description: Used by starts which require a time parameter, Interval and Pause
           example: 60
+        group:
+          $ref: '#/components/schemas/GroupEnum'
       required:
         - id
         - setOrder

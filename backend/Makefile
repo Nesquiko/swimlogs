@@ -27,7 +27,7 @@ local: ## run local server, needs a local postgres database
 .PHONY: test
 test: ## run tests against a dockerized postgres database created with testcontainers lib
 	@echo "Running integration tests"
-	-go test -v ./...
+	go test -v ./...
 
 .PHONY: migrations-new
 migrations-new: ## [name=$1] create a new database migration with the given name

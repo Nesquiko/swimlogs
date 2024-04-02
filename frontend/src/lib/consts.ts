@@ -1,1 +1,1 @@
-export const SmallIntMax = 32767
+export const SmallIntMax = 32767;

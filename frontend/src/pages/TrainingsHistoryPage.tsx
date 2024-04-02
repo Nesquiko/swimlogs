@@ -1,42 +1,42 @@
-import { Trans } from '@mbarzda/solid-i18next'
-import { useNavigate } from '@solidjs/router'
-import { Component, createResource, createSignal, For, Show } from 'solid-js'
-import Pagination from '../components/Pagination'
-import { ResponseError, TrainingDetail } from 'swimlogs-api'
-import { trainingApi } from '../state/trainings'
-import { formatDate } from '../lib/datetime'
+import { Trans } from '@mbarzda/solid-i18next';
+import { useNavigate } from '@solidjs/router';
+import { Component, createResource, createSignal, For, Show } from 'solid-js';
+import Pagination from '../components/Pagination';
+import { ResponseError, TrainingDetail } from 'swimlogs-api';
+import { trainingApi } from '../state/trainings';
+import { formatDate } from '../lib/datetime';
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 8;
 
 const TrainingHistoryPage: Component = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const [detailsPage, setDetailsPage] = createSignal(0)
-  const [totalDetails, setTotalDetails] = createSignal(0)
-  const [serverError, setServerError] = createSignal(false)
-  const isLastPage = () => (detailsPage() + 1) * PAGE_SIZE >= totalDetails()
+  const [detailsPage, setDetailsPage] = createSignal(0);
+  const [totalDetails, setTotalDetails] = createSignal(0);
+  const [serverError, setServerError] = createSignal(false);
+  const isLastPage = () => (detailsPage() + 1) * PAGE_SIZE >= totalDetails();
 
-  const cachedTrainingDetails = new Map<number, TrainingDetail[]>()
-  const [details] = createResource(detailsPage, getTrainingDetals)
+  const cachedTrainingDetails = new Map<number, TrainingDetail[]>();
+  const [details] = createResource(detailsPage, getTrainingDetals);
   async function getTrainingDetals(page: number): Promise<TrainingDetail[]> {
     if (cachedTrainingDetails.has(page)) {
-      setServerError(false)
-      return Promise.resolve(cachedTrainingDetails.get(page)!)
+      setServerError(false);
+      return Promise.resolve(cachedTrainingDetails.get(page)!);
     }
 
     return trainingApi
       .trainingDetails({ page, pageSize: PAGE_SIZE })
       .then((res) => {
-        setTotalDetails(res.pagination.total)
-        setServerError(false)
-        cachedTrainingDetails.set(page, res.details)
-        return res.details
+        setTotalDetails(res.pagination.total);
+        setServerError(false);
+        cachedTrainingDetails.set(page, res.details);
+        return res.details;
       })
       .catch((e: ResponseError) => {
-        console.error('error', e)
-        setServerError(true)
-        return Promise.resolve([])
-      })
+        console.error('error', e);
+        setServerError(true);
+        return Promise.resolve([]);
+      });
   }
 
   return (
@@ -67,17 +67,17 @@ const TrainingHistoryPage: Component = () => {
         onNextPage={() => setDetailsPage((i) => i + 1)}
       />
     </div>
-  )
-}
+  );
+};
 
 interface DetailProps {
-  detail: TrainingDetail
+  detail: TrainingDetail;
 }
 
 const DetailCard: Component<DetailProps> = (props) => {
   const day = props.detail.start
     .toLocaleString('en', { weekday: 'long' })
-    .toLowerCase()
+    .toLowerCase();
   return (
     <div class="z-100 mx-auto my-4 w-11/12 cursor-pointer rounded-lg border border-solid border-slate-200 bg-white p-2 shadow">
       <h2 class="flex justify-between text-left text-xl">
@@ -91,7 +91,7 @@ const DetailCard: Component<DetailProps> = (props) => {
         <p class="text-base">{props.detail.totalDistance}m</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TrainingHistoryPage
+export default TrainingHistoryPage;

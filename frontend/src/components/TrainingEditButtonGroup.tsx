@@ -1,16 +1,16 @@
-import { Component, Show } from 'solid-js'
-import { NewTraining, Training } from 'swimlogs-api'
+import { Component, Show } from 'solid-js';
+import { NewTraining, Training } from 'swimlogs-api';
 
 interface TrainingEditButtonGroupProps {
-  training: NewTraining | Training
+  training: NewTraining | Training;
 
-  backLabel: string
-  onBack: () => void
+  backLabel: string;
+  onBack: () => void;
 
-  onAddSet: () => void
+  onAddSet: () => void;
 
-  confirmLabel: string
-  onConfirm: () => void
+  confirmLabel: string;
+  onConfirm: () => void;
 }
 
 const TrainingEditButtonGroup: Component<TrainingEditButtonGroupProps> = (
@@ -50,6 +50,6 @@ const TrainingEditButtonGroup: Component<TrainingEditButtonGroupProps> = (
         </button>
       </Show>
     </div>
-  )
-}
-export default TrainingEditButtonGroup
+  );
+};
+export default TrainingEditButtonGroup;

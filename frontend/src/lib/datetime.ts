@@ -6,84 +6,84 @@ export const DayEnum = {
   Friday: 'Friday',
   Saturday: 'Saturday',
   Sunday: 'Sunday',
-} as const
-export type DayEnum = (typeof DayEnum)[keyof typeof DayEnum]
+} as const;
+export type DayEnum = (typeof DayEnum)[keyof typeof DayEnum];
 
 export function formatDate(date: Date | undefined): string {
   if (!date) {
-    return ''
+    return '';
   }
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = String(date.getFullYear())
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear());
 
-  return `${day}.${month}.${year}`
+  return `${day}.${month}.${year}`;
 }
 
 export function formatTime(date: Date | undefined): string {
   if (!date) {
-    return ''
+    return '';
   }
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  return `${hours}:${minutes}`
+  return `${hours}:${minutes}`;
 }
 
 export function datesThisWeek(): Date[] {
-  const curr = new Date()
-  const daysInWeek: Date[] = []
-  const dayOfWeek = curr.getDay()
+  const curr = new Date();
+  const daysInWeek: Date[] = [];
+  const dayOfWeek = curr.getDay();
 
-  const firstDay = new Date(curr)
-  firstDay.setDate(curr.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  const firstDay = new Date(curr);
+  firstDay.setDate(curr.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
   for (let i = 0; i < 7; i++) {
-    const currentDate = new Date(firstDay)
-    currentDate.setDate(firstDay.getDate() + i)
-    daysInWeek.push(currentDate)
+    const currentDate = new Date(firstDay);
+    currentDate.setDate(firstDay.getDate() + i);
+    daysInWeek.push(currentDate);
   }
 
-  return daysInWeek
+  return daysInWeek;
 }
 
 export function isThisInThisWeek(date: Date): boolean {
-  return isThisInWeek(new Date(), date)
+  return isThisInWeek(new Date(), date);
 }
 
-const SUNDAY = 0
+const SUNDAY = 0;
 
 export function isThisInWeek(referenceDate: Date, date: Date): boolean {
-  let first: number
+  let first: number;
   if (referenceDate.getDay() === SUNDAY) {
-    first = referenceDate.getDate() - 6
+    first = referenceDate.getDate() - 6;
   } else {
-    first = referenceDate.getDate() + (-referenceDate.getDay() + 1)
+    first = referenceDate.getDate() + (-referenceDate.getDay() + 1);
   }
 
-  const last = first + 6
+  const last = first + 6;
 
-  return first <= date.getDate() && date.getDate() <= last
+  return first <= date.getDate() && date.getDate() <= last;
 }
 
 export function locale() {
-  if (navigator.languages != undefined) return navigator.languages[0]
-  return navigator.language
+  if (navigator.languages != undefined) return navigator.languages[0];
+  return navigator.language;
 }
 
 export function minutesToHoursAndMintes(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
 
-  let result = ''
+  let result = '';
 
   if (hours > 0) {
-    result += `${hours}h `
+    result += `${hours}h `;
   }
 
   if (remainingMinutes > 0 || result === '') {
-    result += `${remainingMinutes}min`
+    result += `${remainingMinutes}min`;
   }
 
-  return result
+  return result;
 }

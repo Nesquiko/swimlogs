@@ -1,46 +1,47 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
-import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api'
-import DropdownMenu from './DropdownMenu'
-import { EquipmentIcons } from './Equipment'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { Component, For, Show } from 'solid-js';
+import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api';
+import DropdownMenu from './DropdownMenu';
+import { EquipmentIcons } from '../lib/equipment-svgs';
+import { GroupColors } from '../lib/set-groups';
 
 interface Option {
-  text: string
-  icon: string
-  onClick: (setIdx: number) => void
-  disabled?: boolean
-  disabledFunc?: (setIdx: number) => boolean
+  text: string;
+  icon: string;
+  onClick: (setIdx: number) => void;
+  disabled?: boolean;
+  disabledFunc?: (setIdx: number) => boolean;
 }
 
 interface SetCardProps {
-  set: NewTrainingSet | TrainingSet
-  setOptions?: Option[]
+  set: NewTrainingSet | TrainingSet;
+  setOptions?: Option[];
 }
 const SetCard: Component<SetCardProps> = (props) => {
-  const [t] = useTransContext()
+  const [t] = useTransContext();
 
   const setContent =
     props.set.repeat > 1
       ? `${props.set.repeat}x${props.set.distanceMeters}m`
-      : `${props.set.distanceMeters}m`
+      : `${props.set.distanceMeters}m`;
 
   const start = (): string => {
     if (props.set.startSeconds === undefined) {
-      return ''
+      return '';
     }
 
     const startSeconds =
       props.set.startType !== StartTypeEnum.None
         ? props.set.startSeconds % 60
-        : 0
+        : 0;
     const startMinutes =
       props.set.startType !== StartTypeEnum.None
         ? (props.set.startSeconds - startSeconds) / 60
-        : 0
+        : 0;
     return `${t(props.set.startType.toLowerCase())}: ${
       startMinutes !== 0 ? startMinutes + "'" : ''
-    }${startSeconds !== 0 ? startSeconds + '"' : ''}`
-  }
+    }${startSeconds !== 0 ? startSeconds + '"' : ''}`;
+  };
 
   return (
     <div class="mx-auto block max-w-xl rounded-lg border border-gray-200 bg-white shadow">
@@ -53,43 +54,57 @@ const SetCard: Component<SetCardProps> = (props) => {
         }}
         class="w-full rounded-t-lg bg-sky-200 p-2 text-sky-900"
       >
-        <h5 class="inline-block w-11/12 text-xl font-bold">
-          <span class="pr-8">{setContent}</span>
+        <div class="grid grid-cols-4 gap-x-4">
+          <span class="text-xl font-bold pr-8 col-start-1">{setContent}</span>
           <Show when={props.set.startType !== StartTypeEnum.None}>
-            <span>{start()}</span>
+            <span class="col-start-2 col-span-2 text-xl font-bold">
+              {start()}
+            </span>
           </Show>
-        </h5>
+          <Show when={props.set.group} keyed>
+            {(group) => (
+              <span
+                classList={{ [GroupColors.get(group)!]: true }}
+                class="col-start-4 rounded-lg text-white bg-sky-500 text-center w-full h-6"
+              >
+                {t(group.toLowerCase())}
+              </span>
+            )}
+          </Show>
 
-        <Show
-          when={props.setOptions !== undefined && props.setOptions.length > 0}
-        >
-          <DropdownMenu
-            icon="fa-ellipsis"
-            items={(props.setOptions ?? []).slice(0, -1).map((option) => ({
-              icon: option.icon,
-              text: option.text,
-              onClick: () => option.onClick(props.set.setOrder!),
-              disabled:
-                option.disabled ||
-                option.disabledFunc?.(props.set.setOrder!) ||
-                false,
-            }))}
-            finalItem={{
-              icon: props.setOptions![props.setOptions!.length - 1].icon,
-              text: props.setOptions![props.setOptions!.length - 1].text,
-              onClick: () =>
-                props.setOptions![props.setOptions!.length - 1].onClick(
-                  props.set.setOrder!
-                ),
-              disabled:
-                props.setOptions![props.setOptions!.length - 1].disabled ||
-                props.setOptions![props.setOptions!.length - 1].disabledFunc?.(
-                  props.set.setOrder!
-                ) ||
-                false,
-            }}
-          />
-        </Show>
+          <Show
+            when={props.setOptions !== undefined && props.setOptions.length > 0}
+          >
+            <div class="col-start-5">
+              <DropdownMenu
+                icon="fa-ellipsis"
+                items={(props.setOptions ?? []).slice(0, -1).map((option) => ({
+                  icon: option.icon,
+                  text: option.text,
+                  onClick: () => option.onClick(props.set.setOrder!),
+                  disabled:
+                    option.disabled ||
+                    option.disabledFunc?.(props.set.setOrder!) ||
+                    false,
+                }))}
+                finalItem={{
+                  icon: props.setOptions![props.setOptions!.length - 1].icon,
+                  text: props.setOptions![props.setOptions!.length - 1].text,
+                  onClick: () =>
+                    props.setOptions![props.setOptions!.length - 1].onClick(
+                      props.set.setOrder!
+                    ),
+                  disabled:
+                    props.setOptions![props.setOptions!.length - 1].disabled ||
+                    props.setOptions![
+                      props.setOptions!.length - 1
+                    ].disabledFunc?.(props.set.setOrder!) ||
+                    false,
+                }}
+              />
+            </div>
+          </Show>
+        </div>
       </div>
       <Show when={props.set.description}>
         <p class="whitespace-pre-wrap p-2 text-gray-500">
@@ -111,13 +126,13 @@ const SetCard: Component<SetCardProps> = (props) => {
         </div>
       </Show>
     </div>
-  )
-}
+  );
+};
 
 const SkeletonSetCard: Component = () => {
   const equipmentSkeleton = () => {
-    return <i class="fa-solid fa-image fa-2xl inline-block text-gray-200" />
-  }
+    return <i class="fa-solid fa-image fa-2xl inline-block text-gray-200" />;
+  };
 
   return (
     <div class="mx-auto block max-w-xl rounded-lg border border-gray-200 bg-white shadow animate-pulse">
@@ -139,9 +154,9 @@ const SkeletonSetCard: Component = () => {
         <For each={Array(3)}>{equipmentSkeleton}</For>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SetCard
-export type { Option }
-export { SkeletonSetCard }
+export default SetCard;
+export type { Option };
+export { SkeletonSetCard };

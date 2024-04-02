@@ -1,15 +1,20 @@
-import { type Component, Show, For, type JSX } from 'solid-js'
-import { useNavigate } from '@solidjs/router'
-import { useTrainingsDetailsThisWeek } from '../state/trainings'
-import { Trans, useTransContext } from '@mbarzda/solid-i18next'
-import Message from '../components/Info'
-import { datesThisWeek, DayEnum, formatDate, formatTime } from '../lib/datetime'
-import { type TrainingDetail } from 'swimlogs-api'
+import { type Component, Show, For, type JSX } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { useTrainingsDetailsThisWeek } from '../state/trainings';
+import { Trans, useTransContext } from '@mbarzda/solid-i18next';
+import Message from '../components/Info';
+import {
+  datesThisWeek,
+  DayEnum,
+  formatDate,
+  formatTime,
+} from '../lib/datetime';
+import { type TrainingDetail } from 'swimlogs-api';
 
 const Home: Component = () => {
-  const [t] = useTransContext()
-  const [details] = useTrainingsDetailsThisWeek()
-  const navigate = useNavigate()
+  const [t] = useTransContext();
+  const [details] = useTrainingsDetailsThisWeek();
+  const navigate = useNavigate();
 
   const detailItem = (detail: TrainingDetail): JSX.Element => {
     return (
@@ -23,16 +28,16 @@ const Home: Component = () => {
           km
         </span>
       </div>
-    )
-  }
+    );
+  };
 
   const sortedTrainingsPerDay = (details: TrainingDetail[]): JSX.Element => {
-    if (details.length === 0) return <></>
+    if (details.length === 0) return <></>;
 
-    const dayNames: DayEnum[] = Object.values(DayEnum)
-    const dates = datesThisWeek()
+    const dayNames: DayEnum[] = Object.values(DayEnum);
+    const dates = datesThisWeek();
     const dayToDetails: {
-      [K in DayEnum]: { details: TrainingDetail[]; date: Date }
+      [K in DayEnum]: { details: TrainingDetail[]; date: Date };
     } = {
       Monday: { details: [], date: dates[0] },
       Tuesday: { details: [], date: dates[1] },
@@ -41,11 +46,11 @@ const Home: Component = () => {
       Friday: { details: [], date: dates[4] },
       Saturday: { details: [], date: dates[5] },
       Sunday: { details: [], date: dates[6] },
-    }
+    };
 
     for (const detail of details) {
-      const day = dayNames[(detail.start.getDay() + 6) % 7]
-      dayToDetails[day].details.push(detail)
+      const day = dayNames[(detail.start.getDay() + 6) % 7];
+      dayToDetails[day].details.push(detail);
     }
 
     return (
@@ -55,7 +60,7 @@ const Home: Component = () => {
         )}
       >
         {(entry) => {
-          const day = entry[0].toLowerCase()
+          const day = entry[0].toLowerCase();
           return (
             <div class="py-4">
               <div class="flex justify-between text-xl font-bold">
@@ -76,11 +81,11 @@ const Home: Component = () => {
                 </div>
               </Show>
             </div>
-          )
+          );
         }}
       </For>
-    )
-  }
+    );
+  };
 
   return (
     <div class="h-full px-4 pb-28">
@@ -116,7 +121,7 @@ const Home: Component = () => {
         {sortedTrainingsPerDay(details()?.details ?? [])}
       </Show>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

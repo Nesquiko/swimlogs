@@ -1,11 +1,11 @@
-import { Component } from 'solid-js'
+import { Component } from 'solid-js';
 
 interface SpinnerProps {
-  remSize?: number
+  remSize?: number;
 }
 
 const Spinner: Component<SpinnerProps> = (props) => {
-  const remSize = props.remSize ? props.remSize : 6
+  const remSize = props.remSize ? props.remSize : 6;
 
   return (
     <div class="flex h-screen items-center justify-center" role="status">
@@ -31,7 +31,7 @@ const Spinner: Component<SpinnerProps> = (props) => {
       </svg>
       <span class="sr-only">Loading...</span>
     </div>
-  )
-}
+  );
+};
 
-export default Spinner
+export default Spinner;

@@ -27,6 +27,8 @@ properties:
     type: integer
     description: Used by starts which require a time parameter, Interval and Pause
     example: 60
+  group:
+    $ref: "./GroupEnum.yaml"
 required:
   - setOrder
   - repeat
