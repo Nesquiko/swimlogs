@@ -137,7 +137,7 @@ func TestEditTraining(t *testing.T) {
 	}{}
 	err = data.SqlWithResult(
 		TH.pool,
-		"select repeat, distance_meters, equipment, total_distance, group from sets where id = $1",
+		"select repeat, distance_meters, equipment, total_distance, \"group\" from sets where id = $1",
 		[]any{exptectedTraining.Sets[0].Id},
 		[]any{
 			&result.repeat,
@@ -157,7 +157,7 @@ func TestEditTraining(t *testing.T) {
 
 	err = data.SqlWithResult(
 		TH.pool,
-		"select repeat, distance_meters, equipment, total_distance, group from sets where id = $1",
+		"select repeat, distance_meters, equipment, total_distance, \"group\" from sets where id = $1",
 		[]any{exptectedTraining.Sets[1].Id},
 		[]any{
 			&result.repeat,

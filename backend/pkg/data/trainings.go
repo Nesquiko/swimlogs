@@ -232,10 +232,10 @@ func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, er
 
 var insertSet = `
 insert into sets (id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment, group)
+    description, start_type, start_seconds, total_distance, equipment, "group")
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 returning id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment, group
+    description, start_type, start_seconds, total_distance, equipment, "group"
 `
 
 func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
@@ -314,10 +314,10 @@ set set_order       = $2,
     start_seconds   = $7,
     total_distance  = $8,
     equipment       = $9,
-    group             = $10
+    "group"             = $10
 where id = $1
 returning id, training_id, set_order, repeat, distance_meters, description,
-    start_type, start_seconds, total_distance, equipment, group
+    start_type, start_seconds, total_distance, equipment, "group"
 `
 
 func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
