@@ -1,30 +1,30 @@
-import { A, useLocation } from '@solidjs/router'
-import { Component, createEffect, createSignal, Match, Switch } from 'solid-js'
-import { useOnBackcontext } from '../pages/Routing'
-import { openDrawer } from './Drawer'
+import { A, useLocation } from '@solidjs/router';
+import { Component, createEffect, createSignal, Match, Switch } from 'solid-js';
+import { useOnBackcontext } from '../pages/Routing';
+import { openDrawer } from './Drawer';
 
 type HeaderState = {
-  state: 'menu' | 'back'
-  onBack?: () => void
-}
+  state: 'menu' | 'back';
+  onBack?: () => void;
+};
 
 const Header: Component = () => {
   const [headerState, setHeaderState] = createSignal<HeaderState>({
     state: 'menu',
-  })
-  const location = useLocation()
-  const [onBack] = useOnBackcontext()
+  });
+  const location = useLocation();
+  const [onBack] = useOnBackcontext();
 
   createEffect(() => {
     if (location.pathname === '/') {
-      setHeaderState({ state: 'menu' })
+      setHeaderState({ state: 'menu' });
     } else {
       setHeaderState({
         state: 'back',
         onBack,
-      })
+      });
     }
-  })
+  });
 
   return (
     <div id="topbar" class="w-full bg-sky-500 p-2">
@@ -50,7 +50,7 @@ const Header: Component = () => {
         </A>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

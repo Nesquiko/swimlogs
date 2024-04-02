@@ -1,19 +1,19 @@
-import type { Component } from 'solid-js'
-import { splitProps } from 'solid-js'
+import type { Component } from 'solid-js';
+import { splitProps } from 'solid-js';
 
-import { Select as SelectPrimitive } from '@kobalte/core'
-import { TbCheck, TbChevronDown } from 'solid-icons/tb'
+import { Select as SelectPrimitive } from '@kobalte/core';
+import { TbCheck, TbChevronDown } from 'solid-icons/tb';
 
-import { cn } from '../../lib/solid-ui-utils'
+import { cn } from '../../lib/solid-ui-utils';
 
-const Select = SelectPrimitive.Root
+const Select = SelectPrimitive.Root;
 
-const SelectValue = SelectPrimitive.Value
+const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger: Component<SelectPrimitive.SelectTriggerProps> = (
   props
 ) => {
-  const [, rest] = splitProps(props, ['class', 'children'])
+  const [, rest] = splitProps(props, ['class', 'children']);
   return (
     <SelectPrimitive.Trigger
       class={cn(
@@ -27,13 +27,13 @@ const SelectTrigger: Component<SelectPrimitive.SelectTriggerProps> = (
         <TbChevronDown class="size-4 opacity-50" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
-  )
-}
+  );
+};
 
 const SelectContent: Component<SelectPrimitive.SelectContentProps> = (
   props
 ) => {
-  const [, rest] = splitProps(props, ['class'])
+  const [, rest] = splitProps(props, ['class']);
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -46,11 +46,11 @@ const SelectContent: Component<SelectPrimitive.SelectContentProps> = (
         <SelectPrimitive.Listbox class="m-0 p-1" />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
-  )
-}
+  );
+};
 
 const SelectItem: Component<SelectPrimitive.SelectItemProps> = (props) => {
-  const [, rest] = splitProps(props, ['class', 'children'])
+  const [, rest] = splitProps(props, ['class', 'children']);
   return (
     <SelectPrimitive.Item
       class={cn(
@@ -66,7 +66,7 @@ const SelectItem: Component<SelectPrimitive.SelectItemProps> = (props) => {
       </span>
       <SelectPrimitive.ItemLabel>{props.children}</SelectPrimitive.ItemLabel>
     </SelectPrimitive.Item>
-  )
-}
+  );
+};
 
-export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem }
+export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem };

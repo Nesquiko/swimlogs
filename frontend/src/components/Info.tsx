@@ -1,9 +1,9 @@
-import { Component } from 'solid-js'
+import { Component } from 'solid-js';
 
 type MessageProps = {
-  message: string
-  type: 'error' | 'info'
-}
+  message: string;
+  type: 'error' | 'info';
+};
 
 const Message: Component<MessageProps> = (props) => {
   return (
@@ -16,7 +16,7 @@ const Message: Component<MessageProps> = (props) => {
     >
       {props.message}
     </div>
-  )
-}
+  );
+};
 
-export default Message
+export default Message;

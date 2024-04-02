@@ -1,10 +1,10 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
+import { useTransContext } from '@mbarzda/solid-i18next';
 import {
   createAsync,
   RouteSectionProps,
   useNavigate,
   useParams,
-} from '@solidjs/router'
+} from '@solidjs/router';
 import {
   Component,
   createSignal,
@@ -13,117 +13,117 @@ import {
   onMount,
   Show,
   Switch,
-} from 'solid-js'
-import { createStore, SetStoreFunction, unwrap } from 'solid-js/store'
-import { NewTrainingSet, ResponseError, Training } from 'swimlogs-api'
-import { showToast } from '../App'
-import { ToastMode } from '../components/DismissibleToast'
-import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup'
+} from 'solid-js';
+import { createStore, SetStoreFunction, unwrap } from 'solid-js/store';
+import { NewTrainingSet, ResponseError, Training } from 'swimlogs-api';
+import { showToast } from '../App';
+import { ToastMode } from '../components/DismissibleToast';
+import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup';
 import TrainingPreview, {
   SkeletonTrainingPreview,
-} from '../components/TrainingPreview'
-import { cloneToSet } from '../lib/clone'
+} from '../components/TrainingPreview';
+import { cloneToSet } from '../lib/clone';
 import {
   deleteSetInTraining,
   moveSetDownInTraining,
   moveSetUpInTraining,
   recalculateTotalDistance,
-} from '../lib/training'
-import { updateTrainingById } from '../state/trainings'
-import EditSetPage from './EditSetPage'
-import EditTrainingSessionPage from './EditTrainingSessionPage'
-import { useOnBackcontext } from './Routing'
+} from '../lib/training';
+import { updateTrainingById } from '../state/trainings';
+import EditSetPage from './EditSetPage';
+import EditTrainingSessionPage from './EditTrainingSessionPage';
+import { useOnBackcontext } from './Routing';
 
 interface TrainingEditPageProps {
-  trainingPromise: Promise<Training>
+  trainingPromise: Promise<Training>;
 }
 
 const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
   props
 ) => {
-  const params = useParams()
-  const navigate = useNavigate()
-  const [t] = useTransContext()
-  const [onBack, setOnBack] = useOnBackcontext()
+  const params = useParams();
+  const navigate = useNavigate();
+  const [t] = useTransContext();
+  const [onBack, setOnBack] = useOnBackcontext();
 
-  const [showCreateSet, setShowCreateSet] = createSignal(false)
-  const [editedSetIdx, setEditedSetIdx] = createSignal(-1)
-  const [showTrainingSession, setShowTrainingSession] = createSignal(false)
+  const [showCreateSet, setShowCreateSet] = createSignal(false);
+  const [editedSetIdx, setEditedSetIdx] = createSignal(-1);
+  const [showTrainingSession, setShowTrainingSession] = createSignal(false);
 
   const training = createAsync(() =>
     props.data!.trainingPromise.catch((e: ResponseError) => {
-      let msg = t('server.error')
+      let msg = t('server.error');
       if (e.response?.status === 404) {
-        msg = t('training.not.found')
+        msg = t('training.not.found');
       }
-      showToast(msg, ToastMode.ERROR)
-      navigate('/', { replace: true })
-      return Promise.reject(e)
+      showToast(msg, ToastMode.ERROR);
+      navigate('/', { replace: true });
+      return Promise.reject(e);
     })
-  )
+  );
 
   function onBackOverride() {
     if (showCreateSet()) {
-      setShowCreateSet(false)
+      setShowCreateSet(false);
     } else if (editedSetIdx() !== -1) {
-      setEditedSetIdx(-1)
+      setEditedSetIdx(-1);
     } else if (showTrainingSession()) {
-      setShowTrainingSession(false)
+      setShowTrainingSession(false);
     } else {
-      setOnBack()
-      onBack()
+      setOnBack();
+      onBack();
     }
   }
 
-  onMount(() => setOnBack(onBackOverride))
-  onCleanup(() => setOnBack())
+  onMount(() => setOnBack(onBackOverride));
+  onCleanup(() => setOnBack());
 
   async function updateTraining(training: Training) {
     updateTrainingById(params.id, training)
       .then(() => showToast(t('training.edited')))
       .catch((e: ResponseError) => {
-        let msg = t('server.error')
+        let msg = t('server.error');
         if (e.response?.status === 404) {
-          msg = t('training.not.found')
+          msg = t('training.not.found');
         }
-        showToast(msg, ToastMode.ERROR)
+        showToast(msg, ToastMode.ERROR);
       })
-      .finally(() => navigate('/', { replace: true }))
+      .finally(() => navigate('/', { replace: true }));
   }
 
   const trainingEdit = (tr: Training) => {
-    const [training, setTraining] = createStore<Training>(structuredClone(tr))
+    const [training, setTraining] = createStore<Training>(structuredClone(tr));
 
     const onCreateSet = (set: NewTrainingSet) => {
-      set.setOrder = training.sets.length
-      const newSet = cloneToSet(set)
-      newSet.id = crypto.randomUUID()
-      setTraining('sets', [...training.sets, newSet])
-      setTraining('totalDistance', recalculateTotalDistance(training))
-      setShowCreateSet(false)
-    }
+      set.setOrder = training.sets.length;
+      const newSet = cloneToSet(set);
+      newSet.id = crypto.randomUUID();
+      setTraining('sets', [...training.sets, newSet]);
+      setTraining('totalDistance', recalculateTotalDistance(training));
+      setShowCreateSet(false);
+    };
 
     const onEditSet = (set: NewTrainingSet) => {
       setTraining('sets', (sets) => {
-        const tmp = sets[editedSetIdx()]
-        set.setOrder = tmp.setOrder
-        const edit = cloneToSet(set)
-        edit.id = tmp.id
-        sets[editedSetIdx()] = edit
-        return sets
-      })
-      setTraining('totalDistance', recalculateTotalDistance(training))
-      setEditedSetIdx(-1)
-    }
+        const tmp = sets[editedSetIdx()];
+        set.setOrder = tmp.setOrder;
+        const edit = cloneToSet(set);
+        edit.id = tmp.id;
+        sets[editedSetIdx()] = edit;
+        return sets;
+      });
+      setTraining('totalDistance', recalculateTotalDistance(training));
+      setEditedSetIdx(-1);
+    };
 
     const onTrainingSessionSubmit = (trainingSession: {
-      start: Date
-      durationMin: number
+      start: Date;
+      durationMin: number;
     }) => {
-      setTraining('start', trainingSession.start)
-      setTraining('durationMin', trainingSession.durationMin)
-      setShowTrainingSession(false)
-    }
+      setTraining('start', trainingSession.start);
+      setTraining('durationMin', trainingSession.durationMin);
+      setShowTrainingSession(false);
+    };
 
     return (
       <Switch fallback={trainingEditPreview(training, setTraining)}>
@@ -154,8 +154,8 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
           />
         </Match>
       </Switch>
-    )
-  }
+    );
+  };
 
   const trainingEditPreview = (
     training: Training,
@@ -176,11 +176,14 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
               text: t('duplicate'),
               icon: 'fa-copy',
               onClick: (setIdx) => {
-                const newSet = structuredClone(unwrap(training.sets[setIdx]))
-                newSet.setOrder = training.sets.length
-                newSet.id = crypto.randomUUID()
-                setTraining('sets', [...training.sets, newSet])
-                setTraining('totalDistance', recalculateTotalDistance(training))
+                const newSet = structuredClone(unwrap(training.sets[setIdx]));
+                newSet.setOrder = training.sets.length;
+                newSet.id = crypto.randomUUID();
+                setTraining('sets', [...training.sets, newSet]);
+                setTraining(
+                  'totalDistance',
+                  recalculateTotalDistance(training)
+                );
               },
             },
             {
@@ -233,14 +236,14 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
           onConfirm={() => updateTraining(training)}
         />
       </>
-    )
-  }
+    );
+  };
 
   return (
     <Show when={training()} fallback={<SkeletonTrainingPreview />}>
       {(t) => trainingEdit(t())}
     </Show>
-  )
-}
+  );
+};
 
-export default TrainingEditPage
+export default TrainingEditPage;

@@ -1,50 +1,50 @@
-import { Component, createEffect, onMount, Setter } from 'solid-js'
+import { Component, createEffect, onMount, Setter } from 'solid-js';
 
 interface DismissibleModalProps {
-  open: boolean
-  setOpen: Setter<boolean>
-  message: string
-  confirmLabel: string
-  cancelLabel: string
+  open: boolean;
+  setOpen: Setter<boolean>;
+  message: string;
+  confirmLabel: string;
+  cancelLabel: string;
 
-  onConfirm?: () => void
-  onCancel?: () => void
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }
 
 const DismissibleModal: Component<DismissibleModalProps> = (props) => {
-  let dialog: HTMLDialogElement
+  let dialog: HTMLDialogElement;
 
   const cancelDialog = () => {
-    dialog.close()
-    props.onCancel?.()
-    props.setOpen(false)
-  }
+    dialog.close();
+    props.onCancel?.();
+    props.setOpen(false);
+  };
 
   const confirmDialog = () => {
-    dialog.close()
-    props.onConfirm?.()
-    props.setOpen(false)
-  }
+    dialog.close();
+    props.onConfirm?.();
+    props.setOpen(false);
+  };
 
   onMount(() => {
     dialog.addEventListener('click', (e) => {
-      const dialogDimensions = dialog.getBoundingClientRect()
+      const dialogDimensions = dialog.getBoundingClientRect();
       if (
         e.clientX < dialogDimensions.left ||
         e.clientX > dialogDimensions.right ||
         e.clientY < dialogDimensions.top ||
         e.clientY > dialogDimensions.bottom
       ) {
-        cancelDialog()
+        cancelDialog();
       }
-    })
-  })
+    });
+  });
 
   createEffect(() => {
     if (props.open) {
-      dialog.showModal()
+      dialog.showModal();
     }
-  })
+  });
 
   return (
     <dialog ref={dialog!} class="max-w-xl w-11/12 rounded-lg shadow">
@@ -90,7 +90,7 @@ const DismissibleModal: Component<DismissibleModalProps> = (props) => {
         </button>
       </div>
     </dialog>
-  )
-}
+  );
+};
 
-export default DismissibleModal
+export default DismissibleModal;

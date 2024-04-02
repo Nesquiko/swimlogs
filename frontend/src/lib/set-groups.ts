@@ -1,4 +1,4 @@
-import { GroupEnum } from 'swimlogs-api'
+import { GroupEnum } from 'swimlogs-api';
 
 export const GroupColors = new Map<GroupEnum, string>([
   [GroupEnum.Sprint, 'bg-yellow-400'],
@@ -6,4 +6,4 @@ export const GroupColors = new Map<GroupEnum, string>([
   [GroupEnum.Long, 'bg-blue-800'],
   [GroupEnum.Mono, 'bg-gray-500'],
   [GroupEnum.Bifi, 'bg-stone-900'],
-])
+]);

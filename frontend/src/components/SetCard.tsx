@@ -1,47 +1,47 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { Component, For, Show } from 'solid-js'
-import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api'
-import DropdownMenu from './DropdownMenu'
-import { EquipmentIcons } from '../lib/equipment-svgs'
-import { GroupColors } from '../lib/set-groups'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { Component, For, Show } from 'solid-js';
+import { NewTrainingSet, StartTypeEnum, TrainingSet } from 'swimlogs-api';
+import DropdownMenu from './DropdownMenu';
+import { EquipmentIcons } from '../lib/equipment-svgs';
+import { GroupColors } from '../lib/set-groups';
 
 interface Option {
-  text: string
-  icon: string
-  onClick: (setIdx: number) => void
-  disabled?: boolean
-  disabledFunc?: (setIdx: number) => boolean
+  text: string;
+  icon: string;
+  onClick: (setIdx: number) => void;
+  disabled?: boolean;
+  disabledFunc?: (setIdx: number) => boolean;
 }
 
 interface SetCardProps {
-  set: NewTrainingSet | TrainingSet
-  setOptions?: Option[]
+  set: NewTrainingSet | TrainingSet;
+  setOptions?: Option[];
 }
 const SetCard: Component<SetCardProps> = (props) => {
-  const [t] = useTransContext()
+  const [t] = useTransContext();
 
   const setContent =
     props.set.repeat > 1
       ? `${props.set.repeat}x${props.set.distanceMeters}m`
-      : `${props.set.distanceMeters}m`
+      : `${props.set.distanceMeters}m`;
 
   const start = (): string => {
     if (props.set.startSeconds === undefined) {
-      return ''
+      return '';
     }
 
     const startSeconds =
       props.set.startType !== StartTypeEnum.None
         ? props.set.startSeconds % 60
-        : 0
+        : 0;
     const startMinutes =
       props.set.startType !== StartTypeEnum.None
         ? (props.set.startSeconds - startSeconds) / 60
-        : 0
+        : 0;
     return `${t(props.set.startType.toLowerCase())}: ${
       startMinutes !== 0 ? startMinutes + "'" : ''
-    }${startSeconds !== 0 ? startSeconds + '"' : ''}`
-  }
+    }${startSeconds !== 0 ? startSeconds + '"' : ''}`;
+  };
 
   return (
     <div class="mx-auto block max-w-xl rounded-lg border border-gray-200 bg-white shadow">
@@ -126,13 +126,13 @@ const SetCard: Component<SetCardProps> = (props) => {
         </div>
       </Show>
     </div>
-  )
-}
+  );
+};
 
 const SkeletonSetCard: Component = () => {
   const equipmentSkeleton = () => {
-    return <i class="fa-solid fa-image fa-2xl inline-block text-gray-200" />
-  }
+    return <i class="fa-solid fa-image fa-2xl inline-block text-gray-200" />;
+  };
 
   return (
     <div class="mx-auto block max-w-xl rounded-lg border border-gray-200 bg-white shadow animate-pulse">
@@ -154,9 +154,9 @@ const SkeletonSetCard: Component = () => {
         <For each={Array(3)}>{equipmentSkeleton}</For>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SetCard
-export type { Option }
-export { SkeletonSetCard }
+export default SetCard;
+export type { Option };
+export { SkeletonSetCard };

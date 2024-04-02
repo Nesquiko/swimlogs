@@ -1,7 +1,7 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { Component, createSignal, For } from 'solid-js'
-import { SelectInput } from '../components/Input'
-import InlineDatepicker from '../components/InlineDatepicker'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { Component, createSignal, For } from 'solid-js';
+import { SelectInput } from '../components/Input';
+import InlineDatepicker from '../components/InlineDatepicker';
 
 const StartTimeHours = [
   '06',
@@ -19,40 +19,40 @@ const StartTimeHours = [
   '18',
   '19',
   '20',
-]
+];
 
-const StartTimeMinutes = ['00', '15', '30', '45']
+const StartTimeMinutes = ['00', '15', '30', '45'];
 
-type Time = { label: string; value: number }
+type Time = { label: string; value: number };
 
 const TIMES = [
   { label: '30 min', value: 30 },
   { label: '1 h', value: 60 },
   { label: '1 h 30 min', value: 90 },
   { label: '2 h', value: 120 },
-] as Time[]
+] as Time[];
 
 interface EditTrainingSessionPageProps {
-  initial?: { start: Date; durationMin: number }
-  submitLabel?: string
-  onSubmit: (session: { start: Date; durationMin: number }) => void
-  onBack: () => void
+  initial?: { start: Date; durationMin: number };
+  submitLabel?: string;
+  onSubmit: (session: { start: Date; durationMin: number }) => void;
+  onBack: () => void;
 }
 
 const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
   props
 ) => {
-  const [t] = useTransContext()
+  const [t] = useTransContext();
   const [durationMin, setDurationMin] = createSignal(
     props.initial?.durationMin || 60
-  )
-  const [date, setDate] = createSignal(props.initial?.start || new Date())
+  );
+  const [date, setDate] = createSignal(props.initial?.start || new Date());
   const [hours, setHours] = createSignal<String>(
     props.initial?.start.getHours().toString().padStart(2, '0') || '18'
-  )
+  );
   const [minutes, setMinutes] = createSignal<String>(
     props.initial?.start.getMinutes().toString().padStart(2, '0') || '00'
-  )
+  );
 
   const timeItem = (time: Time) => {
     return (
@@ -63,20 +63,20 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
       >
         {time.label}
       </button>
-    )
-  }
+    );
+  };
 
   const onSubmit = () => {
-    const start = new Date(date())
-    start.setHours(Number(hours()))
-    start.setMinutes(Number(minutes()))
-    start.setSeconds(0)
+    const start = new Date(date());
+    start.setHours(Number(hours()));
+    start.setMinutes(Number(minutes()));
+    start.setSeconds(0);
 
     props.onSubmit({
       start,
       durationMin: durationMin(),
-    })
-  }
+    });
+  };
 
   return (
     <div class="space-y-4 px-4">
@@ -134,7 +134,7 @@ const EditTrainingSessionPage: Component<EditTrainingSessionPageProps> = (
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EditTrainingSessionPage
+export default EditTrainingSessionPage;

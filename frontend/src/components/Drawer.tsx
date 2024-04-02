@@ -1,23 +1,23 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { useLocation, useNavigate } from '@solidjs/router'
-import { type Component, createSignal } from 'solid-js'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { useLocation, useNavigate } from '@solidjs/router';
+import { type Component, createSignal } from 'solid-js';
 
-const [open, setOpen] = createSignal(false)
+const [open, setOpen] = createSignal(false);
 
 const openDrawer = (): void => {
-  setOpen(true)
-}
+  setOpen(true);
+};
 
 interface ItemProps {
-  path: string
-  label: string
-  icon: string
+  path: string;
+  label: string;
+  icon: string;
 }
 
 const Drawer: Component = () => {
-  const [t] = useTransContext()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [t] = useTransContext();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const Item: Component<ItemProps> = (props) => {
     return (
@@ -25,15 +25,15 @@ const Drawer: Component = () => {
         classList={{ 'bg-sky-500/20': location.pathname === props.path }}
         class="cursor-pointer p-2"
         onClick={() => {
-          setOpen(false)
-          navigate(props.path)
+          setOpen(false);
+          navigate(props.path);
         }}
       >
         <i class={`fa-solid fa-xl ${props.icon} `}></i>
         <span class="pl-2 text-lg font-bold text-black">{props.label}</span>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div id="drawer">
@@ -59,7 +59,7 @@ const Drawer: Component = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export { Drawer, openDrawer }
+export { Drawer, openDrawer };

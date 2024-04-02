@@ -1,7 +1,7 @@
-import { useTransContext } from '@mbarzda/solid-i18next'
-import { Component, createSignal, For } from 'solid-js'
-import { locale } from '../lib/datetime'
-import { capitalize } from '../lib/str'
+import { useTransContext } from '@mbarzda/solid-i18next';
+import { Component, createSignal, For } from 'solid-js';
+import { locale } from '../lib/datetime';
+import { capitalize } from '../lib/str';
 
 const DAY_NAME_KEYS = [
   'monday',
@@ -11,92 +11,92 @@ const DAY_NAME_KEYS = [
   'friday',
   'saturday',
   'sunday',
-]
+];
 
 type CalendarDay = {
-  day: number
-  month: 'next' | 'current' | 'previous'
-}
+  day: number;
+  month: 'next' | 'current' | 'previous';
+};
 
-const MONDAY = 1
-const SUNDAY = 0
+const MONDAY = 1;
+const SUNDAY = 0;
 
 interface InlineDatepickerProps {
-  initialDate?: Date
-  onChange: (date: Date) => void
+  initialDate?: Date;
+  onChange: (date: Date) => void;
 }
 
 const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
-  const [t] = useTransContext()
-  const [date, _setDate] = createSignal(props.initialDate || new Date())
+  const [t] = useTransContext();
+  const [date, _setDate] = createSignal(props.initialDate || new Date());
   const lastDay = () =>
-    new Date(date().getUTCFullYear(), date().getUTCMonth() + 1, 1)
+    new Date(date().getUTCFullYear(), date().getUTCMonth() + 1, 1);
 
   const setDate = (newDate: Date) => {
-    _setDate(newDate)
-    props.onChange(newDate)
-  }
+    _setDate(newDate);
+    props.onChange(newDate);
+  };
 
   const days = () => {
-    const days = new Array<CalendarDay>()
-    const firstDay = new Date(date().getFullYear(), date().getMonth(), 1)
+    const days = new Array<CalendarDay>();
+    const firstDay = new Date(date().getFullYear(), date().getMonth(), 1);
 
     if (firstDay.getDay() !== MONDAY) {
-      let fromPrevious = new Date(date().getFullYear(), date().getMonth(), 0)
+      let fromPrevious = new Date(date().getFullYear(), date().getMonth(), 0);
 
       while (fromPrevious.getDay() !== SUNDAY) {
         days.push({
           day: fromPrevious.getDate(),
           month: 'previous',
-        })
+        });
 
         fromPrevious = new Date(
           fromPrevious.getFullYear(),
           fromPrevious.getMonth(),
           fromPrevious.getDate() - 1
-        )
+        );
       }
     }
-    days.reverse()
+    days.reverse();
 
     for (let i = 0; i < lastDay().getUTCDate(); i++) {
       days.push({
         day: i + 1,
         month: 'current',
-      })
+      });
     }
 
-    let nextDay = new Date(date().getFullYear(), date().getMonth() + 1, 1)
+    let nextDay = new Date(date().getFullYear(), date().getMonth() + 1, 1);
     while (nextDay.getDay() !== MONDAY) {
       days.push({
         day: nextDay.getDate(),
         month: 'next',
-      })
+      });
 
       nextDay = new Date(
         nextDay.getFullYear(),
         nextDay.getMonth(),
         nextDay.getDate() + 1
-      )
+      );
     }
 
-    return days
-  }
+    return days;
+  };
 
   const subtractMonth = () => {
-    setDate(new Date(date().setMonth(date().getMonth() - 1)))
-  }
+    setDate(new Date(date().setMonth(date().getMonth() - 1)));
+  };
 
   const addMonth = () => {
     const lastDayOfNextMonth = new Date(
       date().getFullYear(),
       date().getMonth() + 2,
       0
-    )
+    );
     const day =
       date().getDate() > lastDayOfNextMonth.getDate()
         ? lastDayOfNextMonth.getDate()
-        : date().getDate()
+        : date().getDate();
 
     const newDate = new Date(
       date().getFullYear(),
@@ -105,10 +105,10 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
       date().getHours(),
       date().getMinutes(),
       0
-    )
+    );
 
-    setDate(newDate)
-  }
+    setDate(newDate);
+  };
 
   const dayButton = (day: CalendarDay) => {
     return (
@@ -121,24 +121,24 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
         class="h-10 rounded-lg text-center align-middle leading-10 hover:bg-sky-100"
         onClick={() => {
           if (day.month === 'previous') {
-            const newDate = new Date()
-            newDate.setMonth(date().getMonth() - 1)
-            newDate.setDate(day.day)
-            setDate(newDate)
+            const newDate = new Date();
+            newDate.setMonth(date().getMonth() - 1);
+            newDate.setDate(day.day);
+            setDate(newDate);
           } else if (day.month === 'next') {
-            const newDate = new Date()
-            newDate.setMonth(date().getMonth() + 1)
-            newDate.setDate(day.day)
-            setDate(newDate)
+            const newDate = new Date();
+            newDate.setMonth(date().getMonth() + 1);
+            newDate.setDate(day.day);
+            setDate(newDate);
           } else {
-            setDate(new Date(date().setDate(day.day)))
+            setDate(new Date(date().setDate(day.day)));
           }
         }}
       >
         <p>{day.day}</p>
       </button>
-    )
-  }
+    );
+  };
 
   return (
     <div class="w-full space-y-2 p-4 md:w-96">
@@ -174,7 +174,7 @@ const InlineDatepicker: Component<InlineDatepickerProps> = (props) => {
         <For each={days()}>{dayButton}</For>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default InlineDatepicker
+export default InlineDatepicker;

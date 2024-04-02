@@ -1,25 +1,25 @@
-import { Component, Show } from 'solid-js'
-import { randomId } from '../lib/str'
+import { Component, Show } from 'solid-js';
+import { randomId } from '../lib/str';
 
 interface CounterProps {
-  onChange: (n: number) => void
-  value: number
+  onChange: (n: number) => void;
+  value: number;
 
-  min?: number
-  max?: number
-  step?: number
-  label?: string
-  error?: boolean
+  min?: number;
+  max?: number;
+  step?: number;
+  label?: string;
+  error?: boolean;
 }
 
 const IncrementalCounter: Component<CounterProps> = (props) => {
-  const id = randomId()
-  const step = props.step ?? 1
+  const id = randomId();
+  const step = props.step ?? 1;
 
   const isLessEqualThanMin = () =>
-    props.min !== undefined ? props.value <= props.min : false
+    props.min !== undefined ? props.value <= props.min : false;
   const isMoreEqualThanMax = () =>
-    props.max !== undefined ? props.value >= props.max : false
+    props.max !== undefined ? props.value >= props.max : false;
 
   return (
     <div class="flex items-center justify-between md:block md:w-44">
@@ -61,21 +61,21 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
           max={props.max}
           value={props.value}
           onChange={(e) => {
-            let n = parseInt(e.target.value)
+            let n = parseInt(e.target.value);
             const isLessThanMin =
-              props.min !== undefined ? n < props.min : false
+              props.min !== undefined ? n < props.min : false;
             const isMoreThanMax =
-              props.max !== undefined ? n > props.max : false
+              props.max !== undefined ? n > props.max : false;
 
             if (Number.isNaN(n)) {
-              n = props.value ?? 0
+              n = props.value ?? 0;
             } else if (isLessThanMin) {
-              n = props.min ?? 0
+              n = props.min ?? 0;
             } else if (isMoreThanMax) {
-              n = props.max ?? 0
+              n = props.max ?? 0;
             }
 
-            props.onChange(n)
+            props.onChange(n);
           }}
         />
         <button
@@ -95,7 +95,7 @@ const IncrementalCounter: Component<CounterProps> = (props) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default IncrementalCounter
+export default IncrementalCounter;
