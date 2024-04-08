@@ -217,20 +217,12 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
               ></i>
             </div>
           )}
-          rightHeaderComponent={() => (
-            <div class="text-right">
-              <i
-                class="fa-solid fa-xmark fa-xl text-red-500 cursor-pointer"
-                onClick={onBack}
-              ></i>
-            </div>
-          )}
         />
 
         <TrainingEditButtonGroup
           training={training}
           backLabel={t('back')}
-          onBack={onBack}
+          onBack={onBackOverride}
           onAddSet={() => setShowCreateSet(true)}
           confirmLabel={t('save')}
           onConfirm={() => updateTraining(training)}
