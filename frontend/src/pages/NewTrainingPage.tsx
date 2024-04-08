@@ -44,7 +44,7 @@ const NewTrainingPage: Component = () => {
   const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false);
   const [training, setTraining] = createStore<NewTraining>(
     loadTrainingFromLocalStorage() ?? {
-      start: new Date(new Date().setHours(18, 0, 0, 0)),
+      start: new Date(new Date().setHours(new Date().getHours(), 0, 0, 0)),
       durationMin: 60,
       totalDistance: 0,
       sets: [],
