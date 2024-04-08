@@ -54,10 +54,10 @@ const SetCard: Component<SetCardProps> = (props) => {
         }}
         class="w-full rounded-t-lg bg-sky-200 p-2 text-sky-900"
       >
-        <div class="grid grid-cols-4 gap-x-4">
-          <span class="text-xl font-bold pr-8 col-start-1">{setContent}</span>
+        <div class="grid grid-cols-4 gap-x-2 items-center">
+          <span class="text-xl font-bold col-start-1">{setContent}</span>
           <Show when={props.set.startType !== StartTypeEnum.None}>
-            <span class="col-start-2 col-span-2 text-xl font-bold">
+            <span class="text-center col-start-2 col-span-2 text-xl font-bold">
               {start()}
             </span>
           </Show>

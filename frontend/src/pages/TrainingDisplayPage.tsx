@@ -5,12 +5,12 @@ import {
   useNavigate,
   useParams,
 } from '@solidjs/router';
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { ResponseError, Training } from 'swimlogs-api';
 import { showToast } from '../App';
 import DismissibleModal from '../components/DismissibleModal';
 import { ToastMode } from '../components/DismissibleToast';
-import DropdownMenu from '../components/DropdownMenu';
+import { clearHeaderMenu, setHeaderMenu } from '../components/Header';
 import TrainingPreview, {
   SkeletonTrainingPreview,
 } from '../components/TrainingPreview';
@@ -39,6 +39,25 @@ const TrainingDisplayPage: Component<
   );
   const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false);
 
+  onMount(() => {
+    setHeaderMenu({
+      items: [
+        {
+          text: t('edit'),
+          icon: 'fa-pen',
+          onClick: () => navigate(`/training/${params.id}/edit`),
+        },
+      ],
+      lastItem: {
+        text: t('delete'),
+        icon: 'fa-trash',
+        textColorCls: 'text-red-500',
+        onClick: () => setOpenConfirmationModal(true),
+      },
+    });
+  });
+  onCleanup(clearHeaderMenu);
+
   async function deleteTraining(id: string) {
     await deleteTrainingById(id)
       .then(() => showToast(t('training.deleted')))
@@ -65,36 +84,14 @@ const TrainingDisplayPage: Component<
           cancelLabel={t('no.cancel')}
           onConfirm={() => deleteTraining(params.id)}
         />
-        <TrainingPreview
-          training={training}
-          showSession={true}
-          rightHeaderComponent={() => (
-            <div class="text-right">
-              <DropdownMenu
-                icon="fa-ellipsis"
-                items={[
-                  {
-                    text: t('edit'),
-                    icon: 'fa-pen',
-                    onClick: () => navigate(`/training/${params.id}/edit`),
-                  },
-                ]}
-                finalItem={{
-                  text: t('delete'),
-                  icon: 'fa-trash',
-                  onClick: () => setOpenConfirmationModal(true),
-                }}
-              />
-            </div>
-          )}
-        />
+        <TrainingPreview training={training} showSession={true} />
       </>
     );
   };
 
   return (
-    <Show when={training()} fallback={<SkeletonTrainingPreview />}>
-      {(t) => trainingDisplay(t())}
+    <Show when={training()} fallback={<SkeletonTrainingPreview />} keyed>
+      {trainingDisplay}
     </Show>
   );
 };
