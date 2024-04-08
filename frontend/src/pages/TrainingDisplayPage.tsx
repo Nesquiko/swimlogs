@@ -43,13 +43,13 @@ const TrainingDisplayPage: Component<
     setHeaderMenu({
       items: [
         {
-          text: t('edit'),
+          textKey: 'edit',
           icon: 'fa-pen',
           onClick: () => navigate(`/training/${params.id}/edit`),
         },
       ],
       lastItem: {
-        text: t('delete'),
+        textKey: 'delete',
         icon: 'fa-trash',
         textColorCls: 'text-red-500',
         onClick: () => setOpenConfirmationModal(true),

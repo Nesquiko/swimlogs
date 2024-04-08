@@ -1,3 +1,4 @@
+import { Trans, useTransContext } from '@mbarzda/solid-i18next';
 import { A, useLocation } from '@solidjs/router';
 import {
   Component,
@@ -19,7 +20,8 @@ import {
 } from './ui/dropdown-menu';
 
 interface MenuItem {
-  text: string;
+  text?: string;
+  textKey?: string;
   icon?: string;
   textColorCls?: string;
   onClick: () => void;
@@ -40,6 +42,7 @@ const Header: Component = () => {
   });
   const location = useLocation();
   const [onBack] = useOnBackcontext();
+  const [t] = useTransContext();
 
   createEffect(() => {
     if (location.pathname === '/') {
@@ -53,6 +56,14 @@ const Header: Component = () => {
   });
 
   const menuItem = (item: MenuItem) => {
+    if (!item.text && !item.textKey) {
+      throw new Error("Either 'text' or 'textKey' must be provided");
+    }
+    const textElem = item.text ? (
+      <span>{item.text}</span>
+    ) : (
+      <Trans key={item.textKey!} />
+    );
     const textColorCls = item.textColorCls ?? 'text-gray-700';
     return (
       <DropdownMenuItem onClick={item.onClick}>
@@ -62,7 +73,7 @@ const Header: Component = () => {
             class="fa-solid fa-pen pr-2"
           />
         )}
-        <span>{item.text}</span>
+        {textElem}
       </DropdownMenuItem>
     );
   };
