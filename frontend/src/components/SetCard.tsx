@@ -65,7 +65,7 @@ const SetCard: Component<SetCardProps> = (props) => {
             {(group) => (
               <span
                 classList={{ [GroupColors.get(group)!]: true }}
-                class="col-start-4 rounded-lg text-white bg-sky-500 text-center w-full h-6"
+                class="col-start-4 rounded-lg text-white text-center w-full h-6"
               >
                 {t(group.toLowerCase())}
               </span>

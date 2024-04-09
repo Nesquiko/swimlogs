@@ -9,7 +9,7 @@
   "repeat": "Opakovaní",
   "block": "Blok",
   "distance": "Vzdialenosť",
-  "distance.in.training": "Vzdialenosť",
+  "distance.in.training": "Zaplávaná vzdialenosť",
   "previous": "Naspäť",
   "next": "Ďalej",
   "finish": "Dokončiť",
@@ -107,5 +107,6 @@
   "long": "Dlho",
   "middle": "Stredno",
   "mono": "Mono",
-  "sprint": "Šprint"
+  "sprint": "Šprint",
+  "distance.per.group": "Zaplávaná vzdialenosť za skupinu"
 }

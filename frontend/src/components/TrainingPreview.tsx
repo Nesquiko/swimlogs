@@ -2,6 +2,7 @@ import { type Component, For, Show } from 'solid-js';
 import { NewTraining, Training } from 'swimlogs-api';
 import { locale, minutesToHoursAndMintes } from '../lib/datetime';
 import SetCard, { Option, SkeletonSetCard } from './SetCard';
+import TrainingSummary from './TraningSummary';
 
 interface TrainingPreviewPageProps {
   training: NewTraining | Training;
@@ -13,12 +14,6 @@ interface TrainingPreviewPageProps {
 const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
-      <div class="grid grid-cols-3 items-center">
-        <div class="col-start-2 me-2 inline-block w-full rounded bg-sky-100 px-2.5 py-0.5 text-center text-xl font-medium text-sky-900">
-          <span>{props.training.totalDistance / 1000}km</span>
-        </div>
-      </div>
-
       <Show when={props.showSession}>
         <div class="grid grid-cols-3">
           <p class="text-xl text-left">
@@ -35,6 +30,7 @@ const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
           </p>
         </div>
       </Show>
+      <TrainingSummary training={props.training} />
 
       <div class="space-y-2">
         <For each={props.training.sets}>
