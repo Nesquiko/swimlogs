@@ -8,17 +8,12 @@ interface TrainingPreviewPageProps {
 
   showSession?: boolean;
   setOptions?: Option[];
-
-  leftHeaderComponent?: Component;
 }
 
 const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
       <div class="grid grid-cols-3 items-center">
-        <Show when={props.leftHeaderComponent}>
-          {props.leftHeaderComponent}
-        </Show>
         <div class="col-start-2 me-2 inline-block w-full rounded bg-sky-100 px-2.5 py-0.5 text-center text-xl font-medium text-sky-900">
           <span>{props.training.totalDistance / 1000}km</span>
         </div>
