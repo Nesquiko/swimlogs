@@ -31,6 +31,7 @@ import EditTrainingSessionPage from './EditTrainingSessionPage';
 import DismissibleModal from '../components/DismissibleModal';
 import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup';
 import { useOnBackcontext } from './Routing';
+import { clearHeaderButton, setHeaderButton } from '../components/Header';
 
 const NewTrainingPage: Component = () => {
   const [t] = useTransContext();
@@ -64,8 +65,18 @@ const NewTrainingPage: Component = () => {
     }
   }
 
-  onMount(() => setOnBack(onBackOverride));
-  onCleanup(() => setOnBack());
+  onMount(() => {
+    setOnBack(onBackOverride);
+
+    setHeaderButton({
+      icon: <i class="fa-trash fa-solid fa-xl cursor-pointer text-red-600" />,
+      onClick: () => setOpenConfirmationModal(true),
+    });
+  });
+  onCleanup(() => {
+    setOnBack();
+    clearHeaderButton();
+  });
 
   const onSubmit = (training: NewTraining) => {
     trainingApi
@@ -176,14 +187,6 @@ const NewTrainingPage: Component = () => {
                 },
               },
             ]}
-            rightHeaderComponent={() => (
-              <button
-                class="rounded-lg p-1 text-right"
-                onClick={() => setOpenConfirmationModal(true)}
-              >
-                <i class="fa-trash fa-solid fa-xl cursor-pointer text-red-500"></i>
-              </button>
-            )}
           />
 
           <TrainingEditButtonGroup
