@@ -1,6 +1,6 @@
-import { type Component, For, Show } from 'solid-js';
+import { Trans } from '@mbarzda/solid-i18next';
+import { type Component, For } from 'solid-js';
 import { NewTraining, Training } from 'swimlogs-api';
-import { locale, minutesToHoursAndMintes } from '../lib/datetime';
 import SetCard, { Option, SkeletonSetCard } from './SetCard';
 import TrainingSummary from './TraningSummary';
 
@@ -14,24 +14,14 @@ interface TrainingPreviewPageProps {
 const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
-      <Show when={props.showSession}>
-        <div class="grid grid-cols-3">
-          <p class="text-xl text-left">
-            {props.training.start.toLocaleDateString(locale())}
-          </p>
-          <p class="text-xl text-center">
-            {props.training.start.toLocaleTimeString(locale(), {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </p>
-          <p class="text-xl text-right">
-            {minutesToHoursAndMintes(props.training.durationMin)}
-          </p>
-        </div>
-      </Show>
-      <TrainingSummary training={props.training} />
+      <TrainingSummary
+        training={props.training}
+        showSession={props.showSession}
+      />
 
+      <h1 class="text-2xl font-bold text-sky-900">
+        <Trans key="sets" />
+      </h1>
       <div class="space-y-2">
         <For each={props.training.sets}>
           {(set) => <SetCard set={set} setOptions={props.setOptions} />}

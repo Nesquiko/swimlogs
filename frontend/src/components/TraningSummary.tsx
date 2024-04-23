@@ -7,11 +7,19 @@ import {
   Training,
   TrainingSet,
 } from 'swimlogs-api';
+import { locale, minutesToHoursAndMintes } from '../lib/datetime';
 import { GroupColors } from '../lib/set-groups';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './ui/card';
 
 interface TrainingSummaryProps {
   training: NewTraining | Training;
+  showSession?: boolean;
 }
 
 type DistancePerGroup = { group: GroupEnum; distance: number };
@@ -47,25 +55,39 @@ const TrainingSummary: Component<TrainingSummaryProps> = (props) => {
   };
 
   return (
-    <Card>
-      <CardHeader
-        classList={{ 'rounded-lg': uniqueGroups === 0 }}
-        class="p-2 bg-sky-200 rounded-t-lg"
-      >
-        <CardTitle class="text-xl text-sky-900">
-          <span
-            classList={{ 'w-3/4': uniqueGroups === 0 }}
-            class="inline-block"
-          >
-            <Trans key={labelKey} />
+    <Card class="max-w-lg">
+      <CardHeader>
+        <CardTitle class="text-xl text-sky-900 flex justify-between">
+          <span>
+            {props.training.start
+              .toLocaleDateString(locale())
+              .replaceAll(' ', '')}{' '}
+            <Trans key="at" />{' '}
+            {props.training.start.toLocaleTimeString(locale(), {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </span>
-          {uniqueGroups === 0 && (
-            <span class="inline-block">{` ${(props.training.totalDistance / 1000).toPrecision(2)}km`}</span>
-          )}
+          <span class="font-normal space-x-1">
+            <i class="fa-solid fa-clock" />
+            <b>{minutesToHoursAndMintes(props.training.durationMin)}</b>
+          </span>
         </CardTitle>
       </CardHeader>
-      <Show when={uniqueGroups !== 0}>
-        <CardContent class="space-y-2 pt-2">
+
+      <Show
+        when={uniqueGroups !== 0}
+        fallback={
+          <CardFooter class="text-lg flex justify-between">
+            <Trans key={labelKey} />
+            <b class="inline-block">{`${(props.training.totalDistance / 1000).toPrecision(2)}km`}</b>
+          </CardFooter>
+        }
+      >
+        <CardContent class="space-y-2">
+          <span class="text-lg">
+            <Trans key={labelKey} />
+          </span>
           <For each={distances}>{distanceItem}</For>
         </CardContent>
       </Show>

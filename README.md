@@ -13,27 +13,29 @@
 
 ## TODOS frontend
 
-1. training distance split by group
-2. add/accept buttons to upper right and cancel to upper left?
-3. parachute, other equipment
-4. set intensity slider
-5. set style, make only usable when really necessary
-6. dragable sets in preview
-7. multi select sets for delete/duplicate (and move?)
-8. set groups
-9. graphs, or some other preview of swam distance
-10. rework history
-11. Not found page in frontend
-12. One method through which requests go for better monitoring?
-13. Tests?
-14. PWA
+1. add/accept buttons to upper right and cancel to upper left?
+2. duplicate training
+3. floating action button with popup menu for adding set, superset, pyramid
+4. parachute, other equipment
+5. set intensity slider
+6. set style, make only usable when really necessary
+7. dragable sets in preview
+8. multi select sets for delete/duplicate (and move?)
+9. set groups
+10. graphs, or some other preview of swam distance
+11. rework history
+12. Not found page in frontend
+13. One method through which requests go for better monitoring?
+14. Tests?
+15. PWA
 
 ## TODOS backend
 
-1. [read this](https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/)
-2. [generic handler functions](https://www.willem.dev/articles/generic-http-handlers/)
-3. uptimerobot endpoint
-4. docker scan
+1. [Makefile](https://www.alexedwards.net/blog/a-time-saving-makefile-for-your-go-projects)
+2. [read this](https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/)
+3. [generic handler functions](https://www.willem.dev/articles/generic-http-handlers/)
+4. uptimerobot endpoint
+5. docker scan
 
 ## Cleanup
 

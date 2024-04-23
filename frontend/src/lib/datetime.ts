@@ -82,7 +82,7 @@ export function minutesToHoursAndMintes(minutes: number): string {
   }
 
   if (remainingMinutes > 0 || result === '') {
-    result += `${remainingMinutes}min`;
+    result += `${remainingMinutes}m`;
   }
 
   return result;

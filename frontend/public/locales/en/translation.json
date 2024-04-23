@@ -106,5 +106,7 @@
   "middle": "Middle",
   "mono": "Mono",
   "sprint": "Sprint",
-  "distance.per.group": "Distance swam per group"
+  "distance.per.group": "Distance swam per group",
+  "sets": "Sets",
+  "at": "at"
 }
