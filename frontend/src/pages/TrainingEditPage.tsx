@@ -18,6 +18,7 @@ import { createStore, SetStoreFunction, unwrap } from 'solid-js/store';
 import { NewTrainingSet, ResponseError, Training } from 'swimlogs-api';
 import { showToast } from '../App';
 import { ToastMode } from '../components/DismissibleToast';
+import { clearHeaderButton, setHeaderButton } from '../components/Header';
 import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup';
 import TrainingPreview, {
   SkeletonTrainingPreview,
@@ -75,8 +76,26 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
     }
   }
 
-  onMount(() => setOnBack(onBackOverride));
-  onCleanup(() => setOnBack());
+  onMount(() => {
+    setOnBack(onBackOverride);
+
+    setHeaderButton({
+      icon: (
+        <i
+          classList={{
+            'fa-calendar-days': !showTrainingSession(),
+            'fa-person-swimming': showTrainingSession(),
+          }}
+          class="fa-solid fa-xl text-white cursor-pointer"
+        />
+      ),
+      onClick: () => setShowTrainingSession(!showTrainingSession()),
+    });
+  });
+  onCleanup(() => {
+    setOnBack();
+    clearHeaderButton();
+  });
 
   async function updateTraining(training: Training) {
     updateTrainingById(params.id, training)
@@ -209,28 +228,12 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
               onClick: (setIdx) => deleteSetInTraining(setIdx, setTraining),
             },
           ]}
-          leftHeaderComponent={() => (
-            <div class="text-left">
-              <i
-                class="fa-solid fa-calendar-days fa-xl text-sky-900 cursor-pointer"
-                onClick={() => setShowTrainingSession(true)}
-              ></i>
-            </div>
-          )}
-          rightHeaderComponent={() => (
-            <div class="text-right">
-              <i
-                class="fa-solid fa-xmark fa-xl text-red-500 cursor-pointer"
-                onClick={onBack}
-              ></i>
-            </div>
-          )}
         />
 
         <TrainingEditButtonGroup
           training={training}
           backLabel={t('back')}
-          onBack={onBack}
+          onBack={onBackOverride}
           onAddSet={() => setShowCreateSet(true)}
           confirmLabel={t('save')}
           onConfirm={() => updateTraining(training)}

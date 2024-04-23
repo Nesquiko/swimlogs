@@ -9,7 +9,7 @@
   "repeat": "Repeat",
   "block": "Block",
   "distance": "Distance",
-  "distance.in.training": "Distance in training",
+  "distance.in.training": "Distance swam in training",
   "previous": "Previous",
   "next": "Next",
   "finish": "Finish",
@@ -105,5 +105,8 @@
   "long": "Long",
   "middle": "Middle",
   "mono": "Mono",
-  "sprint": "Sprint"
+  "sprint": "Sprint",
+  "distance.per.group": "Distance swam per group",
+  "sets": "Sets",
+  "at": "at"
 }

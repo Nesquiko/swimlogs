@@ -1,10 +1,11 @@
-import { Trans, useTransContext } from '@mbarzda/solid-i18next';
+import { Trans } from '@mbarzda/solid-i18next';
 import { A, useLocation } from '@solidjs/router';
 import {
   Component,
   createEffect,
   createSignal,
   For,
+  JSX,
   Match,
   Show,
   Switch,
@@ -27,6 +28,17 @@ interface MenuItem {
   onClick: () => void;
 }
 
+interface HeaderButton {
+  icon: JSX.Element;
+  onClick: () => void;
+}
+
+const [headerButton, setHeaderButton] = createSignal<HeaderButton | undefined>(
+  undefined
+);
+
+const clearHeaderButton = () => setHeaderButton(undefined);
+
 const [headerMenu, setHeaderMenu] = createSignal<
   { items: MenuItem[]; lastItem?: MenuItem } | undefined
 >(undefined);
@@ -42,7 +54,6 @@ const Header: Component = () => {
   });
   const location = useLocation();
   const [onBack] = useOnBackcontext();
-  const [t] = useTransContext();
 
   createEffect(() => {
     if (location.pathname === '/') {
@@ -121,9 +132,19 @@ const Header: Component = () => {
           );
         }}
       </Show>
+
+      <Show when={headerButton()} keyed>
+        {(button) => {
+          return (
+            <button class="text-right col-start-5" onClick={button.onClick}>
+              {button.icon}
+            </button>
+          );
+        }}
+      </Show>
     </div>
   );
 };
 
 export default Header;
-export { setHeaderMenu, clearHeaderMenu };
+export { setHeaderMenu, clearHeaderMenu, setHeaderButton, clearHeaderButton };
