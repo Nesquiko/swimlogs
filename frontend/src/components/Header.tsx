@@ -28,12 +28,7 @@ interface MenuItem {
   onClick: () => void;
 }
 
-interface HeaderButton {
-  icon: JSX.Element;
-  onClick: () => void;
-}
-
-const [headerButton, setHeaderButton] = createSignal<HeaderButton | undefined>(
+const [headerButton, setHeaderButton] = createSignal<JSX.Element | undefined>(
   undefined
 );
 
@@ -134,13 +129,7 @@ const Header: Component = () => {
       </Show>
 
       <Show when={headerButton()} keyed>
-        {(button) => {
-          return (
-            <button class="text-right col-start-5" onClick={button.onClick}>
-              {button.icon}
-            </button>
-          );
-        }}
+        {(button) => button}
       </Show>
     </div>
   );

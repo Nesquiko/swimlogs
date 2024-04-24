@@ -79,18 +79,16 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
   onMount(() => {
     setOnBack(onBackOverride);
 
-    setHeaderButton({
-      icon: (
-        <i
-          classList={{
-            'fa-calendar-days': !showTrainingSession(),
-            'fa-person-swimming': showTrainingSession(),
-          }}
-          class="fa-solid fa-xl text-white cursor-pointer"
-        />
-      ),
-      onClick: () => setShowTrainingSession(!showTrainingSession()),
-    });
+    setHeaderButton(
+      <i
+        classList={{
+          'fa-calendar-days': !showTrainingSession(),
+          'fa-person-swimming': showTrainingSession(),
+        }}
+        class="text-right fa-solid fa-xl text-white cursor-pointer"
+        onClick={() => setShowTrainingSession(!showTrainingSession())}
+      />
+    );
   });
   onCleanup(() => {
     setOnBack();
