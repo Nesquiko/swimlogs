@@ -10,11 +10,13 @@ export const saveTrainingToLocalStorage = (training: NewTraining) => {
 };
 
 export const loadTrainingFromLocalStorage = () => {
-  const training = localStorage.getItem(NEW_TRAINING_LOCAL_STORAGE_KEY);
-  if (!training) {
+  const item = localStorage.getItem(NEW_TRAINING_LOCAL_STORAGE_KEY);
+  if (!item) {
     return undefined;
   }
-  return JSON.parse(training) as NewTraining;
+  const training = JSON.parse(item) as NewTraining;
+  training.start = new Date(training.start);
+  return training;
 };
 
 export const clearTrainingFromLocalStorage = () => {
