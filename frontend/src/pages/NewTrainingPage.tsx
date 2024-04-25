@@ -1,4 +1,4 @@
-import { useTransContext } from '@mbarzda/solid-i18next';
+import { Trans, useTransContext } from '@mbarzda/solid-i18next';
 import { useNavigate } from '@solidjs/router';
 import { createStore, SetStoreFunction, unwrap } from 'solid-js/store';
 import { showToast } from '../App';
@@ -16,6 +16,7 @@ import {
   Match,
   onCleanup,
   onMount,
+  Show,
   Switch,
 } from 'solid-js';
 import {
@@ -32,6 +33,7 @@ import { useOnBackcontext } from './Routing';
 import { clearHeaderButton, setHeaderButton } from '../components/Header';
 import SetEditForm from '../components/SetEditForm';
 import { SmallIntMax } from '../lib/consts';
+import { Callout, CalloutTitle } from '../components/ui/callout';
 
 type PreviewScreen = { screen: 'preview' };
 type CreateSetScreen = { screen: 'create-set' };
@@ -278,9 +280,22 @@ const NewTrainingPage: Component = () => {
             ]}
           />
 
-          <button class="p-4" onClick={() => setOpenConfirmationModal(true)}>
-            <i class="fa-solid fa-trash-can text-red-500 fa-2xl"></i>
-          </button>
+          <div class="p-4">
+            <Show
+              when={training.sets.length !== 0}
+              fallback={
+                <Callout>
+                  <CalloutTitle class="whitespace-pre-line">
+                    <Trans key="no.sets.in.training" />
+                  </CalloutTitle>
+                </Callout>
+              }
+            >
+              <button onClick={() => setOpenConfirmationModal(true)}>
+                <i class="fa-solid fa-trash-can text-red-500 fa-2xl"></i>
+              </button>
+            </Show>
+          </div>
 
           <button
             class="fixed bottom-4 right-4 h-12 w-12 rounded-full bg-sky-500"
