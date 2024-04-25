@@ -1,6 +1,6 @@
 import { useTransContext } from '@mbarzda/solid-i18next';
 import { useNavigate } from '@solidjs/router';
-import { createStore } from 'solid-js/store';
+import { createStore, SetStoreFunction, unwrap } from 'solid-js/store';
 import { showToast } from '../App';
 import { ToastMode } from '../components/DismissibleToast';
 import { NewTraining, NewTrainingSet, StartTypeEnum } from 'swimlogs-api';
@@ -18,7 +18,6 @@ import {
   onMount,
   Switch,
 } from 'solid-js';
-import EditSetPage from './EditSetPage';
 import {
   deleteSetInNewTraining,
   moveSetDownInNewTraining,
@@ -36,7 +35,11 @@ import { SmallIntMax } from '../lib/consts';
 
 type PreviewScreen = { screen: 'preview' };
 type CreateSetScreen = { screen: 'create-set' };
-type EditSetScreen = { screen: 'edit-set'; setIdx: number };
+type EditSetScreen = {
+  screen: 'edit-set';
+  setIdx: number;
+  setStore: [get: NewTrainingSet, set: SetStoreFunction<NewTrainingSet>];
+};
 type SessionScreen = { screen: 'session' };
 
 type PageOnScreen =
@@ -69,12 +72,12 @@ const NewTrainingPage: Component = () => {
     totalDistance: 100,
   });
 
-  const isNewSetValid = () => {
+  const isSetValid = (set: NewTrainingSet) => {
     const isStartValid =
-      newSet.startType === StartTypeEnum.None ||
-      (newSet.startSeconds && newSet.startSeconds !== 0);
+      set.startType === StartTypeEnum.None ||
+      (set.startSeconds && set.startSeconds !== 0);
     const isDistanceValid =
-      newSet.distanceMeters >= 25 && newSet.distanceMeters <= SmallIntMax;
+      set.distanceMeters >= 25 && set.distanceMeters <= SmallIntMax;
 
     return isDistanceValid && isStartValid;
   };
@@ -99,7 +102,8 @@ const NewTrainingPage: Component = () => {
           'fa-arrow-right fa-2xl': screen.screen === 'preview',
           'fa-check fa-2xl ': screen.screen !== 'preview',
           'text-white/50 pointer-events-none':
-            screen.screen === 'create-set' && !isNewSetValid(),
+            (screen.screen === 'create-set' && !isSetValid(newSet)) ||
+            (screen.screen === 'edit-set' && !isSetValid(screen.setStore[0])),
         }}
         class="text-right fa-solid cursor-pointer text-white"
         onClick={() => {
@@ -109,6 +113,10 @@ const NewTrainingPage: Component = () => {
               break;
             case 'create-set':
               submitNewSet();
+              setScreen({ screen: 'preview' });
+              break;
+            case 'edit-set':
+              editSet();
               setScreen({ screen: 'preview' });
               break;
           }
@@ -179,7 +187,7 @@ const NewTrainingPage: Component = () => {
     saveTrainingToLocalStorage(training);
   };
 
-  const onEditSet = (set: NewTrainingSet) => {
+  const editSet = () => {
     setTraining('sets', (sets) => {
       if (screen.screen !== 'edit-set') {
         console.error(
@@ -188,12 +196,14 @@ const NewTrainingPage: Component = () => {
         return sets;
       }
 
+      const [set, setSet] = screen.setStore;
       const idx = screen.setIdx;
       const tmp = sets[idx];
-      set.setOrder = tmp.setOrder;
+      setSet('setOrder', tmp.setOrder);
       sets[idx] = set;
       return sets;
     });
+
     setScreen({ screen: 'preview' });
     setTraining('totalDistance', recalculateTotalDistance(training));
     saveTrainingToLocalStorage(training);
@@ -220,7 +230,12 @@ const NewTrainingPage: Component = () => {
               {
                 text: t('edit'),
                 icon: 'fa-pen',
-                onClick: (setIdx) => setScreen({ screen: 'edit-set', setIdx }),
+                onClick: (setIdx) =>
+                  setScreen({
+                    screen: 'edit-set',
+                    setIdx,
+                    setStore: createStore(unwrap(training.sets[setIdx])),
+                  }),
               },
               {
                 text: t('duplicate'),
@@ -280,11 +295,9 @@ const NewTrainingPage: Component = () => {
         <SetEditForm set={newSet} updateSet={setNewSet} />
       </Match>
       <Match when={screen.screen === 'edit-set'}>
-        <EditSetPage
-          onSubmitSet={onEditSet}
-          submitLabel={t('edit')}
-          set={training.sets[(screen as EditSetScreen).setIdx]}
-          onCancel={() => setScreen({ screen: 'preview' })}
+        <SetEditForm
+          set={(screen as EditSetScreen).setStore[0]}
+          updateSet={(screen as EditSetScreen).setStore[1]}
         />
       </Match>
       <Match when={screen.screen === 'session'}>
