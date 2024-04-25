@@ -3,7 +3,7 @@ import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
 import { showToast } from '../App';
 import { ToastMode } from '../components/DismissibleToast';
-import { NewTraining, NewTrainingSet } from 'swimlogs-api';
+import { NewTraining, NewTrainingSet, StartTypeEnum } from 'swimlogs-api';
 import {
   clearTrainingFromLocalStorage,
   loadTrainingFromLocalStorage,
@@ -29,18 +29,26 @@ import TrainingPreview from '../components/TrainingPreview';
 import { cloneSet } from '../lib/clone';
 import EditTrainingSessionPage from './EditTrainingSessionPage';
 import DismissibleModal from '../components/DismissibleModal';
-import TrainingEditButtonGroup from '../components/TrainingEditButtonGroup';
 import { useOnBackcontext } from './Routing';
 import { clearHeaderButton, setHeaderButton } from '../components/Header';
+import SetEditForm from '../components/SetEditForm';
+import { SmallIntMax } from '../lib/consts';
+
+type PreviewScreen = { screen: 'preview' };
+type CreateSetScreen = { screen: 'create-set' };
+type EditSetScreen = { screen: 'edit-set'; setIdx: number };
+type SessionScreen = { screen: 'session' };
+
+type PageOnScreen =
+  | PreviewScreen
+  | CreateSetScreen
+  | EditSetScreen
+  | SessionScreen;
 
 const NewTrainingPage: Component = () => {
   const [t] = useTransContext();
   const navigate = useNavigate();
   const [onBack, setOnBack] = useOnBackcontext();
-
-  const [showTrainingSession, setShowTrainingSession] = createSignal(false);
-  const [showCreateSet, setShowCreateSet] = createSignal(false);
-  const [editedSetIdx, setEditedSetIdx] = createSignal(-1);
 
   const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false);
   const [training, setTraining] = createStore<NewTraining>(
@@ -52,27 +60,68 @@ const NewTrainingPage: Component = () => {
     }
   );
 
+  const [screen, setScreen] = createStore<PageOnScreen>({ screen: 'preview' });
+  const [newSet, setNewSet] = createStore<NewTrainingSet>({
+    setOrder: training.sets.length,
+    repeat: 1,
+    distanceMeters: 100,
+    startType: StartTypeEnum.None,
+    totalDistance: 100,
+  });
+
+  const isNewSetValid = () => {
+    const isStartValid =
+      newSet.startType === StartTypeEnum.None ||
+      (newSet.startSeconds && newSet.startSeconds !== 0);
+    const isDistanceValid =
+      newSet.distanceMeters >= 25 && newSet.distanceMeters <= SmallIntMax;
+
+    return isDistanceValid && isStartValid;
+  };
+
   function onBackOverride() {
-    if (showCreateSet()) {
-      setShowCreateSet(false);
-    } else if (editedSetIdx() !== -1) {
-      setEditedSetIdx(-1);
-    } else if (showTrainingSession()) {
-      setShowTrainingSession(false);
+    if (screen.screen === 'create-set') {
+      setScreen({ screen: 'preview' });
+    } else if (screen.screen === 'edit-set') {
+      setScreen({ screen: 'preview' });
+    } else if (screen.screen === 'session') {
+      setScreen({ screen: 'preview' });
     } else {
       setOnBack();
       onBack();
     }
   }
 
+  const headerButton = () => {
+    return (
+      <i
+        classList={{
+          'fa-arrow-right fa-2xl': screen.screen === 'preview',
+          'fa-check fa-2xl ': screen.screen !== 'preview',
+          'text-white/50 pointer-events-none':
+            screen.screen === 'create-set' && !isNewSetValid(),
+        }}
+        class="text-right fa-solid cursor-pointer text-white"
+        onClick={() => {
+          switch (screen.screen) {
+            case 'session':
+              setScreen({ screen: 'session' });
+              break;
+            case 'create-set':
+              submitNewSet();
+              setScreen({ screen: 'preview' });
+              break;
+          }
+        }}
+      />
+    );
+  };
+
   onMount(() => {
     setOnBack(onBackOverride);
-
-    setHeaderButton({
-      icon: <i class="fa-trash fa-solid fa-xl cursor-pointer text-red-600" />,
-      onClick: () => setOpenConfirmationModal(true),
-    });
+    setHeaderButton(headerButton());
   });
+
   onCleanup(() => {
     setOnBack();
     clearHeaderButton();
@@ -98,15 +147,32 @@ const NewTrainingPage: Component = () => {
     start: Date;
     durationMin: number;
   }) => {
-    setShowTrainingSession(false);
+    setScreen({ screen: 'preview' });
     setTraining('start', trainingSession.start);
     setTraining('durationMin', trainingSession.durationMin);
     onSubmit(training);
     clearTrainingFromLocalStorage();
   };
 
+  const submitNewSet = () => {
+    const set: NewTrainingSet = {
+      setOrder: newSet.setOrder,
+      repeat: newSet.repeat,
+      distanceMeters: newSet.distanceMeters,
+      description: newSet.description,
+      startType: newSet.startType,
+      startSeconds: newSet.startSeconds,
+      totalDistance: newSet.repeat * newSet.distanceMeters,
+      equipment:
+        (newSet.equipment ?? []).length > 0 ? newSet.equipment : undefined,
+      group: newSet.group,
+    };
+
+    onCreateSet(set);
+  };
+
   const onCreateSet = (set: NewTrainingSet) => {
-    setShowCreateSet(false);
+    setScreen({ screen: 'preview' });
     set.setOrder = training.sets.length;
     setTraining('sets', [...training.sets, set]);
     setTraining('totalDistance', recalculateTotalDistance(training));
@@ -115,12 +181,20 @@ const NewTrainingPage: Component = () => {
 
   const onEditSet = (set: NewTrainingSet) => {
     setTraining('sets', (sets) => {
-      const tmp = sets[editedSetIdx()];
+      if (screen.screen !== 'edit-set') {
+        console.error(
+          `screen is not in edit-set state, but is in ${screen.screen}`
+        );
+        return sets;
+      }
+
+      const idx = screen.setIdx;
+      const tmp = sets[idx];
       set.setOrder = tmp.setOrder;
-      sets[editedSetIdx()] = set;
+      sets[idx] = set;
       return sets;
     });
-    setEditedSetIdx(-1);
+    setScreen({ screen: 'preview' });
     setTraining('totalDistance', recalculateTotalDistance(training));
     saveTrainingToLocalStorage(training);
   };
@@ -146,7 +220,7 @@ const NewTrainingPage: Component = () => {
               {
                 text: t('edit'),
                 icon: 'fa-pen',
-                onClick: (setIdx) => setEditedSetIdx(setIdx),
+                onClick: (setIdx) => setScreen({ screen: 'edit-set', setIdx }),
               },
               {
                 text: t('duplicate'),
@@ -189,40 +263,38 @@ const NewTrainingPage: Component = () => {
             ]}
           />
 
-          <TrainingEditButtonGroup
-            training={training}
-            backLabel={t('back')}
-            onBack={() => navigate('/', { replace: true })}
-            onAddSet={() => setShowCreateSet(true)}
-            confirmLabel={t('finish')}
-            onConfirm={() => setShowTrainingSession(true)}
-          />
+          <button class="p-4" onClick={() => setOpenConfirmationModal(true)}>
+            <i class="fa-solid fa-trash-can text-red-500 fa-2xl"></i>
+          </button>
+
+          <button
+            class="fixed bottom-4 right-4 h-12 w-12 rounded-full bg-sky-500"
+            onClick={() => setScreen({ screen: 'create-set' })}
+          >
+            <i class="fa-solid fa-plus fa-2xl text-white"></i>
+          </button>
         </>
       }
     >
-      <Match when={showCreateSet()}>
-        <EditSetPage
-          onSubmitSet={onCreateSet}
-          submitLabel={t('add')}
-          onCancel={() => setShowCreateSet(false)}
-        />
+      <Match when={screen.screen === 'create-set'}>
+        <SetEditForm set={newSet} updateSet={setNewSet} />
       </Match>
-      <Match when={editedSetIdx() !== -1}>
+      <Match when={screen.screen === 'edit-set'}>
         <EditSetPage
           onSubmitSet={onEditSet}
           submitLabel={t('edit')}
-          set={training.sets[editedSetIdx()]}
-          onCancel={() => setEditedSetIdx(-1)}
+          set={training.sets[(screen as EditSetScreen).setIdx]}
+          onCancel={() => setScreen({ screen: 'preview' })}
         />
       </Match>
-      <Match when={showTrainingSession()}>
+      <Match when={screen.screen === 'session'}>
         <EditTrainingSessionPage
           initial={{
             start: new Date(training.start),
             durationMin: training.durationMin,
           }}
           onSubmit={onTrainingSessionSubmit}
-          onBack={() => setShowTrainingSession(false)}
+          onBack={() => setScreen({ screen: 'preview' })}
         />
       </Match>
     </Switch>
