@@ -80,7 +80,7 @@ const TrainingSummary: Component<TrainingSummaryProps> = (props) => {
         fallback={
           <CardFooter class="text-lg flex justify-between">
             <Trans key={labelKey} />
-            <b class="inline-block">{`${(props.training.totalDistance / 1000).toPrecision(2)}km`}</b>
+            <b class="inline-block">{props.training.totalDistance}m</b>
           </CardFooter>
         }
       >
