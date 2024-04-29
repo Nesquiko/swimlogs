@@ -27,13 +27,13 @@ import {
 } from '../lib/training';
 import TrainingPreview from '../components/TrainingPreview';
 import { cloneSet } from '../lib/clone';
-import EditTrainingSessionPage from './EditTrainingSessionPage';
 import DismissibleModal from '../components/DismissibleModal';
 import { useOnBackcontext } from './Routing';
 import { clearHeaderButton, setHeaderButton } from '../components/Header';
 import SetEditForm from '../components/SetEditForm';
 import { SmallIntMax } from '../lib/consts';
 import { Callout, CalloutTitle } from '../components/ui/callout';
+import SessionEditForm from '../components/SessionEditForm';
 
 type PreviewScreen = { screen: 'preview' };
 type CreateSetScreen = { screen: 'create-set' };
@@ -111,7 +111,8 @@ const NewTrainingPage: Component = () => {
         onClick={() => {
           switch (screen.screen) {
             case 'session':
-              setScreen({ screen: 'session' });
+              // TODO set the session and send it
+              // onTrainingSessionSubmit
               break;
             case 'create-set':
               submitNewSet();
@@ -120,6 +121,9 @@ const NewTrainingPage: Component = () => {
             case 'edit-set':
               editSet();
               setScreen({ screen: 'preview' });
+              break;
+            case 'preview':
+              setScreen({ screen: 'session' });
               break;
           }
         }}
@@ -316,14 +320,7 @@ const NewTrainingPage: Component = () => {
         />
       </Match>
       <Match when={screen.screen === 'session'}>
-        <EditTrainingSessionPage
-          initial={{
-            start: new Date(training.start),
-            durationMin: training.durationMin,
-          }}
-          onSubmit={onTrainingSessionSubmit}
-          onBack={() => setScreen({ screen: 'preview' })}
-        />
+        <SessionEditForm training={training} updateTraining={setTraining} />
       </Match>
     </Switch>
   );
