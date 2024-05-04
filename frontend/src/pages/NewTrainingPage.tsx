@@ -111,8 +111,7 @@ const NewTrainingPage: Component = () => {
         onClick={() => {
           switch (screen.screen) {
             case 'session':
-              // TODO set the session and send it
-              // onTrainingSessionSubmit
+              onSubmit();
               break;
             case 'create-set':
               submitNewSet();
@@ -141,12 +140,13 @@ const NewTrainingPage: Component = () => {
     clearHeaderButton();
   });
 
-  const onSubmit = (training: NewTraining) => {
+  const onSubmit = () => {
     trainingApi
       .createTraining({ newTraining: training })
       .then((res) => {
         addTrainingDetail(res);
         showToast(t('training.created', 'Training created'));
+        clearTrainingFromLocalStorage();
       })
       .catch((e) => {
         console.error('error', e);
@@ -155,17 +155,6 @@ const NewTrainingPage: Component = () => {
       .finally(() => {
         navigate('/', { replace: true });
       });
-  };
-
-  const onTrainingSessionSubmit = (trainingSession: {
-    start: Date;
-    durationMin: number;
-  }) => {
-    setScreen({ screen: 'preview' });
-    setTraining('start', trainingSession.start);
-    setTraining('durationMin', trainingSession.durationMin);
-    onSubmit(training);
-    clearTrainingFromLocalStorage();
   };
 
   const submitNewSet = () => {
