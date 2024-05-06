@@ -19,7 +19,7 @@
   "select.session": "Vyber termín",
   "set.manually": "Nastav ručne",
   "assign.session": "Priraď termín",
-  "create.training": "Vytvoriť tréning",
+  "create.new.training": "Vytvor nový tréning",
   "create.session": "Vytvoriť termín",
   "this.week": "Tento týždeň",
   "couldnt.load.trainings": "Nepodarilo sa načítať tréningy",

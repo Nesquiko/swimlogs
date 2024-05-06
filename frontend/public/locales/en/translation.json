@@ -19,7 +19,7 @@
   "select.session": "Select session",
   "set.manually": "Set manually",
   "assign.session": "Assign session",
-  "create.training": "Create training",
+  "create.new.training": "Create new training",
   "create.session": "Create session",
   "this.week": "This week",
   "couldnt.load.trainings": "Couldn't load training details for this week",

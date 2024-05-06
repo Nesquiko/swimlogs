@@ -87,3 +87,15 @@ export function minutesToHoursAndMintes(minutes: number): string {
 
   return result;
 }
+
+export function nowWithHoursInRange(min: number, max: number): Date {
+  const now = new Date();
+  let currentHour = now.getHours();
+  if (currentHour < min) {
+    currentHour = min;
+  } else if (currentHour > max) {
+    currentHour = max;
+  }
+  now.setHours(currentHour, 0, 0, 0);
+  return now;
+}

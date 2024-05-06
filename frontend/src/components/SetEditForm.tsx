@@ -75,7 +75,7 @@ const SetEditForm: Component<SetEditFormProps> = ({ set, updateSet }) => {
   };
 
   return (
-    <div class="space-y-4 px-4">
+    <div class="space-y-4">
       <IncrementalCounter
         label={t('repeat')}
         value={set.repeat}

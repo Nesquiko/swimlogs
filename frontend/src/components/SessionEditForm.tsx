@@ -1,4 +1,4 @@
-import { useTransContext } from '@mbarzda/solid-i18next';
+import { Trans, useTransContext } from '@mbarzda/solid-i18next';
 import { Component, For } from 'solid-js';
 import InlineDatepicker from '../components/InlineDatepicker';
 import { NewTraining } from 'swimlogs-api';
@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from './ui/select';
 
-const StartTimeHours = [
+export const StartTimeHours = [
   '06',
   '07',
   '08',
@@ -29,7 +29,7 @@ const StartTimeHours = [
   '20',
 ];
 
-const StartTimeMinutes = ['00', '15', '30', '45'];
+export const StartTimeMinutes = ['00', '15', '30', '45'];
 
 type Time = { label: string; value: number };
 
@@ -64,8 +64,10 @@ const SessionEditForm: Component<SessionEditFormProps> = ({
   };
 
   return (
-    <div class="space-y-4 px-4">
-      <h1 class="text-2xl">{t('training.details')}</h1>
+    <div class="space-y-4">
+      <h1 class="py-2 text-2xl font-bold text-sky-900">
+        <Trans key="training.details" />
+      </h1>
       <div>
         <h1 class="text-xl">{t('starttime')}</h1>
         <div class="flex justify-around">

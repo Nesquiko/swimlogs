@@ -25,17 +25,19 @@ import {
   moveSetUpInNewTraining,
   recalculateTotalDistance,
 } from '../lib/training';
-import TrainingPreview from '../components/TrainingPreview';
 import { cloneSet } from '../lib/clone';
 import DismissibleModal from '../components/DismissibleModal';
 import { useOnBackcontext } from './Routing';
 import { clearHeaderButton, setHeaderButton } from '../components/Header';
 import SetEditForm from '../components/SetEditForm';
-import { SmallIntMax } from '../lib/consts';
+import { defaultNewSet, SmallIntMax } from '../lib/consts';
 import { Callout, CalloutTitle } from '../components/ui/callout';
-import SessionEditForm from '../components/SessionEditForm';
+import SessionEditForm, { StartTimeHours } from '../components/SessionEditForm';
+import SetsPreview from '../components/SetsPreview';
+import TrainingSummary from '../components/TraningSummary';
+import { nowWithHoursInRange } from '../lib/datetime';
 
-type PreviewScreen = { screen: 'preview' };
+type SetsScreen = { screen: 'sets' };
 type CreateSetScreen = { screen: 'create-set' };
 type EditSetScreen = {
   screen: 'edit-set';
@@ -43,12 +45,14 @@ type EditSetScreen = {
   setStore: [get: NewTrainingSet, set: SetStoreFunction<NewTrainingSet>];
 };
 type SessionScreen = { screen: 'session' };
+type PreviewScreen = { screen: 'preview' };
 
 type PageOnScreen =
-  | PreviewScreen
+  | SetsScreen
   | CreateSetScreen
   | EditSetScreen
-  | SessionScreen;
+  | SessionScreen
+  | PreviewScreen;
 
 const NewTrainingPage: Component = () => {
   const [t] = useTransContext();
@@ -58,21 +62,20 @@ const NewTrainingPage: Component = () => {
   const [openConfirmationModal, setOpenConfirmationModal] = createSignal(false);
   const [training, setTraining] = createStore<NewTraining>(
     loadTrainingFromLocalStorage() ?? {
-      start: new Date(new Date().setHours(new Date().getHours(), 0, 0, 0)),
+      start: nowWithHoursInRange(
+        parseInt(StartTimeHours[0]),
+        parseInt(StartTimeHours[StartTimeHours.length - 1])
+      ),
       durationMin: 60,
       totalDistance: 0,
       sets: [],
     }
   );
 
-  const [screen, setScreen] = createStore<PageOnScreen>({ screen: 'preview' });
-  const [newSet, setNewSet] = createStore<NewTrainingSet>({
-    setOrder: training.sets.length,
-    repeat: 1,
-    distanceMeters: 100,
-    startType: StartTypeEnum.None,
-    totalDistance: 100,
-  });
+  const [screen, setScreen] = createStore<PageOnScreen>({ screen: 'sets' });
+  const [newSet, setNewSet] = createStore<NewTrainingSet>(
+    defaultNewSet(training.sets.length)
+  );
 
   const isSetValid = (set: NewTrainingSet) => {
     const isStartValid =
@@ -86,11 +89,13 @@ const NewTrainingPage: Component = () => {
 
   function onBackOverride() {
     if (screen.screen === 'create-set') {
-      setScreen({ screen: 'preview' });
+      setScreen({ screen: 'sets' });
     } else if (screen.screen === 'edit-set') {
-      setScreen({ screen: 'preview' });
+      setScreen({ screen: 'sets' });
     } else if (screen.screen === 'session') {
-      setScreen({ screen: 'preview' });
+      setScreen({ screen: 'sets' });
+    } else if (screen.screen === 'preview') {
+      setScreen({ screen: 'session' });
     } else {
       setOnBack();
       onBack();
@@ -101,28 +106,36 @@ const NewTrainingPage: Component = () => {
     return (
       <i
         classList={{
-          'fa-arrow-right fa-2xl': screen.screen === 'preview',
-          'fa-check fa-2xl ': screen.screen !== 'preview',
+          'fa-arrow-right fa-2xl':
+            screen.screen === 'sets' || screen.screen === 'session',
+          'fa-check fa-2xl ':
+            screen.screen === 'preview' ||
+            screen.screen === 'create-set' ||
+            screen.screen === 'edit-set',
           'text-white/50 pointer-events-none':
+            (screen.screen === 'sets' && training.sets.length === 0) ||
             (screen.screen === 'create-set' && !isSetValid(newSet)) ||
             (screen.screen === 'edit-set' && !isSetValid(screen.setStore[0])),
         }}
         class="text-right fa-solid cursor-pointer text-white"
         onClick={() => {
           switch (screen.screen) {
+            case 'sets':
+              setScreen({ screen: 'session' });
+              break;
             case 'session':
-              onSubmit();
+              setScreen({ screen: 'preview' });
               break;
             case 'create-set':
               submitNewSet();
-              setScreen({ screen: 'preview' });
+              setScreen({ screen: 'sets' });
               break;
             case 'edit-set':
               editSet();
-              setScreen({ screen: 'preview' });
+              setScreen({ screen: 'sets' });
               break;
             case 'preview':
-              setScreen({ screen: 'session' });
+              onSubmit();
               break;
           }
         }}
@@ -172,10 +185,11 @@ const NewTrainingPage: Component = () => {
     };
 
     onCreateSet(set);
+    setNewSet(defaultNewSet(training.sets.length));
   };
 
   const onCreateSet = (set: NewTrainingSet) => {
-    setScreen({ screen: 'preview' });
+    setScreen({ screen: 'sets' });
     set.setOrder = training.sets.length;
     setTraining('sets', [...training.sets, set]);
     setTraining('totalDistance', recalculateTotalDistance(training));
@@ -199,81 +213,86 @@ const NewTrainingPage: Component = () => {
       return sets;
     });
 
-    setScreen({ screen: 'preview' });
+    setScreen({ screen: 'sets' });
     setTraining('totalDistance', recalculateTotalDistance(training));
     saveTrainingToLocalStorage(training);
   };
 
   return (
-    <Switch
-      fallback={
-        <>
-          <DismissibleModal
-            open={openConfirmationModal()}
-            setOpen={setOpenConfirmationModal}
-            message={t('confirm.training.delete.message')}
-            confirmLabel={t('confirm.delete.training')}
-            cancelLabel={t('no.cancel')}
-            onConfirm={() => {
-              clearTrainingFromLocalStorage();
-              navigate('/', { replace: true });
-            }}
-          />
-          <TrainingPreview
-            training={training}
-            setOptions={[
-              {
-                text: t('edit'),
-                icon: 'fa-pen',
-                onClick: (setIdx) =>
-                  setScreen({
-                    screen: 'edit-set',
-                    setIdx,
-                    setStore: createStore(unwrap(training.sets[setIdx])),
-                  }),
-              },
-              {
-                text: t('duplicate'),
-                icon: 'fa-copy',
-                onClick: (setIdx) => {
-                  onCreateSet(cloneSet(training.sets[setIdx]));
-                  saveTrainingToLocalStorage(training);
-                },
-              },
-              {
-                text: t('move.up'),
-                icon: 'fa-arrow-up',
-                onClick: (setIdx) => {
-                  moveSetUpInNewTraining(setIdx, setTraining);
-                  saveTrainingToLocalStorage(training);
-                },
-                disabledFunc: (setIdx) => setIdx === 0,
-              },
-              {
-                text: t('move.down'),
-                icon: 'fa-arrow-down',
-                onClick: (setIdx) => {
-                  moveSetDownInNewTraining(
-                    setIdx,
-                    training.sets.length,
-                    setTraining
-                  );
-                  saveTrainingToLocalStorage(training);
-                },
-                disabledFunc: (setIdx) => setIdx === training.sets.length - 1,
-              },
-              {
-                text: t('delete'),
-                icon: 'fa-trash',
-                onClick: (setIdx) => {
-                  deleteSetInNewTraining(setIdx, setTraining);
-                  saveTrainingToLocalStorage(training);
-                },
-              },
-            ]}
-          />
+    <div class="px-4">
+      <Switch
+        fallback={
+          <div>
+            <DismissibleModal
+              open={openConfirmationModal()}
+              setOpen={setOpenConfirmationModal}
+              message={t('confirm.training.delete.message')}
+              confirmLabel={t('confirm.delete.training')}
+              cancelLabel={t('no.cancel')}
+              onConfirm={() => {
+                clearTrainingFromLocalStorage();
+                navigate('/', { replace: true });
+              }}
+            />
 
-          <div class="p-4">
+            <h1 class="text-2xl font-bold text-sky-900 py-2">
+              <Trans key="create.new.training" />
+            </h1>
+
+            <SetsPreview
+              sets={training.sets}
+              setOptions={[
+                {
+                  text: t('edit'),
+                  icon: 'fa-pen',
+                  onClick: (setIdx) =>
+                    setScreen({
+                      screen: 'edit-set',
+                      setIdx,
+                      setStore: createStore(unwrap(training.sets[setIdx])),
+                    }),
+                },
+                {
+                  text: t('duplicate'),
+                  icon: 'fa-copy',
+                  onClick: (setIdx) => {
+                    onCreateSet(cloneSet(training.sets[setIdx]));
+                    saveTrainingToLocalStorage(training);
+                  },
+                },
+                {
+                  text: t('move.up'),
+                  icon: 'fa-arrow-up',
+                  onClick: (setIdx) => {
+                    moveSetUpInNewTraining(setIdx, setTraining);
+                    saveTrainingToLocalStorage(training);
+                  },
+                  disabledFunc: (setIdx) => setIdx === 0,
+                },
+                {
+                  text: t('move.down'),
+                  icon: 'fa-arrow-down',
+                  onClick: (setIdx) => {
+                    moveSetDownInNewTraining(
+                      setIdx,
+                      training.sets.length,
+                      setTraining
+                    );
+                    saveTrainingToLocalStorage(training);
+                  },
+                  disabledFunc: (setIdx) => setIdx === training.sets.length - 1,
+                },
+                {
+                  text: t('delete'),
+                  icon: 'fa-trash',
+                  onClick: (setIdx) => {
+                    deleteSetInNewTraining(setIdx, setTraining);
+                    saveTrainingToLocalStorage(training);
+                  },
+                },
+              ]}
+            />
+
             <Show
               when={training.sets.length !== 0}
               fallback={
@@ -284,34 +303,44 @@ const NewTrainingPage: Component = () => {
                 </Callout>
               }
             >
-              <button onClick={() => setOpenConfirmationModal(true)}>
+              <button
+                class="py-4"
+                onClick={() => setOpenConfirmationModal(true)}
+              >
                 <i class="fa-solid fa-trash-can text-red-500 fa-2xl"></i>
               </button>
             </Show>
-          </div>
 
-          <button
-            class="fixed bottom-4 right-4 h-12 w-12 rounded-full bg-sky-500"
-            onClick={() => setScreen({ screen: 'create-set' })}
-          >
-            <i class="fa-solid fa-plus fa-2xl text-white"></i>
-          </button>
-        </>
-      }
-    >
-      <Match when={screen.screen === 'create-set'}>
-        <SetEditForm set={newSet} updateSet={setNewSet} />
-      </Match>
-      <Match when={screen.screen === 'edit-set'}>
-        <SetEditForm
-          set={(screen as EditSetScreen).setStore[0]}
-          updateSet={(screen as EditSetScreen).setStore[1]}
-        />
-      </Match>
-      <Match when={screen.screen === 'session'}>
-        <SessionEditForm training={training} updateTraining={setTraining} />
-      </Match>
-    </Switch>
+            <button
+              class="fixed bottom-4 right-4 h-12 w-12 rounded-full bg-sky-500"
+              onClick={() => setScreen({ screen: 'create-set' })}
+            >
+              <i class="fa-solid fa-plus fa-2xl text-white"></i>
+            </button>
+          </div>
+        }
+      >
+        <Match when={screen.screen === 'create-set'}>
+          <SetEditForm set={newSet} updateSet={setNewSet} />
+        </Match>
+        <Match when={screen.screen === 'edit-set'}>
+          <SetEditForm
+            set={(screen as EditSetScreen).setStore[0]}
+            updateSet={(screen as EditSetScreen).setStore[1]}
+          />
+        </Match>
+        <Match when={screen.screen === 'session'}>
+          <SessionEditForm training={training} updateTraining={setTraining} />
+        </Match>
+        <Match when={screen.screen === 'preview'}>
+          <TrainingSummary training={training} />
+          <h1 class="py-2 text-2xl font-bold text-sky-900">
+            <Trans key="sets" />
+          </h1>
+          <SetsPreview sets={training.sets} />
+        </Match>
+      </Switch>
+    </div>
   );
 };
 
