@@ -7,17 +7,13 @@ import TrainingSummary from './TraningSummary';
 interface TrainingPreviewPageProps {
   training: NewTraining | Training;
 
-  showSession?: boolean;
   setOptions?: Option[];
 }
 
 const TrainingPreview: Component<TrainingPreviewPageProps> = (props) => {
   return (
     <div class="space-y-4 px-4">
-      <TrainingSummary
-        training={props.training}
-        showSession={props.showSession}
-      />
+      <TrainingSummary training={props.training} />
 
       <h1 class="text-2xl font-bold text-sky-900">
         <Trans key="sets" />

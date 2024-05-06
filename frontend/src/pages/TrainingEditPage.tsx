@@ -182,7 +182,6 @@ const TrainingEditPage: Component<RouteSectionProps<TrainingEditPageProps>> = (
       <>
         <TrainingPreview
           training={training}
-          showSession={true}
           setOptions={[
             {
               text: t('edit'),

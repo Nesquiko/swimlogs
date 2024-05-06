@@ -84,7 +84,7 @@ const TrainingDisplayPage: Component<
           cancelLabel={t('no.cancel')}
           onConfirm={() => deleteTraining(params.id)}
         />
-        <TrainingPreview training={training} showSession={true} />
+        <TrainingPreview training={training} />
       </>
     );
   };

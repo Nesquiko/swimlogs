@@ -19,7 +19,7 @@ import {
 
 interface TrainingSummaryProps {
   training: NewTraining | Training;
-  showSession?: boolean;
+  onClick?: () => void;
 }
 
 type DistancePerGroup = { group: GroupEnum; distance: number };
@@ -55,7 +55,11 @@ const TrainingSummary: Component<TrainingSummaryProps> = (props) => {
   };
 
   return (
-    <Card class="max-w-lg">
+    <Card
+      classList={{ 'cursor-pointer': props.onClick !== undefined }}
+      class="max-w-lg"
+      onClick={props.onClick}
+    >
       <CardHeader>
         <CardTitle class="text-xl text-sky-900 flex justify-between">
           <span>
