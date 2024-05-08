@@ -6,11 +6,11 @@ import {
   useContext,
 } from 'solid-js';
 import Home from './Home';
-import NewTrainingPage from './NewTrainingPage';
 import TrainingHistoryPage from './TrainingsHistoryPage';
 import TrainingDisplayPage from './TrainingDisplayPage';
 import { loadTrainingById } from '../state/trainings';
 import TrainingEditPage from './TrainingEditPage';
+import TrainingCreatePage from './TrainingCreatePage';
 
 const makeOnBackContext = (
   onBack: () => void,
@@ -54,7 +54,7 @@ const Routes: Component = () => {
   return (
     <>
       <Route path="/" component={Home} />
-      <Route path="/training/new" component={NewTrainingPage} />
+      <Route path="/training/new" component={TrainingCreatePage} />
       <Route path="/training/:id">
         <Route
           path="/display"
