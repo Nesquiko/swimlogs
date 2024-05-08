@@ -1,4 +1,4 @@
-import { useTransContext } from '@mbarzda/solid-i18next';
+import { Trans, useTransContext } from '@mbarzda/solid-i18next';
 import {
   createAsync,
   RouteSectionProps,
@@ -11,9 +11,8 @@ import { showToast } from '../App';
 import DismissibleModal from '../components/DismissibleModal';
 import { ToastMode } from '../components/DismissibleToast';
 import { clearHeaderMenu, setHeaderMenu } from '../components/Header';
-import TrainingPreview, {
-  SkeletonTrainingPreview,
-} from '../components/TrainingPreview';
+import SetsPreview, { SkeletonSetsPreview } from '../components/SetsPreview';
+import TrainingSummary from '../components/TraningSummary';
 import { deleteTrainingById } from '../state/trainings';
 
 interface TrainingDisplayPageProps {
@@ -73,26 +72,28 @@ const TrainingDisplayPage: Component<
       });
   }
 
-  const trainingDisplay = (training: Training) => {
-    return (
-      <>
-        <DismissibleModal
-          open={openConfirmationModal()}
-          setOpen={setOpenConfirmationModal}
-          message={t('confirm.training.delete.message')}
-          confirmLabel={t('confirm.delete.training')}
-          cancelLabel={t('no.cancel')}
-          onConfirm={() => deleteTraining(params.id)}
-        />
-        <TrainingPreview training={training} />
-      </>
-    );
-  };
-
   return (
-    <Show when={training()} fallback={<SkeletonTrainingPreview />} keyed>
-      {trainingDisplay}
-    </Show>
+    <div class="px-4">
+      <Show when={training()} fallback={<SkeletonSetsPreview />} keyed>
+        {(training) => (
+          <>
+            <DismissibleModal
+              open={openConfirmationModal()}
+              setOpen={setOpenConfirmationModal}
+              message={t('confirm.training.delete.message')}
+              confirmLabel={t('confirm.delete.training')}
+              cancelLabel={t('no.cancel')}
+              onConfirm={() => deleteTraining(params.id)}
+            />
+            <TrainingSummary training={training} />
+            <h1 class="py-2 text-2xl font-bold text-sky-900">
+              <Trans key="sets" />
+            </h1>
+            <SetsPreview sets={training.sets} />
+          </>
+        )}
+      </Show>
+    </div>
   );
 };
 
