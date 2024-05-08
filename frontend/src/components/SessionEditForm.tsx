@@ -126,6 +126,7 @@ const SessionEditForm: Component<SessionEditFormProps> = ({
           initialDate={training.start}
           onChange={(d) => {
             const newStart = new Date(training.start);
+            newStart.setMonth(d.getMonth());
             newStart.setDate(d.getDate());
             updateTraining('start', newStart);
           }}
