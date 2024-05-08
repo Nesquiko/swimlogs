@@ -6,7 +6,8 @@
   "scripts": {
     "test": "vitest",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "compile": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
     "serve": "vite preview",
     "lint": "npx eslint 'src/**'",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json}'"
