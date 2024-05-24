@@ -1,0 +1,8 @@
+get:
+  summary: Training summaries for this week
+  tags:
+    - Trainings
+  operationId: summariesCurrentWeek
+  responses:
+    200:
+      $ref: "../components/responses/TrainingSummariesCurrentWeekResponse.yaml"

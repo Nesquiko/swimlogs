@@ -1,0 +1,39 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Id of a training
+    schema:
+      type: string
+      format: uuid
+  - name: setId
+    in: path
+    required: true
+    description: Id of a set
+    schema:
+      type: string
+      format: uuid
+
+patch:
+  summary: Edit set
+  tags:
+    - Trainings
+  operationId: editSet
+  responses:
+    200:
+      $ref: "../components/responses/EditSetResponse.yaml"
+    400:
+      $ref: "../components/responses/errors/InvalidSetResponse.yaml"
+    404:
+      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+
+delete:
+  summary: Delete a set
+  tags:
+    - Trainings
+  operationId: deleteSet
+  responses:
+    204:
+      description: Set was deleted
+    404:
+      $ref: "../components/responses/errors/NotFoundResponse.yaml"

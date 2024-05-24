@@ -1,4 +1,4 @@
-description: Paginated list of training details
+description: Paginated list of training summaries
 content:
   application/json:
     schema:
@@ -7,7 +7,12 @@ content:
         details:
           type: array
           items:
-            $ref: "../schemas/TrainingDetail.yaml"
+            $ref: "../schemas/TrainingSummary.yaml"
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
         pagination:
           $ref: "../schemas/Pagination.yaml"
       required:

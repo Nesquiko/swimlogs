@@ -9,4 +9,9 @@ content:
         details:
           type: array
           items:
-            $ref: "../schemas/TrainingDetail.yaml"
+            $ref: "../schemas/TrainingSummary.yaml"
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance

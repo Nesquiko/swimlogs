@@ -1,0 +1,7 @@
+allOf:
+  - $ref: "./ErrorDetail.yaml"
+example:
+  title: Resource was not found
+  status: 404
+  code: "not.found"
+  detail: 'Resource with id "aa1ed13a-6455-4d93-b788-bab98b08b40c" was not found'

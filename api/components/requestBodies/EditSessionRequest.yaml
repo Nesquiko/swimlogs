@@ -1,0 +1,15 @@
+description: Request for editing a training session
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMin:
+          type: integer
+          description: How long does the session last, in minutes
+          example: 60

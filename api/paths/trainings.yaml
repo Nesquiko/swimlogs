@@ -1,5 +1,5 @@
 post:
-  description: Creates new training
+  summary: Create new training
   tags:
     - Trainings
   operationId: createTraining
@@ -8,5 +8,5 @@ post:
   responses:
     201:
       $ref: "../components/responses/CreateTrainingReponse.yaml"
-    500:
-      $ref: "../components/responses/InternalServerError.yaml"
+    400:
+      $ref: "../components/responses/errors/InvalidTrainingResponse.yaml"

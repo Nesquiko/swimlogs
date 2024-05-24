@@ -15,8 +15,3 @@ properties:
     type: integer
     description: Total distance in the training in meters
     example: 2200
-required:
-  - id
-  - start
-  - durationMin
-  - totalDistance

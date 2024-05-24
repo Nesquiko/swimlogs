@@ -10,14 +10,15 @@ properties:
     example: 60
   totalDistance:
     type: integer
-    description: Sum of all distances in blocks in meters
+    description: Sum of all distances in sets in meters
     example: 2100
   sets:
     type: array
     items:
       $ref: "./NewTrainingSet.yaml"
-required:
-  - start
-  - durationMin
-  - totalDistance
-  - sets
+      required:
+        - setOrder
+        - repeat
+        - distanceMeters
+        - totalDistance
+        - startType

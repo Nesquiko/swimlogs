@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   version: 1.0.0
   title: SwimLogs API
@@ -14,7 +14,7 @@ tags:
 paths:
   /trainings:
     post:
-      description: Creates new training
+      summary: Create new training
       tags:
         - Trainings
       operationId: createTraining
@@ -23,8 +23,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/CreateTrainingReponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/InvalidTrainingResponse'
   /trainings/{id}:
     parameters:
       - name: id
@@ -35,43 +35,83 @@ paths:
           type: string
           format: uuid
     get:
-      description: Get a training with matching id
+      summary: Get a training by id
       tags:
         - Trainings
-      operationId: training
+      operationId: trainingById
       responses:
         '200':
           $ref: '#/components/responses/TrainingResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    put:
-      description: Edits training with matching id
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    patch:
+      summary: Edit training session
       tags:
         - Trainings
-      operationId: editTraining
+      operationId: editTrainingSession
       requestBody:
-        $ref: '#/components/requestBodies/EditTrainingRequest'
+        $ref: '#/components/requestBodies/EditSessionRequest'
       responses:
         '200':
           $ref: '#/components/responses/EditTrainingResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/InvalidSessionResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
     delete:
-      description: Deletes a training with matching id
+      summary: Delete a training
       tags:
         - Trainings
       operationId: deleteTraining
       responses:
         '204':
           description: Training was deleted
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /trainings/details:
-    get:
-      description: Returns paginated list of details about trainings, ordered by when they were created
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /trainings/{id}/sets/{setId}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Id of a training
+        schema:
+          type: string
+          format: uuid
+      - name: setId
+        in: path
+        required: true
+        description: Id of a set
+        schema:
+          type: string
+          format: uuid
+    patch:
+      summary: Edit set
       tags:
         - Trainings
-      operationId: trainingDetails
+      operationId: editSet
+      responses:
+        '200':
+          $ref: '#/components/responses/EditSetResponse'
+        '400':
+          $ref: '#/components/responses/InvalidSetResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    delete:
+      summary: Delete a set
+      tags:
+        - Trainings
+      operationId: deleteSet
+      responses:
+        '204':
+          description: Set was deleted
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /trainings/summaries:
+    get:
+      summary: Training summaries
+      tags:
+        - Trainings
+      operationId: summariesPage
       parameters:
         - name: page
           in: query
@@ -91,20 +131,16 @@ paths:
             minimum: 1
       responses:
         '200':
-          $ref: '#/components/responses/TrainingDetailsResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /trainings/details/current-week:
+          $ref: '#/components/responses/TrainingSummariesResponse'
+  /trainings/summaries/current-week:
     get:
-      description: Returns list of all trainings in current week
+      summary: Training summaries for this week
       tags:
         - Trainings
-      operationId: trainingDetailsCurrentWeek
+      operationId: summariesCurrentWeek
       responses:
         '200':
-          $ref: '#/components/responses/TrainingDetailsCurrentWeekResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          $ref: '#/components/responses/TrainingSummariesCurrentWeekResponse'
 components:
   schemas:
     EquipmentEnum:
@@ -161,12 +197,6 @@ components:
           example: 60
         group:
           $ref: '#/components/schemas/GroupEnum'
-      required:
-        - setOrder
-        - repeat
-        - distanceMeters
-        - totalDistance
-        - startType
     NewTraining:
       type: object
       properties:
@@ -180,18 +210,19 @@ components:
           example: 60
         totalDistance:
           type: integer
-          description: Sum of all distances in blocks in meters
+          description: Sum of all distances in sets in meters
           example: 2100
         sets:
           type: array
           items:
             $ref: '#/components/schemas/NewTrainingSet'
-      required:
-        - start
-        - durationMin
-        - totalDistance
-        - sets
-    TrainingDetail:
+            required:
+              - setOrder
+              - repeat
+              - distanceMeters
+              - totalDistance
+              - startType
+    TrainingSummary:
       type: object
       properties:
         id:
@@ -209,11 +240,6 @@ components:
           type: integer
           description: Total distance in the training in meters
           example: 2200
-      required:
-        - id
-        - start
-        - durationMin
-        - totalDistance
     ErrorDetail:
       type: object
       properties:
@@ -235,6 +261,24 @@ components:
         - status
         - code
         - detail
+    InvalidSessionError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Submitted training session is invalid
+        status: 400
+        code: training.session.invalid
+        detail: Invalid training session
+    InvalidSetError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Set is not valid
+        status: 400
+        code: invalid.set
+        detail: Set "1" is not valid
+        setId: 6c9a9b8a-a81a-4c5b-9416-0c591587f1a3
+        setOrder: 1
     TrainingSet:
       type: object
       properties:
@@ -299,12 +343,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSet'
-      required:
-        - id
-        - start
-        - durationMin
-        - totalDistance
-        - sets
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
+              - sets
+    NotFoundError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Resource was not found
+        status: 404
+        code: not.found
+        detail: Resource with id "aa1ed13a-6455-4d93-b788-bab98b08b40c" was not found
     Pagination:
       description: Pagination metadata about paginated response
       type: object
@@ -333,40 +385,103 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/NewTraining'
-    EditTrainingRequest:
-      description: Request for editing a training
+            required:
+              - start
+              - durationMin
+              - totalDistance
+              - sets
+    EditSessionRequest:
+      description: Request for editing a training session
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Training'
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+                description: On what date and time does the training occur
+              durationMin:
+                type: integer
+                description: How long does the session last, in minutes
+                example: 60
   responses:
     CreateTrainingReponse:
       description: New training was successfully created and detail about new training is returned
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TrainingDetail'
-    InternalServerError:
-      description: Internal server error
+            $ref: '#/components/schemas/TrainingSummary'
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
+    InvalidTrainingResponse:
+      description: Contains reason why training is invalid
       content:
-        application/json:
+        application/problem+json:
           schema:
-            $ref: '#/components/schemas/ErrorDetail'
+            oneOf:
+              - $ref: '#/components/schemas/InvalidSessionError'
+              - $ref: '#/components/schemas/InvalidSetError'
     TrainingResponse:
       description: Response with a training
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Training'
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
+              - sets
+    NotFoundResponse:
+      description: Resource was not found
+      content:
+        application/problem+json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/NotFoundError'
     EditTrainingResponse:
       description: Training successfully edited
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TrainingDetail'
-    TrainingDetailsResponse:
-      description: Paginated list of training details
+            $ref: '#/components/schemas/TrainingSummary'
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
+    InvalidSessionResponse:
+      description: Submitted training session is invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/InvalidSessionError'
+    EditSetResponse:
+      description: Set successfully edited
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrainingSet'
+            required:
+              - id
+              - start
+              - durationMin
+              - totalDistance
+              - sets
+    InvalidSetResponse:
+      description: Submitted training set is invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/InvalidSetError'
+    TrainingSummariesResponse:
+      description: Paginated list of training summaries
       content:
         application/json:
           schema:
@@ -375,13 +490,18 @@ components:
               details:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TrainingDetail'
+                  $ref: '#/components/schemas/TrainingSummary'
+                  required:
+                    - id
+                    - start
+                    - durationMin
+                    - totalDistance
               pagination:
                 $ref: '#/components/schemas/Pagination'
             required:
               - details
               - pagination
-    TrainingDetailsCurrentWeekResponse:
+    TrainingSummariesCurrentWeekResponse:
       description: List of training details in current week, sorted by date and start time
       content:
         application/json:
@@ -393,4 +513,9 @@ components:
               details:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TrainingDetail'
+                  $ref: '#/components/schemas/TrainingSummary'
+                  required:
+                    - id
+                    - start
+                    - durationMin
+                    - totalDistance

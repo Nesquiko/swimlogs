@@ -4,3 +4,8 @@ content:
   application/json:
     schema:
       $ref: "../schemas/NewTraining.yaml"
+      required:
+        - start
+        - durationMin
+        - totalDistance
+        - sets

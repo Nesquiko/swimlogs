@@ -1,0 +1,9 @@
+allOf:
+  - $ref: "./ErrorDetail.yaml"
+example:
+  title: Set is not valid
+  status: 400
+  code: "invalid.set"
+  detail: 'Set "1" is not valid'
+  setId: 6c9a9b8a-a81a-4c5b-9416-0c591587f1a3
+  setOrder: 1

@@ -1,8 +1,8 @@
 get:
-  description: Returns paginated list of details about trainings, ordered by when they were created
+  summary: Training summaries
   tags:
     - Trainings
-  operationId: trainingDetails
+  operationId: summariesPage
   parameters:
     - name: page
       in: query
@@ -22,6 +22,4 @@ get:
         minimum: 1
   responses:
     200:
-      $ref: "../components/responses/TrainingDetailsResponse.yaml"
-    500:
-      $ref: "../components/responses/InternalServerError.yaml"
+      $ref: "../components/responses/TrainingSummariesResponse.yaml"

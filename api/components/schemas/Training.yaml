@@ -19,9 +19,9 @@ properties:
     type: array
     items:
       $ref: "./TrainingSet.yaml"
-required:
-  - id
-  - start
-  - durationMin
-  - totalDistance
-  - sets
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
+        - sets

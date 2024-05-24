@@ -1,0 +1,11 @@
+description: Set successfully edited
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/TrainingSet.yaml"
+      required:
+        - setOrder
+        - repeat
+        - distanceMeters
+        - totalDistance
+        - startType

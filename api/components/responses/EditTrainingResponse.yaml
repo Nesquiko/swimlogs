@@ -2,4 +2,9 @@ description: Training successfully edited
 content:
   application/json:
     schema:
-      $ref: "../schemas/TrainingDetail.yaml"
+      $ref: "../schemas/TrainingSummary.yaml"
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance

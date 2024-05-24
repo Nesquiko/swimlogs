@@ -1,6 +1,0 @@
-description: Request for editing a training
-required: true
-content:
-  application/json:
-    schema:
-      $ref: "../schemas/Training.yaml"

@@ -8,36 +8,38 @@ parameters:
       format: uuid
 
 get:
-  description: Get a training with matching id
+  summary: Get a training by id
   tags:
     - Trainings
-  operationId: training
+  operationId: trainingById
   responses:
     200:
       $ref: "../components/responses/TrainingResponse.yaml"
-    500:
-      $ref: "../components/responses/InternalServerError.yaml"
+    404:
+      $ref: "../components/responses/errors/NotFoundResponse.yaml"
 
-put:
-  description: Edits training with matching id
+patch:
+  summary: Edit training session
   tags:
     - Trainings
-  operationId: editTraining
+  operationId: editTrainingSession
   requestBody:
-    $ref: "../components/requestBodies/EditTrainingRequest.yaml"
+    $ref: "../components/requestBodies/EditSessionRequest.yaml"
   responses:
     200:
       $ref: "../components/responses/EditTrainingResponse.yaml"
-    500:
-      $ref: "../components/responses/InternalServerError.yaml"
+    400:
+      $ref: "../components/responses/errors/InvalidSessionResponse.yaml"
+    404:
+      $ref: "../components/responses/errors/NotFoundResponse.yaml"
 
 delete:
-  description: Deletes a training with matching id
+  summary: Delete a training
   tags:
     - Trainings
   operationId: deleteTraining
   responses:
     204:
       description: Training was deleted
-    500:
-      $ref: "../components/responses/InternalServerError.yaml"
+    404:
+      $ref: "../components/responses/errors/NotFoundResponse.yaml"

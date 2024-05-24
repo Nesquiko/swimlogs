@@ -2,4 +2,9 @@ description: New training was successfully created and detail about new training
 content:
   application/json:
     schema:
-      $ref: "../schemas/TrainingDetail.yaml"
+      $ref: "../schemas/TrainingSummary.yaml"
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
