@@ -108,5 +108,6 @@
   "sprint": "Sprint",
   "distance.per.group": "Distance swam per group",
   "sets": "Sets",
-  "at": "at"
+  "at": "at",
+  "edit.training.sets": "Edit training sets"
 }

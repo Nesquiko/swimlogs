@@ -1,6 +1,5 @@
 import { Trans, useTransContext } from '@mbarzda/solid-i18next';
 import {
-  Component,
   createSignal,
   Match,
   onCleanup,
@@ -49,21 +48,24 @@ export type TrainingProcessScreen =
   | SessionScreen
   | PreviewScreen;
 
-interface TrainingEditProcessProps {
-  training: NewTraining | Training;
+interface TrainingEditProcessProps<T extends NewTraining | Training> {
+  training: T;
   setTraining: SetStoreFunction<NewTraining | Training>;
-  onSubmit: (training: NewTraining | Training) => void;
-  onUpdate?: (Training: NewTraining | Training) => void;
-  onDelete: () => void;
+  onSubmit: (training: T) => void;
+  onUpdate?: (training: T) => void;
+  onDelete?: () => void;
+
+  labels?: Partial<{ setsPreviewLabel: string }>;
 }
 
-const TrainingEditProcess: Component<TrainingEditProcessProps> = ({
+const TrainingEditProcess = <T extends NewTraining | Training>({
   training,
   setTraining,
   onSubmit,
   onUpdate,
   onDelete,
-}) => {
+  labels,
+}: TrainingEditProcessProps<T>) => {
   const [t] = useTransContext();
   const [onBack, setOnBack] = useOnBackcontext();
 
@@ -101,7 +103,7 @@ const TrainingEditProcess: Component<TrainingEditProcessProps> = ({
   }
 
   const submitNewSet = () => {
-    const set: NewTrainingSet = {
+    const set: any = {
       setOrder: newSet.setOrder,
       repeat: newSet.repeat,
       distanceMeters: newSet.distanceMeters,
@@ -114,16 +116,20 @@ const TrainingEditProcess: Component<TrainingEditProcessProps> = ({
       group: newSet.group,
     };
 
+    if ('id' in training) {
+      set.id = crypto.randomUUID();
+    }
+
     onCreateSet(set);
     setNewSet(defaultNewSet(training.sets.length));
   };
 
   const onCreateSet = (set: NewTrainingSet) => {
-    setScreen({ screen: 'sets' });
     set.setOrder = training.sets.length;
     setTraining('sets', [...training.sets, set]);
     setTraining('totalDistance', recalculateTotalDistance(training));
     onUpdate?.(training);
+    setScreen({ screen: 'sets' });
   };
 
   const editSet = () => {
@@ -203,16 +209,18 @@ const TrainingEditProcess: Component<TrainingEditProcessProps> = ({
     <Switch
       fallback={
         <div>
-          <DismissibleModal
-            open={openConfirmationModal()}
-            setOpen={setOpenConfirmationModal}
-            message={t('confirm.training.delete.message')}
-            confirmLabel={t('confirm.delete.training')}
-            cancelLabel={t('no.cancel')}
-            onConfirm={onDelete}
-          />
+          {onDelete && (
+            <DismissibleModal
+              open={openConfirmationModal()}
+              setOpen={setOpenConfirmationModal}
+              message={t('confirm.training.delete.message')}
+              confirmLabel={t('confirm.delete.training')}
+              cancelLabel={t('no.cancel')}
+              onConfirm={onDelete}
+            />
+          )}
           <h1 class="text-2xl font-bold text-sky-900 py-2">
-            <Trans key={'create.new.training'} />
+            <Trans key={labels?.setsPreviewLabel ?? 'create.new.training'} />
           </h1>
 
           <SetsPreview
@@ -269,16 +277,15 @@ const TrainingEditProcess: Component<TrainingEditProcessProps> = ({
             ]}
           />
 
-          <Show
-            when={training.sets.length !== 0}
-            fallback={
-              <Callout>
-                <CalloutTitle class="whitespace-pre-line">
-                  <Trans key="no.sets.in.training" />
-                </CalloutTitle>
-              </Callout>
-            }
-          >
+          <Show when={training.sets.length === 0}>
+            <Callout>
+              <CalloutTitle class="whitespace-pre-line">
+                <Trans key="no.sets.in.training" />
+              </CalloutTitle>
+            </Callout>
+          </Show>
+
+          <Show when={onDelete && training.sets.length !== 0}>
             <button class="py-4" onClick={() => setOpenConfirmationModal(true)}>
               <i class="fa-solid fa-trash-can text-red-500 fa-2xl"></i>
             </button>

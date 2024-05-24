@@ -9,5 +9,6 @@ export const defaultNewSet = (setOrder: number): NewTrainingSet => {
     distanceMeters: 100,
     startType: StartTypeEnum.None,
     totalDistance: 100,
+    equipment: [],
   };
 };
