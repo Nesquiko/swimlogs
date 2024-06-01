@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
+	"io"
+	"log/slog"
+	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
 	"time"
 	_ "time/tzdata"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -16,76 +20,101 @@ import (
 )
 
 const (
-	AppHostEnvVar       = "APP_HOST"
-	AppPortEnvVar       = "APP_PORT"
-	AppDebugLevelEnvVar = "APP_DEBUG_LEVEL"
-
-	DbHostEnvVar = "DATABASE_HOST"
-	DbPortEnvVar = "DATABASE_PORT"
-	DbNameEnvVar = "DATABASE_NAME"
-	DbUserEnvVar = "DATABASE_USER"
-	DbPassEnvVar = "DATABASE_PASSWORD"
-
-	FEOriginEnvVar = "FE_ORIGIN"
+	AppHostDefault  = "localhost"
+	AppPortDefault  = "42069"
+	LogLevelDefault = slog.LevelInfo
+	DbHostDefault   = "localhost"
+	DbPortDefault   = "5432"
+	DbUserDefault   = "swimlogs"
+	DbPassDefault   = "swimlogs"
+	DbNameDefault   = "swimlogs"
+	FEOriginDefault = "http://localhost:3000"
+	TzDefault       = "Europe/Bratislava"
 )
 
-func main() {
-	appHost := flag.String("host", os.Getenv(AppHostEnvVar), "application host")
-	appPort := flag.String("port", os.Getenv(AppPortEnvVar), "application port")
-	appDebugLevel := flag.Int(
-		"debug-level",
-		1,
-		"application debug level (trace = -1, debug = 0, info = 1, warn = 2, error = 3, fatal = 4, panic = 5)",
+func run(ctx context.Context, w io.Writer, args []string) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	flags := flag.NewFlagSet("flags", flag.ExitOnError)
+
+	host := flags.String("host", AppHostDefault, "application host")
+	port := flags.String("port", AppPortDefault, "application port")
+	logLevel := flags.Int(
+		"log",
+		int(LogLevelDefault),
+		"application log level",
 	)
 
-	dbHost := flag.String("db-host", os.Getenv(DbHostEnvVar), "db host")
-	dbPort := flag.String("db-port", os.Getenv(DbPortEnvVar), "db port")
-	dbUser := flag.String("db-user", os.Getenv(DbUserEnvVar), "user connecting to db")
-	dbPass := flag.String("db-pass", os.Getenv(DbPassEnvVar), "password for connecting to db")
-	dbName := flag.String("db-name", os.Getenv(DbNameEnvVar), "to which db to connnect")
+	dbHost := flags.String("db-host", DbHostDefault, "db host")
+	dbPort := flags.String("db-port", DbPortDefault, "db port")
+	dbUser := flags.String("db-user", DbUserDefault, "user connecting to db")
+	dbPass := flags.String("db-pass", DbPassDefault, "password for connecting to db")
+	dbName := flags.String("db-name", DbNameDefault, "to which db to connnect")
 
-	feOrigin := flag.String("fe-origin", os.Getenv(FEOriginEnvVar), "frontend origin")
-	_ = feOrigin
+	feOrigin := flags.String("fe-origin", FEOriginDefault, "frontend origin")
+	tz := flags.String("tz", TzDefault, "timezone in which the app is running")
+	flags.Parse(args)
 
-	jsonLogs := flag.Bool("json-logs", false, "whether to log in json format")
-
-	tz := flag.String("tz", os.Getenv("TZ"), "timezone in which the app is running")
-	flag.Parse()
-
-	zerolog.SetGlobalLevel(zerolog.Level(*appDebugLevel))
-	log.Logger = log.With().Caller().Logger()
-	if !*jsonLogs {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, FormatTimestamp: func(i interface{}) string { return time.Now().Format("2006-01-02 15:04:05.000") }}).
-			With().
-			Caller().
-			Logger()
-	}
+	logger := slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.Level(*logLevel),
+	}))
 
 	loc, err := time.LoadLocation(*tz)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to load timezone")
+		logger.Error("failed to load timezone", slog.String("err", err.Error()))
+		return err
 	}
-	log.Info().Str("tz", loc.String()).Msg("loaded timezone")
+	logger.Info("loaded timezone", slog.String("tz", loc.String()))
 	time.Local = loc
 
 	conStr := data.ConnectionString(*dbUser, *dbPass, *dbHost, *dbName, *dbPort)
 	pool, err := data.NewPostgresPool(conStr, "migrations")
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to connect to database")
+		logger.Error("failed to connect to database", slog.String("err", err.Error()))
 	}
 	defer pool.Close()
 
 	if err := pool.MigrateUp(true); err != nil {
-		log.Fatal().Err(err).Msg("failed to migrate up")
+		logger.Error("failed to migrate up", slog.String("err", err.Error()))
 	}
 
-	swimlogs := app.New(pool)
-	h := server.NewServerHandler(swimlogs, *feOrigin)
+	app := app.New(pool)
+	srv := server.NewServer(app, logger, *feOrigin)
 
-	addr := *appHost + ":" + *appPort
-	log.Info().Str("addr", addr).Msg("starting server")
+	httpServer := &http.Server{
+		Addr:    net.JoinHostPort(*host, *port),
+		Handler: srv,
+	}
 
-	if err := http.ListenAndServe(addr, h); err != nil {
-		log.Fatal().Err(err).Msg("handler failed")
+	go func() {
+		logger.Info("starting server", slog.String("addr", httpServer.Addr))
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("error listening and serving", slog.String("err", err.Error()))
+		}
+	}()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
+		shutdownCtx := context.Background()
+		shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error("error shutting down http server", slog.String("err", err.Error()))
+		}
+	}()
+	wg.Wait()
+	return nil
+}
+
+func main() {
+	ctx := context.Background()
+	if err := run(ctx, os.Stdout, os.Args); err != nil {
+		fmt.Println(os.Stderr, "%s\n", err)
+		os.Exit(1)
 	}
 }
