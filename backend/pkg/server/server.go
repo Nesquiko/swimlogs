@@ -1,141 +1,301 @@
 package server
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
-	"io"
+	"log/slog"
 	"net/http"
-	"strings"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
+	"github.com/google/uuid"
 
 	"github.com/Nesquiko/swimlogs/apidef"
 	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
 const (
-	ContentType     = "Content-Type"
-	ApplicationJSON = "application/json"
-	MaxBytes        = 1_048_576
+	ContentType            = "Content-Type"
+	ApplicationJSON        = "application/json"
+	ApplicationProblemJSON = "application/problem+json"
+	MaxBytes               = 1_048_576
+
+	EncodingError   = "unexptected encoding error"
+	UnexpectedError = "unexptected error"
 )
 
 type SwimLogsServer struct {
-	app app.SwimLogsApp
+	app    app.SwimLogsApp
+	logger *slog.Logger
 }
 
-func NewServerHandler(app app.SwimLogsApp, feOrigin string) http.Handler {
-	s := SwimLogsServer{app}
+type ApiError struct {
+	apidef.ErrorDetail
+}
 
+func (e *ApiError) Error() string {
+	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
+}
+
+func NewServer(app app.SwimLogsApp, logger *slog.Logger, feOrigin string) http.Handler {
 	r := chi.NewRouter()
-	serverOpts := apidef.ChiServerOptions{
-		BaseRouter:  r,
-		Middlewares: publicMiddleware(feOrigin),
+
+	srv := SwimLogsServer{
+		app:    app,
+		logger: logger,
 	}
 
-	// group for handling OPTIONS requests
-	r.Group(func(r chi.Router) {
-		r.Use(cors(feOrigin))
-		r.Options(serverOpts.BaseURL+"/*", nil)
-	})
+	r.Post("/trainings", handleInOut(srv.CreateTraining, srv.logger))
+	r.Get(
+		"/trainings/summaries",
+		handleQueryOut(pageParamsExtractor, srv.SummariesPage, srv.logger),
+	)
+	r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek, srv.logger))
+	r.Delete("/trainings/{id}", handlePathStatus(pathIdExtractor, srv.DeleteTraining, srv.logger))
+	r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById, srv.logger))
+	r.Patch(
+		"/trainings/{id}",
+		handlePathInOut(pathIdExtractor, srv.EditTrainingSession, srv.logger),
+	)
+	r.Delete(
+		"/trainings/{id}/sets/{setId}",
+		handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet, srv.logger),
+	)
+	r.Patch(
+		"/trainings/{id}/sets/{setId}",
+		handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet, srv.logger),
+	)
 
-	r.Group(func(r chi.Router) {
-		r.Get(serverOpts.BaseURL+"/monitoring/heartbeat", s.Heartbeat)
-	})
+	// TODO options, and head
 
-	return apidef.HandlerWithOptions(&s, serverOpts)
+	return r
 }
 
-func respondWithCode(w http.ResponseWriter, code int) {
-	w.WriteHeader(code)
-}
+type (
+	EmptyType struct{}
 
-func respondWithJSON(w http.ResponseWriter, code int, response any) {
-	w.Header().Set(ContentType, ApplicationJSON)
-	w.WriteHeader(code)
+	PathParamsConv[PP any]  func(r *http.Request) (PP, error)
+	QueryParamsConv[QP any] func(r *http.Request) (QP, error)
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Error().Err(err).Msg("Failed to encode response")
-		w.WriteHeader(http.StatusInternalServerError)
+	OutFunc[Out any]          func(context.Context) (Out, int, error)
+	InOutFunc[In, Out any]    func(context.Context, In) (Out, int, error)
+	QueryOutFunc[QP, Out any] func(context.Context, QP) (Out, int, error)
+
+	PathStatusFunc[PP any]         func(context.Context, PP) (int, error)
+	PathOutFunc[PP, Out any]       func(context.Context, PP) (Out, int, error)
+	PathInOutFunc[PP, In, Out any] func(context.Context, PP, In) (Out, int, error)
+
+	TargetFunc[PP, QP, In, Out any] func(context.Context, PP, QP, In) (Out, int, error)
+)
+
+var EmptyFunc = func(r *http.Request) (EmptyType, error) { return EmptyType{}, nil }
+
+func handleOut[Out any](f OutFunc[Out], logger *slog.Logger) http.HandlerFunc {
+	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in EmptyType) (Out, int, error) {
+		return f(ctx)
 	}
+	return handle(tf, EmptyFunc, EmptyFunc, logger)
 }
 
-func readJSON[T any](w http.ResponseWriter, r *http.Request) (T, error) {
-	var dst T
-	r.Body = http.MaxBytesReader(w, r.Body, int64(MaxBytes))
+func handleInOut[In, Out any](f InOutFunc[In, Out], logger *slog.Logger) http.HandlerFunc {
+	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in In) (Out, int, error) {
+		return f(ctx, in)
+	}
+	return handle(tf, EmptyFunc, EmptyFunc, logger)
+}
 
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
+func handleQueryOut[QP, Out any](
+	qpConv QueryParamsConv[QP],
+	f InOutFunc[QP, Out],
+	logger *slog.Logger,
+) http.HandlerFunc {
+	tf := func(ctx context.Context, pp EmptyType, qp QP, in EmptyType) (Out, int, error) {
+		return f(ctx, qp)
+	}
+	return handle(tf, EmptyFunc, qpConv, logger)
+}
 
-	err := dec.Decode(&dst)
-	if err != nil {
-		var syntaxErr *json.SyntaxError
-		var unmarshalTypeErr *json.UnmarshalTypeError
-		var invalidUnmarshalErr *json.InvalidUnmarshalError
+func handlePathStatus[PP any](
+	ppConv PathParamsConv[PP],
+	f PathStatusFunc[PP],
+	logger *slog.Logger,
+) http.HandlerFunc {
+	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (EmptyType, int, error) {
+		status, err := f(ctx, pp)
+		return EmptyType{}, status, err
+	}
+	return handle(tf, ppConv, EmptyFunc, logger)
+}
 
-		invalidFieldPrefix := "json: unknown field "
-		largeBodyErrorStr := "http: request body too large"
+func handlePathOut[PP, Out any](
+	ppConv PathParamsConv[PP],
+	f PathOutFunc[PP, Out],
+	logger *slog.Logger,
+) http.HandlerFunc {
+	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (Out, int, error) {
+		return f(ctx, pp)
+	}
+	return handle(tf, ppConv, EmptyFunc, logger)
+}
 
-		switch {
-		case errors.As(err, &syntaxErr):
-			log.Debug().
-				Err(err).
-				Msgf("body contains badly-formed JSON (at character %d)", syntaxErr.Offset)
-			return dst, fmt.Errorf(
-				"body contains badly-formed JSON (at character %d)",
-				syntaxErr.Offset,
-			)
+func handlePathInOut[PP, In, Out any](
+	ppConv PathParamsConv[PP],
+	f PathInOutFunc[PP, In, Out],
+	logger *slog.Logger,
+) http.HandlerFunc {
+	tf := func(ctx context.Context, pp PP, qp EmptyType, in In) (Out, int, error) {
+		return f(ctx, pp, in)
+	}
+	return handle(tf, ppConv, EmptyFunc, logger)
+}
 
-		case errors.Is(err, io.ErrUnexpectedEOF):
-			log.Debug().Err(err).Msg("body contains badly-formed JSON")
-			return dst, errors.New("body contains badly-formed JSON")
-
-		case errors.As(err, &unmarshalTypeErr):
-			if unmarshalTypeErr.Field != "" {
-				log.Debug().
-					Err(err).
-					Msgf("body contains incorrect JSON type for field %q", unmarshalTypeErr.Field)
-				return dst, fmt.Errorf(
-					"body contains incorrect JSON type for field %q",
-					unmarshalTypeErr.Field,
-				)
-			}
-			log.Debug().
-				Err(err).
-				Msgf("body contains incorrect JSON type (at character %d)", unmarshalTypeErr.Offset)
-			return dst, fmt.Errorf(
-				"body contains incorrect JSON type (at character %d)",
-				unmarshalTypeErr.Offset,
-			)
-
-		case errors.Is(err, io.EOF):
-			log.Debug().Err(err).Msg("body must not be empty")
-			return dst, errors.New("body must not be empty")
-
-		case strings.HasPrefix(err.Error(), invalidFieldPrefix):
-			fieldName := strings.TrimPrefix(err.Error(), invalidFieldPrefix)
-			log.Debug().Msgf("body contains unknown key %s", fieldName)
-			return dst, fmt.Errorf("body contains unknown key %s", fieldName)
-
-		case err.Error() == largeBodyErrorStr:
-			log.Debug().Err(err).Msg("body is too large")
-			return dst, fmt.Errorf("body must not be larger than %d bytes", MaxBytes)
-
-		case errors.As(err, &invalidUnmarshalErr):
-			log.Error().Err(err).Msg("invalid unmarshal target")
-
-		default:
-			log.Error().Err(err).Msg("failed to decode request body")
-			return dst, err
+func handle[PP, QP, In, Out any](
+	f TargetFunc[PP, QP, In, Out],
+	ppFunc PathParamsConv[PP],
+	qpFunc QueryParamsConv[QP],
+	logger *slog.Logger,
+) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		in, err := decode[In](w, r)
+		if err != nil {
+			apiErr := badRequest(err)
+			encodeError(w, apiErr, logger)
+			return
 		}
+
+		var apiErr *ApiError
+		ppParams, err := ppFunc(r)
+		if err != nil {
+			if errors.As(err, &apiErr) {
+				encodeError(w, apiErr, logger)
+				return
+			}
+			slog.Error(
+				UnexpectedError,
+				slog.String("where", "path-params"),
+				slog.String("error", err.Error()),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+		qpParams, err := qpFunc(r)
+		if err != nil {
+			if errors.As(err, &apiErr) {
+				encodeError(w, apiErr, logger)
+				return
+			}
+			slog.Error(
+				UnexpectedError,
+				slog.String("where", "query-params"),
+				slog.String("error", err.Error()),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+
+		out, status, err := f(r.Context(), ppParams, qpParams, in)
+		if err != nil {
+			if errors.As(err, &apiErr) {
+				encodeError(w, apiErr, logger)
+				return
+			}
+			slog.Error(
+				UnexpectedError,
+				slog.String("where", "handler"),
+				slog.String("error", err.Error()),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+
+		encode(w, status, out, logger)
+	})
+}
+
+func pageParamsExtractor(r *http.Request) (apidef.SummariesPageParams, error) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		return apidef.SummariesPageParams{}, invalidQueryParam(
+			"page",
+			r.URL.Query().Get("page"),
+		)
 	}
 
-	err = dec.Decode(&struct{}{})
-	if err != io.EOF {
-		log.Debug().Err(err).Msg("body must only contain a single JSON value")
-		return dst, errors.New("body must only contain a single JSON value")
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	if err != nil {
+		return apidef.SummariesPageParams{}, invalidQueryParam(
+			"pageSize",
+			r.URL.Query().Get("pageSize"),
+		)
 	}
 
-	return dst, nil
+	return apidef.SummariesPageParams{
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
+}
+
+func pathIdExtractor(r *http.Request) (uuid.UUID, error) {
+	id := chi.URLParam(r, "id")
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.UUID{}, invalidPathParam("id", id)
+	}
+	return uid, nil
+}
+
+type IdSetId struct {
+	id    uuid.UUID
+	setId uuid.UUID
+}
+
+func pathIdAndSetIdExtractor(r *http.Request) (IdSetId, error) {
+	id := chi.URLParam(r, "id")
+	setId := chi.URLParam(r, "setId")
+	uid, err := uuid.Parse(id)
+	ids := IdSetId{}
+
+	if err != nil {
+		return IdSetId{}, invalidPathParam("id", id)
+	}
+	ids.id = uid
+
+	setUid, err := uuid.Parse(setId)
+	if err != nil {
+		return IdSetId{}, invalidPathParam("setId", setId)
+	}
+	ids.setId = setUid
+
+	return ids, nil
+}
+
+func invalidQueryParam(param, value string) *ApiError {
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:   "invalid.query.param",
+			Detail: fmt.Sprintf("Invalid %q: %q", param, value),
+			Status: http.StatusBadRequest,
+			Title:  fmt.Sprintf("Invalid query param %q: %q", param, value),
+		},
+	}
+}
+
+func invalidPathParam(param, value string) *ApiError {
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:   "invalid.path.param",
+			Detail: fmt.Sprintf("Invalid %q: %q", param, value),
+			Status: http.StatusBadRequest,
+			Title:  fmt.Sprintf("Invalid path param %q: %q", param, value),
+		},
+	}
+}
+
+func badRequest(err error) *ApiError {
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:   "invalid.request",
+			Title:  "Bad request",
+			Detail: fmt.Sprintf("Request was invalid due to %q", err.Error()),
+			Status: http.StatusBadRequest,
+		},
+	}
 }
