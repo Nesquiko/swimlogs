@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/google/uuid"
 
 	"github.com/Nesquiko/swimlogs/apidef"
@@ -27,7 +28,7 @@ const (
 
 type SwimLogsServer struct {
 	app    app.SwimLogsApp
-	logger *slog.Logger
+	logger *httplog.Logger
 }
 
 type ApiError struct {
@@ -38,7 +39,7 @@ func (e *ApiError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
-func NewServer(app app.SwimLogsApp, logger *slog.Logger, feOrigin string) http.Handler {
+func NewServer(app app.SwimLogsApp, logger *httplog.Logger, feOrigin string) http.Handler {
 	r := chi.NewRouter()
 
 	srv := SwimLogsServer{
@@ -46,28 +47,36 @@ func NewServer(app app.SwimLogsApp, logger *slog.Logger, feOrigin string) http.H
 		logger: logger,
 	}
 
-	r.Post("/trainings", handleInOut(srv.CreateTraining, srv.logger))
-	r.Get(
-		"/trainings/summaries",
-		handleQueryOut(pageParamsExtractor, srv.SummariesPage, srv.logger),
-	)
-	r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek, srv.logger))
-	r.Delete("/trainings/{id}", handlePathStatus(pathIdExtractor, srv.DeleteTraining, srv.logger))
-	r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById, srv.logger))
-	r.Patch(
-		"/trainings/{id}",
-		handlePathInOut(pathIdExtractor, srv.EditTrainingSession, srv.logger),
-	)
-	r.Delete(
-		"/trainings/{id}/sets/{setId}",
-		handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet, srv.logger),
-	)
-	r.Patch(
-		"/trainings/{id}/sets/{setId}",
-		handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet, srv.logger),
-	)
+	r.Use(topLevelMiddleware(feOrigin)...)
+	r.Options("/*", nil)
 
-	// TODO options, and head
+	r.Group(func(r chi.Router) {
+		r.Use(publicMiddleware(logger)...)
+
+		r.Post("/trainings", handleInOut(srv.CreateTraining, srv.logger))
+		r.Get(
+			"/trainings/summaries",
+			handleQueryOut(pageParamsExtractor, srv.SummariesPage, srv.logger),
+		)
+		r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek, srv.logger))
+		r.Delete(
+			"/trainings/{id}",
+			handlePathStatus(pathIdExtractor, srv.DeleteTraining, srv.logger),
+		)
+		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById, srv.logger))
+		r.Patch(
+			"/trainings/{id}",
+			handlePathInOut(pathIdExtractor, srv.EditTrainingSession, srv.logger),
+		)
+		r.Delete(
+			"/trainings/{id}/sets/{setId}",
+			handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet, srv.logger),
+		)
+		r.Patch(
+			"/trainings/{id}/sets/{setId}",
+			handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet, srv.logger),
+		)
+	})
 
 	return r
 }
@@ -91,14 +100,14 @@ type (
 
 var EmptyFunc = func(r *http.Request) (EmptyType, error) { return EmptyType{}, nil }
 
-func handleOut[Out any](f OutFunc[Out], logger *slog.Logger) http.HandlerFunc {
+func handleOut[Out any](f OutFunc[Out], logger *httplog.Logger) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in EmptyType) (Out, int, error) {
 		return f(ctx)
 	}
 	return handle(tf, EmptyFunc, EmptyFunc, logger)
 }
 
-func handleInOut[In, Out any](f InOutFunc[In, Out], logger *slog.Logger) http.HandlerFunc {
+func handleInOut[In, Out any](f InOutFunc[In, Out], logger *httplog.Logger) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in In) (Out, int, error) {
 		return f(ctx, in)
 	}
@@ -108,7 +117,7 @@ func handleInOut[In, Out any](f InOutFunc[In, Out], logger *slog.Logger) http.Ha
 func handleQueryOut[QP, Out any](
 	qpConv QueryParamsConv[QP],
 	f InOutFunc[QP, Out],
-	logger *slog.Logger,
+	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp QP, in EmptyType) (Out, int, error) {
 		return f(ctx, qp)
@@ -119,7 +128,7 @@ func handleQueryOut[QP, Out any](
 func handlePathStatus[PP any](
 	ppConv PathParamsConv[PP],
 	f PathStatusFunc[PP],
-	logger *slog.Logger,
+	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (EmptyType, int, error) {
 		status, err := f(ctx, pp)
@@ -131,7 +140,7 @@ func handlePathStatus[PP any](
 func handlePathOut[PP, Out any](
 	ppConv PathParamsConv[PP],
 	f PathOutFunc[PP, Out],
-	logger *slog.Logger,
+	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (Out, int, error) {
 		return f(ctx, pp)
@@ -142,7 +151,7 @@ func handlePathOut[PP, Out any](
 func handlePathInOut[PP, In, Out any](
 	ppConv PathParamsConv[PP],
 	f PathInOutFunc[PP, In, Out],
-	logger *slog.Logger,
+	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in In) (Out, int, error) {
 		return f(ctx, pp, in)
@@ -154,7 +163,7 @@ func handle[PP, QP, In, Out any](
 	f TargetFunc[PP, QP, In, Out],
 	ppFunc PathParamsConv[PP],
 	qpFunc QueryParamsConv[QP],
-	logger *slog.Logger,
+	logger *httplog.Logger,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		in, err := decode[In](w, r)
@@ -171,7 +180,7 @@ func handle[PP, QP, In, Out any](
 				encodeError(w, apiErr, logger)
 				return
 			}
-			slog.Error(
+			logger.Error(
 				UnexpectedError,
 				slog.String("where", "path-params"),
 				slog.String("error", err.Error()),
@@ -184,7 +193,7 @@ func handle[PP, QP, In, Out any](
 				encodeError(w, apiErr, logger)
 				return
 			}
-			slog.Error(
+			logger.Error(
 				UnexpectedError,
 				slog.String("where", "query-params"),
 				slog.String("error", err.Error()),
@@ -198,7 +207,7 @@ func handle[PP, QP, In, Out any](
 				encodeError(w, apiErr, logger)
 				return
 			}
-			slog.Error(
+			logger.Error(
 				UnexpectedError,
 				slog.String("where", "handler"),
 				slog.String("error", err.Error()),

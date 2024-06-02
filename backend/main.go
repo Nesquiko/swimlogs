@@ -14,6 +14,8 @@ import (
 	"time"
 	_ "time/tzdata"
 
+	"github.com/go-chi/httplog/v2"
+
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 	"github.com/Nesquiko/swimlogs/pkg/server"
@@ -43,7 +45,7 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	logLevel := flags.Int(
 		"log",
 		int(LogLevelDefault),
-		"application log level",
+		"application log level (-4, 0, 4, 8)",
 	)
 
 	dbHost := flags.String("db-host", DbHostDefault, "db host")
@@ -56,10 +58,9 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	tz := flags.String("tz", TzDefault, "timezone in which the app is running")
 	flags.Parse(args)
 
-	logger := slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
-		AddSource: false,
-		Level:     slog.Level(*logLevel),
-	}))
+	logger := httplog.NewLogger("swimlogs-api", httplog.Options{
+		LogLevel: slog.Level(*logLevel),
+	})
 
 	loc, err := time.LoadLocation(*tz)
 	if err != nil {
