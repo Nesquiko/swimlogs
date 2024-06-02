@@ -3,8 +3,3 @@ content:
   application/json:
     schema:
       $ref: "../schemas/TrainingSummary.yaml"
-      required:
-        - id
-        - start
-        - durationMin
-        - totalDistance

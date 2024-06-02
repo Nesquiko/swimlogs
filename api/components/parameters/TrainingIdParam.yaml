@@ -1,0 +1,7 @@
+name: trainingId
+in: path
+required: true
+description: Id of a training
+schema:
+  type: string
+  format: uuid

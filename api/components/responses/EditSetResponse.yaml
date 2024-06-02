@@ -2,10 +2,15 @@ description: Set successfully edited
 content:
   application/json:
     schema:
-      $ref: "../schemas/TrainingSet.yaml"
+      type: object
+      properties:
+        totalDistance:
+          type: integer
+          description: New recalculated total distance of the training
+          example: 2100
+        set:
+          description: updated set
+          $ref: "../schemas/TrainingSet.yaml"
       required:
-        - setOrder
-        - repeat
-        - distanceMeters
         - totalDistance
-        - startType
+        - set

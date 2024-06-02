@@ -29,3 +29,9 @@ properties:
     example: 60
   group:
     $ref: "./GroupEnum.yaml"
+required:
+  - setOrder
+  - repeat
+  - distanceMeters
+  - totalDistance
+  - startType

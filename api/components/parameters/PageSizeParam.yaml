@@ -1,0 +1,8 @@
+name: pageSize
+in: query
+required: true
+description: How many resources to return
+schema:
+  type: integer
+  example: 10
+  minimum: 1

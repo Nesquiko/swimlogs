@@ -4,7 +4,7 @@ content:
     schema:
       type: object
       properties:
-        details:
+        summaries:
           type: array
           items:
             $ref: "../schemas/TrainingSummary.yaml"
@@ -16,5 +16,5 @@ content:
         pagination:
           $ref: "../schemas/Pagination.yaml"
       required:
-        - details
+        - summaries
         - pagination

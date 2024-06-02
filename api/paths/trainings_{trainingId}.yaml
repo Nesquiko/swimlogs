@@ -1,11 +1,5 @@
 parameters:
-  - name: id
-    in: path
-    required: true
-    description: Id of a training
-    schema:
-      type: string
-      format: uuid
+  - $ref: "../components/parameters/TrainingIdParam.yaml"
 
 get:
   summary: Get a training by id
@@ -27,7 +21,7 @@ patch:
     $ref: "../components/requestBodies/EditSessionRequest.yaml"
   responses:
     200:
-      $ref: "../components/responses/EditTrainingResponse.yaml"
+      $ref: "../components/responses/EditSessionResponse.yaml"
     400:
       $ref: "../components/responses/errors/InvalidSessionResponse.yaml"
     404:

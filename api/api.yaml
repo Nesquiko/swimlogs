@@ -17,10 +17,10 @@ tags:
 paths:
   /trainings:
     $ref: "./paths/trainings.yaml"
-  /trainings/{id}:
-    $ref: "./paths/trainings_{id}.yaml"
-  /trainings/{id}/sets/{setId}:
-    $ref: "./paths/trainings_{id}_sets_{setId}.yaml"
+  /trainings/{trainingId}:
+    $ref: "./paths/trainings_{trainingId}.yaml"
+  /trainings/{trainingId}/sets/{setId}:
+    $ref: "./paths/trainings_{trainingId}_sets_{setId}.yaml"
   /trainings/summaries:
     $ref: "./paths/trainings_summaries.yaml"
   /trainings/summaries/current-week:

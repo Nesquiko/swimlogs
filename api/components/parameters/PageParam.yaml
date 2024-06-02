@@ -1,0 +1,8 @@
+name: page
+in: query
+required: true
+description: Which page to return, starts at 0
+schema:
+  type: integer
+  example: 0
+  minimum: 0

@@ -1,0 +1,36 @@
+description: Request for editing a set
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        setOrder:
+          type: integer
+          description: Indicates on what place in training this set is
+        repeat:
+          type: integer
+          description: How many times to repeat this set
+        distanceMeters:
+          type: integer
+          example: 400
+        description:
+          type: string
+          description: Description of what to swim
+          example: Freestyle
+        totalDistance:
+          type: integer
+          description: Total distance in this set
+          example: 800
+        equipment:
+          type: array
+          items:
+            $ref: "../schemas/EquipmentEnum.yaml"
+        startType:
+          $ref: "../schemas/StartTypeEnum.yaml"
+        startSeconds:
+          type: integer
+          description: Used by starts which require a time parameter, Interval and Pause
+          example: 60
+        group:
+          $ref: "../schemas/GroupEnum.yaml"

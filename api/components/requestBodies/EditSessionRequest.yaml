@@ -4,6 +4,7 @@ content:
   application/json:
     schema:
       type: object
+      title: EditSessionRequest
       properties:
         start:
           type: string

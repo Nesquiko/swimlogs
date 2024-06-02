@@ -25,15 +25,9 @@ paths:
           $ref: '#/components/responses/CreateTrainingReponse'
         '400':
           $ref: '#/components/responses/InvalidTrainingResponse'
-  /trainings/{id}:
+  /trainings/{trainingId}:
     parameters:
-      - name: id
-        in: path
-        required: true
-        description: Id of a training
-        schema:
-          type: string
-          format: uuid
+      - $ref: '#/components/parameters/TrainingIdParam'
     get:
       summary: Get a training by id
       tags:
@@ -53,7 +47,7 @@ paths:
         $ref: '#/components/requestBodies/EditSessionRequest'
       responses:
         '200':
-          $ref: '#/components/responses/EditTrainingResponse'
+          $ref: '#/components/responses/EditSessionResponse'
         '400':
           $ref: '#/components/responses/InvalidSessionResponse'
         '404':
@@ -68,27 +62,17 @@ paths:
           description: Training was deleted
         '404':
           $ref: '#/components/responses/NotFoundResponse'
-  /trainings/{id}/sets/{setId}:
+  /trainings/{trainingId}/sets/{setId}:
     parameters:
-      - name: id
-        in: path
-        required: true
-        description: Id of a training
-        schema:
-          type: string
-          format: uuid
-      - name: setId
-        in: path
-        required: true
-        description: Id of a set
-        schema:
-          type: string
-          format: uuid
+      - $ref: '#/components/parameters/TrainingIdParam'
+      - $ref: '#/components/parameters/SetIdParam'
     patch:
       summary: Edit set
       tags:
         - Trainings
       operationId: editSet
+      requestBody:
+        $ref: '#/components/requestBodies/EditSetRequest'
       responses:
         '200':
           $ref: '#/components/responses/EditSetResponse'
@@ -113,22 +97,8 @@ paths:
         - Trainings
       operationId: summariesPage
       parameters:
-        - name: page
-          in: query
-          required: true
-          description: Which page to return, starts at 0
-          schema:
-            type: integer
-            example: 0
-            minimum: 0
-        - name: pageSize
-          in: query
-          required: true
-          description: How many details to return
-          schema:
-            type: integer
-            example: 10
-            minimum: 1
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
       responses:
         '200':
           $ref: '#/components/responses/TrainingSummariesResponse'
@@ -197,6 +167,12 @@ components:
           example: 60
         group:
           $ref: '#/components/schemas/GroupEnum'
+      required:
+        - setOrder
+        - repeat
+        - distanceMeters
+        - totalDistance
+        - startType
     NewTraining:
       type: object
       properties:
@@ -216,12 +192,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NewTrainingSet'
-            required:
-              - setOrder
-              - repeat
-              - distanceMeters
-              - totalDistance
-              - startType
+      required:
+        - start
+        - durationMin
+        - totalDistance
+        - sets
     TrainingSummary:
       type: object
       properties:
@@ -240,6 +215,11 @@ components:
           type: integer
           description: Total distance in the training in meters
           example: 2200
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
     ErrorDetail:
       type: object
       properties:
@@ -343,12 +323,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSet'
-            required:
-              - id
-              - start
-              - durationMin
-              - totalDistance
-              - sets
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
+        - sets
     NotFoundError:
       allOf:
         - $ref: '#/components/schemas/ErrorDetail'
@@ -385,11 +365,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/NewTraining'
-            required:
-              - start
-              - durationMin
-              - totalDistance
-              - sets
     EditSessionRequest:
       description: Request for editing a training session
       required: true
@@ -397,6 +372,7 @@ components:
         application/json:
           schema:
             type: object
+            title: EditSessionRequest
             properties:
               start:
                 type: string
@@ -406,18 +382,50 @@ components:
                 type: integer
                 description: How long does the session last, in minutes
                 example: 60
+    EditSetRequest:
+      description: Request for editing a set
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              setOrder:
+                type: integer
+                description: Indicates on what place in training this set is
+              repeat:
+                type: integer
+                description: How many times to repeat this set
+              distanceMeters:
+                type: integer
+                example: 400
+              description:
+                type: string
+                description: Description of what to swim
+                example: Freestyle
+              totalDistance:
+                type: integer
+                description: Total distance in this set
+                example: 800
+              equipment:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EquipmentEnum'
+              startType:
+                $ref: '#/components/schemas/StartTypeEnum'
+              startSeconds:
+                type: integer
+                description: Used by starts which require a time parameter, Interval and Pause
+                example: 60
+              group:
+                $ref: '#/components/schemas/GroupEnum'
   responses:
     CreateTrainingReponse:
-      description: New training was successfully created and detail about new training is returned
+      description: New training was successfully created and summary about new training is returned
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TrainingSummary'
-            required:
-              - id
-              - start
-              - durationMin
-              - totalDistance
     InvalidTrainingResponse:
       description: Contains reason why training is invalid
       content:
@@ -432,12 +440,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Training'
-            required:
-              - id
-              - start
-              - durationMin
-              - totalDistance
-              - sets
     NotFoundResponse:
       description: Resource was not found
       content:
@@ -445,17 +447,12 @@ components:
           schema:
             oneOf:
               - $ref: '#/components/schemas/NotFoundError'
-    EditTrainingResponse:
+    EditSessionResponse:
       description: Training successfully edited
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TrainingSummary'
-            required:
-              - id
-              - start
-              - durationMin
-              - totalDistance
     InvalidSessionResponse:
       description: Submitted training session is invalid
       content:
@@ -467,13 +464,18 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TrainingSet'
+            type: object
+            properties:
+              totalDistance:
+                type: integer
+                description: New recalculated total distance of the training
+                example: 2100
+              set:
+                description: updated set
+                $ref: '#/components/schemas/TrainingSet'
             required:
-              - id
-              - start
-              - durationMin
               - totalDistance
-              - sets
+              - set
     InvalidSetResponse:
       description: Submitted training set is invalid
       content:
@@ -487,7 +489,7 @@ components:
           schema:
             type: object
             properties:
-              details:
+              summaries:
                 type: array
                 items:
                   $ref: '#/components/schemas/TrainingSummary'
@@ -499,23 +501,53 @@ components:
               pagination:
                 $ref: '#/components/schemas/Pagination'
             required:
-              - details
+              - summaries
               - pagination
     TrainingSummariesCurrentWeekResponse:
-      description: List of training details in current week, sorted by date and start time
+      description: List of training summaries in current week, sorted by date and start time
       content:
         application/json:
           schema:
             type: object
             required:
-              - details
+              - summaries
             properties:
-              details:
+              summaries:
                 type: array
                 items:
                   $ref: '#/components/schemas/TrainingSummary'
-                  required:
-                    - id
-                    - start
-                    - durationMin
-                    - totalDistance
+  parameters:
+    TrainingIdParam:
+      name: trainingId
+      in: path
+      required: true
+      description: Id of a training
+      schema:
+        type: string
+        format: uuid
+    SetIdParam:
+      name: setId
+      in: path
+      required: true
+      description: Id of a set
+      schema:
+        type: string
+        format: uuid
+    PageParam:
+      name: page
+      in: query
+      required: true
+      description: Which page to return, starts at 0
+      schema:
+        type: integer
+        example: 0
+        minimum: 0
+    PageSizeParam:
+      name: pageSize
+      in: query
+      required: true
+      description: How many resources to return
+      schema:
+        type: integer
+        example: 10
+        minimum: 1

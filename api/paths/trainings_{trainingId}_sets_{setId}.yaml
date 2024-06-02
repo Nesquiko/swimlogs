@@ -1,24 +1,14 @@
 parameters:
-  - name: id
-    in: path
-    required: true
-    description: Id of a training
-    schema:
-      type: string
-      format: uuid
-  - name: setId
-    in: path
-    required: true
-    description: Id of a set
-    schema:
-      type: string
-      format: uuid
+  - $ref: "../components/parameters/TrainingIdParam.yaml"
+  - $ref: "../components/parameters/SetIdParam.yaml"
 
 patch:
   summary: Edit set
   tags:
     - Trainings
   operationId: editSet
+  requestBody:
+    $ref: "../components/requestBodies/EditSetRequest.yaml"
   responses:
     200:
       $ref: "../components/responses/EditSetResponse.yaml"
