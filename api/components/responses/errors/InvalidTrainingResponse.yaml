@@ -3,5 +3,5 @@ content:
   application/problem+json:
     schema:
       oneOf:
-        - $ref: "../../schemas/errors/InvalidSessionError.yaml"
+        - $ref: "../../schemas/errors/InvalidTrainingError.yaml"
         - $ref: "../../schemas/errors/InvalidSetError.yaml"

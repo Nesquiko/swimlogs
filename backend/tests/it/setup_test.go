@@ -75,7 +75,7 @@ func TestMain(m *testing.M) {
 	}
 
 	swimlogs := app.New(pool)
-	h := server.NewServerHandler(swimlogs, "")
+	h := server.NewServer(swimlogs, "")
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 

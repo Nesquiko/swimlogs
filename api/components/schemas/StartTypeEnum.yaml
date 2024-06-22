@@ -1,5 +1,4 @@
 type: string
 enum:
-  - None
   - Interval
   - Pause

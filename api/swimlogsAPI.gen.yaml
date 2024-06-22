@@ -124,7 +124,6 @@ components:
     StartTypeEnum:
       type: string
       enum:
-        - None
         - Interval
         - Pause
     GroupEnum:
@@ -141,20 +140,22 @@ components:
         setOrder:
           type: integer
           description: Indicates on what place in training this set is
+          minimum: 1
+          maximum: 32767
         repeat:
           type: integer
           description: How many times to repeat this set
+          minimum: 1
+          maximum: 32767
         distanceMeters:
           type: integer
           example: 400
+          minimum: 1
+          maximum: 32767
         description:
           type: string
           description: Description of what to swim
           example: Freestyle
-        totalDistance:
-          type: integer
-          description: Total distance in this set
-          example: 800
         equipment:
           type: array
           items:
@@ -163,8 +164,10 @@ components:
           $ref: '#/components/schemas/StartTypeEnum'
         startSeconds:
           type: integer
-          description: Used by starts which require a time parameter, Interval and Pause
+          description: Used by starts which require a time parameter
           example: 60
+          minimum: 1
+          maximum: 32767
         group:
           $ref: '#/components/schemas/GroupEnum'
       required:
@@ -172,7 +175,6 @@ components:
         - repeat
         - distanceMeters
         - totalDistance
-        - startType
     NewTraining:
       type: object
       properties:
@@ -183,11 +185,9 @@ components:
         durationMin:
           type: integer
           description: How long does the session last, in minutes
+          minimum: 1
+          maximum: 32767
           example: 60
-        totalDistance:
-          type: integer
-          description: Sum of all distances in sets in meters
-          example: 2100
         sets:
           type: array
           items:
@@ -241,14 +241,14 @@ components:
         - status
         - code
         - detail
-    InvalidSessionError:
+    InvalidTrainingError:
       allOf:
         - $ref: '#/components/schemas/ErrorDetail'
       example:
-        title: Submitted training session is invalid
+        title: Invalid training session
         status: 400
         code: training.session.invalid
-        detail: Invalid training session
+        detail: Submitted training is invalid...
     InvalidSetError:
       allOf:
         - $ref: '#/components/schemas/ErrorDetail'
@@ -432,7 +432,7 @@ components:
         application/problem+json:
           schema:
             oneOf:
-              - $ref: '#/components/schemas/InvalidSessionError'
+              - $ref: '#/components/schemas/InvalidTrainingError'
               - $ref: '#/components/schemas/InvalidSetError'
     TrainingResponse:
       description: Response with a training
@@ -458,7 +458,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/InvalidSessionError'
+            $ref: '#/components/schemas/InvalidTrainingError'
     EditSetResponse:
       description: Set successfully edited
       content:

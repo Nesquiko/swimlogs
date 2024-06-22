@@ -2,68 +2,49 @@ package data
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/rs/zerolog/log"
 )
 
 const MigrationsLocationFormat = "file://%s"
 
-func (pool *PostgresDbPool) MigrateUp(showLogs bool) error {
+func (pool *PostgresDbPool) MigrateUp() error {
 	migrationsFileUrl := fmt.Sprintf(MigrationsLocationFormat, pool.migrationsDir)
 	m, err := migrate.New(migrationsFileUrl, pool.conStr)
 	if err != nil {
 		return fmt.Errorf("MigrateUp init: %w", err)
 	}
-	m.Log = zerologLogger{showLogs: showLogs, verbose: true}
+	m.Log = slogLogger{verbose: true}
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("MigrateUp: %w", err)
 	}
-
-	return nil
-}
-
-func (pool *PostgresDbPool) CleanMigrateUp(showLogs bool) error {
-	migrationsFileUrl := fmt.Sprintf(MigrationsLocationFormat, pool.migrationsDir)
-	m, err := migrate.New(migrationsFileUrl, pool.conStr)
-	if err != nil {
-		return fmt.Errorf("CleanMigrateUp init: %w", err)
-	}
-	m.Log = zerologLogger{showLogs: showLogs, verbose: true}
-
-	err = m.Down()
+	err, dbErr := m.Close()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Error().Err(err).Msg("failed to migrate down")
-		return err
-	}
-
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		log.Error().Err(err).Msg("failed to migrate up")
-		return err
+		return fmt.Errorf("MigrateUp: %w", err)
+	} else if dbErr != nil {
+		return fmt.Errorf("MigrateUp: %w", dbErr)
 	}
 
 	return nil
 }
 
-type zerologLogger struct {
-	showLogs bool
-	verbose  bool
+// simple wrapper around slog which adheres to migrate.Logger interface
+type slogLogger struct {
+	verbose bool
 }
 
-func (l zerologLogger) Printf(format string, v ...interface{}) {
-	if !l.showLogs {
-		return
-	}
+func (l slogLogger) Printf(format string, v ...interface{}) {
 	format = strings.TrimRight(format, "\n")
-	log.Info().Msgf(format, v...)
+	msg := fmt.Sprintf(format, v...)
+	slog.Info(msg)
 }
 
-func (l zerologLogger) Verbose() bool {
+func (l slogLogger) Verbose() bool {
 	return l.verbose
 }

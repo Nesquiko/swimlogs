@@ -27,8 +27,7 @@ const (
 )
 
 type SwimLogsServer struct {
-	app    app.SwimLogsApp
-	logger *httplog.Logger
+	app app.SwimLogsApp
 }
 
 type ApiError struct {
@@ -39,42 +38,45 @@ func (e *ApiError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
-func NewServer(app app.SwimLogsApp, logger *httplog.Logger, feOrigin string) http.Handler {
+func NewServer(
+	app app.SwimLogsApp,
+	middlewareLogger *httplog.Logger,
+	feOrigin string,
+) http.Handler {
 	r := chi.NewRouter()
 
 	srv := SwimLogsServer{
-		app:    app,
-		logger: logger,
+		app: app,
 	}
 
 	r.Use(topLevelMiddleware(feOrigin)...)
 	r.Options("/*", nil)
 
 	r.Group(func(r chi.Router) {
-		r.Use(publicMiddleware(logger)...)
+		r.Use(publicMiddleware(middlewareLogger)...)
 
-		r.Post("/trainings", handleInOut(srv.CreateTraining, srv.logger))
+		r.Post("/trainings", handleInOut(srv.CreateTraining))
 		r.Get(
 			"/trainings/summaries",
-			handleQueryOut(pageParamsExtractor, srv.SummariesPage, srv.logger),
+			handleQueryOut(pageParamsExtractor, srv.SummariesPage),
 		)
-		r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek, srv.logger))
+		r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek))
 		r.Delete(
 			"/trainings/{id}",
-			handlePathStatus(pathIdExtractor, srv.DeleteTraining, srv.logger),
+			handlePathStatus(pathIdExtractor, srv.DeleteTraining),
 		)
-		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById, srv.logger))
+		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById))
 		r.Patch(
 			"/trainings/{id}",
-			handlePathInOut(pathIdExtractor, srv.EditTrainingSession, srv.logger),
+			handlePathInOut(pathIdExtractor, srv.EditTrainingSession),
 		)
 		r.Delete(
 			"/trainings/{id}/sets/{setId}",
-			handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet, srv.logger),
+			handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet),
 		)
 		r.Patch(
 			"/trainings/{id}/sets/{setId}",
-			handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet, srv.logger),
+			handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet),
 		)
 	})
 
@@ -100,76 +102,71 @@ type (
 
 var EmptyFunc = func(r *http.Request) (EmptyType, error) { return EmptyType{}, nil }
 
-func handleOut[Out any](f OutFunc[Out], logger *httplog.Logger) http.HandlerFunc {
+func handleOut[Out any](f OutFunc[Out]) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in EmptyType) (Out, int, error) {
 		return f(ctx)
 	}
-	return handle(tf, EmptyFunc, EmptyFunc, logger)
+	return handle(tf, EmptyFunc, EmptyFunc)
 }
 
-func handleInOut[In, Out any](f InOutFunc[In, Out], logger *httplog.Logger) http.HandlerFunc {
+func handleInOut[In, Out any](f InOutFunc[In, Out]) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in In) (Out, int, error) {
 		return f(ctx, in)
 	}
-	return handle(tf, EmptyFunc, EmptyFunc, logger)
+	return handle(tf, EmptyFunc, EmptyFunc)
 }
 
 func handleQueryOut[QP, Out any](
 	qpConv QueryParamsConv[QP],
 	f InOutFunc[QP, Out],
-	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp EmptyType, qp QP, in EmptyType) (Out, int, error) {
 		return f(ctx, qp)
 	}
-	return handle(tf, EmptyFunc, qpConv, logger)
+	return handle(tf, EmptyFunc, qpConv)
 }
 
 func handlePathStatus[PP any](
 	ppConv PathParamsConv[PP],
 	f PathStatusFunc[PP],
-	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (EmptyType, int, error) {
 		status, err := f(ctx, pp)
 		return EmptyType{}, status, err
 	}
-	return handle(tf, ppConv, EmptyFunc, logger)
+	return handle(tf, ppConv, EmptyFunc)
 }
 
 func handlePathOut[PP, Out any](
 	ppConv PathParamsConv[PP],
 	f PathOutFunc[PP, Out],
-	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (Out, int, error) {
 		return f(ctx, pp)
 	}
-	return handle(tf, ppConv, EmptyFunc, logger)
+	return handle(tf, ppConv, EmptyFunc)
 }
 
 func handlePathInOut[PP, In, Out any](
 	ppConv PathParamsConv[PP],
 	f PathInOutFunc[PP, In, Out],
-	logger *httplog.Logger,
 ) http.HandlerFunc {
 	tf := func(ctx context.Context, pp PP, qp EmptyType, in In) (Out, int, error) {
 		return f(ctx, pp, in)
 	}
-	return handle(tf, ppConv, EmptyFunc, logger)
+	return handle(tf, ppConv, EmptyFunc)
 }
 
 func handle[PP, QP, In, Out any](
 	f TargetFunc[PP, QP, In, Out],
 	ppFunc PathParamsConv[PP],
 	qpFunc QueryParamsConv[QP],
-	logger *httplog.Logger,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		in, err := decode[In](w, r)
 		if err != nil {
 			apiErr := badRequest(err)
-			encodeError(w, apiErr, logger)
+			encodeError(w, apiErr)
 			return
 		}
 
@@ -177,10 +174,10 @@ func handle[PP, QP, In, Out any](
 		ppParams, err := ppFunc(r)
 		if err != nil {
 			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr, logger)
+				encodeError(w, apiErr)
 				return
 			}
-			logger.Error(
+			slog.Error(
 				UnexpectedError,
 				slog.String("where", "path-params"),
 				slog.String("error", err.Error()),
@@ -190,10 +187,10 @@ func handle[PP, QP, In, Out any](
 		qpParams, err := qpFunc(r)
 		if err != nil {
 			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr, logger)
+				encodeError(w, apiErr)
 				return
 			}
-			logger.Error(
+			slog.Error(
 				UnexpectedError,
 				slog.String("where", "query-params"),
 				slog.String("error", err.Error()),
@@ -204,10 +201,10 @@ func handle[PP, QP, In, Out any](
 		out, status, err := f(r.Context(), ppParams, qpParams, in)
 		if err != nil {
 			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr, logger)
+				encodeError(w, apiErr)
 				return
 			}
-			logger.Error(
+			slog.Error(
 				UnexpectedError,
 				slog.String("where", "handler"),
 				slog.String("error", err.Error()),
@@ -215,7 +212,7 @@ func handle[PP, QP, In, Out any](
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		encode(w, status, out, logger)
+		encode(w, status, out)
 	})
 }
 
@@ -305,6 +302,17 @@ func badRequest(err error) *ApiError {
 			Title:  "Bad request",
 			Detail: fmt.Sprintf("Request was invalid due to %q", err.Error()),
 			Status: http.StatusBadRequest,
+		},
+	}
+}
+
+func internalServerError() *ApiError {
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:   "internal.server.error",
+			Title:  "Internal Server Error",
+			Detail: "Unexpected error on server",
+			Status: http.StatusInternalServerError,
 		},
 	}
 }

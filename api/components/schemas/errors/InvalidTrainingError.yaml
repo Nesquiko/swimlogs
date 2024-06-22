@@ -1,7 +1,7 @@
 allOf:
   - $ref: "./ErrorDetail.yaml"
 example:
-  title: Submitted training session is invalid
+  title: "Invalid training session"
   status: 400
   code: "training.session.invalid"
-  detail: "Invalid training session"
+  detail: Submitted training is invalid...

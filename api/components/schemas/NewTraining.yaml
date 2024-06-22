@@ -7,11 +7,9 @@ properties:
   durationMin:
     type: integer
     description: How long does the session last, in minutes
+    minimum: 1
+    maximum: 32767
     example: 60
-  totalDistance:
-    type: integer
-    description: Sum of all distances in sets in meters
-    example: 2100
   sets:
     type: array
     items:

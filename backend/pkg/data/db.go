@@ -12,6 +12,10 @@ import (
 
 var ErrRowsNotFound = errors.New("didn't find row")
 
+const (
+	SmallIntMax = 32767
+)
+
 type PostgresDbPool struct {
 	conStr        string
 	migrationsDir string

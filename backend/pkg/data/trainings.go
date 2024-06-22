@@ -11,11 +11,10 @@ import (
 )
 
 type Training struct {
-	Id            uuid.UUID
-	Start         time.Time
-	DurationMin   int
-	TotalDistance int
-	Sets          []TrainingSet
+	Id          uuid.UUID
+	Start       time.Time
+	DurationMin int
+	Sets        []TrainingSet
 
 	CreatedAt  time.Time
 	ModifiedAt time.Time
@@ -25,13 +24,12 @@ type TrainingSet struct {
 	Id             uuid.UUID
 	TrainingId     uuid.UUID
 	SetOrder       int
-	TotalDistance  int
 	Repeat         int
 	DistanceMeters int
-	StartType      string
 	Description    *string
-	StartSeconds   *int
 	Equipment      *[]string
+	StartType      *string
+	StartSeconds   *int
 	Group          *string
 }
 
@@ -85,7 +83,6 @@ func (pool *PostgresDbPool) TrainingDetails(page, pageSize int) ([]Training, int
 			&t.Id,
 			&t.Start,
 			&t.DurationMin,
-			&t.TotalDistance,
 			&t.CreatedAt,
 			&t.ModifiedAt,
 			&count,
@@ -126,7 +123,6 @@ func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Trai
 			&t.Id,
 			&t.Start,
 			&t.DurationMin,
-			&t.TotalDistance,
 			&t.CreatedAt,
 			&t.ModifiedAt,
 		)
@@ -167,7 +163,6 @@ func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
 			&t.Id,
 			&t.Start,
 			&t.DurationMin,
-			&t.TotalDistance,
 			&t.CreatedAt,
 			&t.ModifiedAt,
 			&s.Id,
@@ -178,7 +173,6 @@ func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
 			&s.Description,
 			&s.StartType,
 			&s.StartSeconds,
-			&s.TotalDistance,
 			&s.Equipment,
 			&s.Group,
 		)
@@ -207,14 +201,14 @@ func (pool *PostgresDbPool) EditTraining(id uuid.UUID, t Training) (Training, er
 }
 
 var insertTraining = `
-insert into trainings (id, start, duration_min, total_distance, created_at, modified_at)
-values ($1, $2, $3, $4, now(), now())
-returning id, start, duration_min, total_distance, created_at, modified_at
+insert into trainings (id, start, duration_min, created_at, modified_at)
+values ($1, $2, $3, now(), now())
+returning id, start, duration_min, created_at, modified_at
 `
 
 func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, error) {
-	err := tx.QueryRow(context.Background(), insertTraining, t.Id, t.Start, t.DurationMin, t.TotalDistance).
-		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
+	err := tx.QueryRow(context.Background(), insertTraining, t.Id, t.Start, t.DurationMin).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
 	if err != nil {
 		return Training{}, fmt.Errorf("persistTraining persisting training: %w", err)
 	}
@@ -232,10 +226,10 @@ func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, er
 
 var insertSet = `
 insert into sets (id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment, "group")
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    description, start_type, start_seconds, equipment, "group")
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 returning id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, total_distance, equipment, "group"
+    description, start_type, start_seconds, equipment, "group"
 `
 
 func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
@@ -250,7 +244,6 @@ func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, e
 		s.Description,
 		s.StartType,
 		s.StartSeconds,
-		s.TotalDistance,
 		s.Equipment,
 		s.Group,
 	).Scan(
@@ -262,7 +255,6 @@ func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, e
 		&s.Description,
 		&s.StartType,
 		&s.StartSeconds,
-		&s.TotalDistance,
 		&s.Equipment,
 		&s.Group,
 	)
@@ -284,8 +276,8 @@ returning id, start, duration_min, total_distance, created_at, modified_at
 `
 
 func (pool *PostgresDbPool) editTraining(id uuid.UUID, t Training, tx pgx.Tx) (Training, error) {
-	err := tx.QueryRow(context.Background(), updateTraining, id, t.Start, t.DurationMin, t.TotalDistance).
-		Scan(&t.Id, &t.Start, &t.DurationMin, &t.TotalDistance, &t.CreatedAt, &t.ModifiedAt)
+	err := tx.QueryRow(context.Background(), updateTraining, id, t.Start, t.DurationMin).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Training{}, fmt.Errorf("editTraining not found: %w", ErrRowsNotFound)
@@ -341,7 +333,6 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 		s.Description,
 		s.StartType,
 		s.StartSeconds,
-		s.TotalDistance,
 		s.Equipment,
 		s.Group,
 	).Scan(
@@ -353,7 +344,6 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 		&s.Description,
 		&s.StartType,
 		&s.StartSeconds,
-		&s.TotalDistance,
 		&s.Equipment,
 		&s.Group,
 	)

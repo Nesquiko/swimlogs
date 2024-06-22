@@ -8,16 +8,14 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-
-	"github.com/go-chi/httplog/v2"
 )
 
-func encode[T any](w http.ResponseWriter, status int, response T, logger *httplog.Logger) {
-	encodeWithContentType(w, status, response, ApplicationJSON, logger)
+func encode[T any](w http.ResponseWriter, status int, response T) {
+	encodeWithContentType(w, status, response, ApplicationJSON)
 }
 
-func encodeError(w http.ResponseWriter, err *ApiError, logger *httplog.Logger) {
-	encodeWithContentType(w, err.Status, err.ErrorDetail, ApplicationProblemJSON, logger)
+func encodeError(w http.ResponseWriter, err *ApiError) {
+	encodeWithContentType(w, err.Status, err.ErrorDetail, ApplicationProblemJSON)
 }
 
 func encodeWithContentType[T any](
@@ -25,13 +23,12 @@ func encodeWithContentType[T any](
 	code int,
 	response T,
 	contentType string,
-	logger *httplog.Logger,
 ) {
 	w.Header().Set(ContentType, contentType)
 	w.WriteHeader(code)
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		logger.Error(
+		slog.Error(
 			UnexpectedError,
 			slog.String("where", "encode"),
 			slog.String("error", err.Error()),
