@@ -19,6 +19,7 @@ func (s *SwimLogsServer) CreateTraining(
 ) (apidef.CreateTrainingReponse, int, error) {
 	validationErr := validateNewTraining(r)
 	if validationErr != nil {
+		slog.Warn("invalid training", slog.String("error", validationErr.Error()))
 		return apidef.TrainingSummary{}, validationErr.Status, validationErr
 	}
 
@@ -26,8 +27,8 @@ func (s *SwimLogsServer) CreateTraining(
 	if err != nil {
 		slog.Error(
 			UnexpectedError,
-			slog.String("where", "CreateTraining"),
 			slog.String("error", err.Error()),
+			slog.String("where", "CreateTraining"),
 		)
 		apiErr := internalServerError()
 		return apidef.TrainingSummary{}, apiErr.Status, apiErr
@@ -55,7 +56,26 @@ func (s *SwimLogsServer) DeleteTraining(
 	ctx context.Context,
 	id uuid.UUID,
 ) (int, error) {
-	panic("not implemented")
+	err := s.app.DeleteTraining(id)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"training not found",
+			slog.String("error", err.Error()),
+			slog.String("id", id.String()),
+		)
+		return http.StatusNotFound, notFound("training", id.String())
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "DeleteTraining"),
+		)
+		apiErr := internalServerError()
+		return apiErr.Status, apiErr
+	}
+
+	return http.StatusNoContent, nil
 }
 
 // (GET /trainings/{id})
@@ -66,13 +86,15 @@ func (s *SwimLogsServer) TrainingById(
 	t, err := s.app.Training(id)
 
 	if errors.Is(err, app.ErrNotFound) {
-		slog.Warn("training not found", slog.String("id", id.String()))
+		slog.Warn("training not found",
+			slog.String("error", NotFoundCode),
+			slog.String("id", id.String()))
 		return apidef.Training{}, http.StatusNotFound, notFound("training", id.String())
 	} else if err != nil {
 		slog.Error(
 			UnexpectedError,
-			slog.String("where", "Training"),
 			slog.String("error", err.Error()),
+			slog.String("where", "TrainingById"),
 		)
 		apiErr := internalServerError()
 		return apidef.Training{}, apiErr.Status, apiErr

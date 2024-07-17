@@ -38,7 +38,7 @@ func (app SwimLogsApp) CreateTraining(
 func (app SwimLogsApp) DeleteTraining(id uuid.UUID) error {
 	err := app.pool.DeleteTraining(id)
 	if errors.Is(err, data.ErrRowsNotFound) {
-		return fmt.Errorf("DeleteTraining: %w", ErrNotFound)
+		return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
 	} else if err != nil {
 		return fmt.Errorf("DeleteTraining: %w", err)
 	}
@@ -83,7 +83,7 @@ func (app SwimLogsApp) TrainingDetailsCurrentWeek() (apidef.TrainingSummariesCur
 func (app SwimLogsApp) Training(id uuid.UUID) (apidef.Training, error) {
 	t, err := app.pool.Training(id)
 	if errors.Is(err, data.ErrRowsNotFound) {
-		return apidef.Training{}, fmt.Errorf("Training: %w", ErrNotFound)
+		return apidef.Training{}, fmt.Errorf("Training not found: %w", ErrNotFound)
 	} else if err != nil {
 		return apidef.Training{}, fmt.Errorf("Training: %w", err)
 	}

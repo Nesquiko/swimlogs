@@ -183,8 +183,8 @@ func handle[PP, QP, In, Out any](
 			}
 			slog.Error(
 				UnexpectedError,
-				slog.String("where", "path-params"),
 				slog.String("error", err.Error()),
+				slog.String("where", "path-params"),
 			)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
@@ -196,8 +196,8 @@ func handle[PP, QP, In, Out any](
 			}
 			slog.Error(
 				UnexpectedError,
-				slog.String("where", "query-params"),
 				slog.String("error", err.Error()),
+				slog.String("where", "query-params"),
 			)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
@@ -210,12 +210,16 @@ func handle[PP, QP, In, Out any](
 			}
 			slog.Error(
 				UnexpectedError,
-				slog.String("where", "handler"),
 				slog.String("error", err.Error()),
+				slog.String("where", "handler"),
 			)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
+		if _, ok := any(out).(EmptyType); ok {
+			w.WriteHeader(status)
+			return
+		}
 		encode(w, status, out)
 	})
 }

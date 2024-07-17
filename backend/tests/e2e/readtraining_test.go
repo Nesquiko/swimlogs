@@ -75,7 +75,6 @@ func TestTrainingById_NotFound(t *testing.T) {
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-
 	assert.Equal(fmt.Sprintf(server.NotFoundTitleFormat, "training"), apiError.Title)
 	assert.Equal(server.NotFoundCode, apiError.Code)
 	assert.Equal(http.StatusNotFound, apiError.Status)
