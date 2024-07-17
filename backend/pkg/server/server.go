@@ -163,11 +163,15 @@ func handle[PP, QP, In, Out any](
 	qpFunc QueryParamsConv[QP],
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		in, err := decode[In](w, r)
-		if err != nil {
-			apiErr := badRequest(err)
-			encodeError(w, apiErr)
-			return
+		var in In
+		if _, ok := any(in).(EmptyType); !ok {
+			decodedIn, err := decode[In](w, r)
+			if err != nil {
+				apiErr := badRequest(err)
+				encodeError(w, apiErr)
+				return
+			}
+			in = decodedIn
 		}
 
 		var apiErr *ApiError
@@ -313,6 +317,27 @@ func internalServerError() *ApiError {
 			Title:  "Internal Server Error",
 			Detail: "Unexpected error on server",
 			Status: http.StatusInternalServerError,
+		},
+	}
+}
+
+const (
+	NotFoundCode         = "not.found"
+	NotFoundTitleFormat  = "%s was not found"
+	NotFoundDetailFormat = "%s with id '%s' was not found"
+)
+
+func notFound(resoure, id string) *ApiError {
+	if resoure == "" {
+		resoure = "Resource"
+	}
+
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:   NotFoundCode,
+			Title:  fmt.Sprintf(NotFoundTitleFormat, resoure),
+			Detail: fmt.Sprintf(NotFoundDetailFormat, resoure, id),
+			Status: http.StatusNotFound,
 		},
 	}
 }

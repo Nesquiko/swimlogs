@@ -142,9 +142,9 @@ func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Trai
 
 var selectTraining = `
 select
-    t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at,
+    t.id, t.start, t.duration_min, t.created_at, t.modified_at,
     s.id, s.training_id, s.set_order, s.repeat, s.distance_meters, s.description,
-    s.start_type, s.start_seconds, s.total_distance, s.equipment, s.group
+    s.start_type, s.start_seconds, s.equipment, s.group
 from trainings t join sets s on t.id = s.training_id
 where t.id = $1
 order by s.set_order

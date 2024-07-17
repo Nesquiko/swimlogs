@@ -140,7 +140,7 @@ components:
         setOrder:
           type: integer
           description: Indicates on what place in training this set is
-          minimum: 1
+          minimum: 0
           maximum: 32767
         repeat:
           type: integer
@@ -257,7 +257,6 @@ components:
         status: 400
         code: invalid.set
         detail: Set "1" is not valid
-        setId: 6c9a9b8a-a81a-4c5b-9416-0c591587f1a3
         setOrder: 1
     TrainingSet:
       type: object
@@ -300,7 +299,6 @@ components:
         - repeat
         - distanceMeters
         - totalDistance
-        - startType
     Training:
       type: object
       properties:
@@ -336,7 +334,7 @@ components:
         title: Resource was not found
         status: 404
         code: not.found
-        detail: Resource with id "aa1ed13a-6455-4d93-b788-bab98b08b40c" was not found
+        detail: Resource with id 'aa1ed13a-6455-4d93-b788-bab98b08b40c' was not found
     Pagination:
       description: Pagination metadata about paginated response
       type: object

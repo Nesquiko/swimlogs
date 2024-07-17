@@ -135,12 +135,12 @@ func mustCreateNewTraining(
 ) apidef.TrainingSummary {
 	res, err := createNewTraining(request)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusCreated, res.StatusCode, "Response: %+v", res)
+	require.Equal(t, http.StatusCreated, res.StatusCode, "response: %+v", res)
 
 	var ts apidef.TrainingSummary
 	err = json.NewDecoder(res.Body).Decode(&ts)
 	res.Body.Close()
-	require.NoError(t, err, "Response: %+v", res)
+	require.NoError(t, err, "response: %+v", res)
 
 	return ts
 }

@@ -68,12 +68,18 @@ func trainingToSummary(t data.Training) apidef.TrainingSummary {
 }
 
 func dataTrainingToApiTraining(t data.Training) apidef.Training {
+	sets := dataSetsToApiSets(t.Sets)
+	totalDistance := 0
+	for _, s := range sets {
+		totalDistance += (s.Repeat * s.DistanceMeters)
+	}
+
 	return apidef.Training{
-		Id:          t.Id,
-		DurationMin: t.DurationMin,
-		Start:       t.Start,
-		// TotalDistance: t.TotalDistance,
-		Sets: dataSetsToApiSets(t.Sets),
+		Id:            t.Id,
+		DurationMin:   t.DurationMin,
+		Start:         t.Start,
+		TotalDistance: totalDistance,
+		Sets:          sets,
 	}
 }
 
@@ -92,10 +98,10 @@ func dataSetToApiSet(s data.TrainingSet) apidef.TrainingSet {
 		Repeat:         s.Repeat,
 		Description:    s.Description,
 		DistanceMeters: s.DistanceMeters,
-		// StartType:      apidef.StartTypeEnum(s.StartType),
-		StartSeconds: s.StartSeconds,
-		// TotalDistance:  s.TotalDistance,
-		Group: (*apidef.GroupEnum)(s.Group),
+		StartType:      (*apidef.StartTypeEnum)(s.StartType),
+		StartSeconds:   s.StartSeconds,
+		TotalDistance:  s.Repeat * s.DistanceMeters,
+		Group:          (*apidef.GroupEnum)(s.Group),
 	}
 
 	if s.Equipment == nil {

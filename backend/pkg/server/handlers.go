@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
 
 	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
 // (POST /trainings)
@@ -56,16 +58,29 @@ func (s *SwimLogsServer) DeleteTraining(
 	panic("not implemented")
 }
 
-// Get a training by id
 // (GET /trainings/{id})
 func (s *SwimLogsServer) TrainingById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (apidef.Training, int, error) {
-	panic("not implemented")
+	t, err := s.app.Training(id)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn("training not found", slog.String("id", id.String()))
+		return apidef.Training{}, http.StatusNotFound, notFound("training", id.String())
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("where", "Training"),
+			slog.String("error", err.Error()),
+		)
+		apiErr := internalServerError()
+		return apidef.Training{}, apiErr.Status, apiErr
+	}
+
+	return t, http.StatusOK, nil
 }
 
-// Edit training session
 // (PATCH /trainings/{id})
 func (s *SwimLogsServer) EditTrainingSession(
 	ctx context.Context,
@@ -75,7 +90,6 @@ func (s *SwimLogsServer) EditTrainingSession(
 	panic("not implemented")
 }
 
-// Delete a set
 // (DELETE /trainings/{id}/sets/{setId})
 func (s *SwimLogsServer) DeleteSet(
 	ctx context.Context,
@@ -84,7 +98,6 @@ func (s *SwimLogsServer) DeleteSet(
 	panic("not implemented")
 }
 
-// Edit set
 // (PATCH /trainings/{id}/sets/{setId})
 func (s *SwimLogsServer) EditSet(
 	ctx context.Context,

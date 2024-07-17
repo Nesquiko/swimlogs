@@ -38,4 +38,3 @@ required:
   - repeat
   - distanceMeters
   - totalDistance
-  - startType
