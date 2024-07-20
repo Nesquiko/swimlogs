@@ -56,6 +56,28 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
+const (
+	InvalidEditSessionRequestCode  = "invalid.session"
+	InvalidEditSessionRequestTitle = "Invalid edit session"
+	NoSessionChangesDetail         = "Request contained no changes start nor duration changes."
+)
+
+func validateEditSessionRequest(req apidef.EditSessionRequest) *ValidationError {
+	if req.DurationMin == nil && req.Start == nil {
+		return invalidSession(NoSessionChangesDetail)
+	}
+
+	if req.DurationMin != nil && (*req.DurationMin <= 0 || *req.DurationMin > data.SmallIntMax) {
+		return invalidSession(fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, *req.DurationMin))
+	}
+
+	if req.Start != nil && req.Start.IsZero() {
+		return invalidSession(fmt.Sprintf(StartErrorDetail, req.Start))
+	}
+
+	return nil
+}
+
 func validateNewTraining(nt apidef.NewTraining) *ValidationError {
 	if nt.DurationMin <= 0 || nt.DurationMin > data.SmallIntMax {
 		return invalidTraining(fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, nt.DurationMin))
@@ -117,6 +139,17 @@ func validateNewSet(set apidef.NewTrainingSet) *ValidationError {
 	}
 
 	return nil
+}
+
+func invalidSession(detail string) *ValidationError {
+	return &ValidationError{
+		ErrorDetail: apidef.ErrorDetail{
+			Title:  InvalidEditSessionRequestTitle,
+			Code:   InvalidEditSessionRequestCode,
+			Detail: detail,
+			Status: http.StatusBadRequest,
+		},
+	}
 }
 
 func invalidTraining(detail string) *ValidationError {

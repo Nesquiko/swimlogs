@@ -96,22 +96,30 @@ func (app SwimLogsApp) Training(ctx context.Context, id uuid.UUID) (apidef.Train
 	return dataTrainingToApiTraining(t), nil
 }
 
-func (app SwimLogsApp) EditTraining(
+func (app SwimLogsApp) EditTrainingSession(
+	ctx context.Context,
 	id uuid.UUID,
-	t apidef.Training,
+	session apidef.EditSessionRequest,
 ) (apidef.TrainingSummary, error) {
-	// recalcDistanceOnTraining(&t)
-	// training := trainingToDataTraining(t)
-	//
-	// edited, err := app.pool.EditTraining(id, training)
-	// if errors.Is(err, data.ErrRowsNotFound) {
-	// 	return apidef.TrainingDetail{}, fmt.Errorf("EditTraining: %w", ErrNotFound)
-	// } else if err != nil {
-	// 	return apidef.TrainingDetail{}, fmt.Errorf("EditTraining: %w", err)
-	// }
-	//
-	// return trainingToSummary(edited), nil
-	panic("not implemented")
+	validationErr := validateEditSessionRequest(session)
+	if validationErr != nil {
+		return apidef.TrainingSummary{}, validationErr
+	}
+
+	edited, err := app.pool.EditTrainingSession(ctx, id, struct {
+		DurationMin *int
+		Start       *time.Time
+	}(session))
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return apidef.TrainingSummary{}, fmt.Errorf(
+			"EditTrainingSession not found: %w",
+			ErrNotFound,
+		)
+	} else if err != nil {
+		return apidef.TrainingSummary{}, fmt.Errorf("EditTrainingSession: %w", err)
+	}
+
+	return trainingToSummary(edited), nil
 }
 
 func GetWeekRange(t time.Time) (time.Time, time.Time) {

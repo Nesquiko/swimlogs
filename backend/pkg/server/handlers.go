@@ -152,7 +152,23 @@ func (s *SwimLogsServer) EditTrainingSession(
 	id uuid.UUID,
 	r apidef.EditSessionRequest,
 ) (apidef.EditSessionResponse, int, error) {
-	panic("not implemented")
+	td, err := s.app.EditTrainingSession(ctx, id, r)
+	if err != nil {
+		if validationErr, ok := err.(*app.ValidationError); ok {
+			apiErr := FromValidationError(validationErr)
+			slog.Warn("invalid training session", slog.String("error", validationErr.Error()))
+			return apidef.TrainingSummary{}, apiErr.Status, apiErr
+		}
+
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "EditTrainingSession"),
+		)
+		apiErr := internalServerError()
+		return apidef.TrainingSummary{}, apiErr.Status, apiErr
+	}
+	return td, http.StatusOK, nil
 }
 
 // (DELETE /trainings/{id}/sets/{setId})

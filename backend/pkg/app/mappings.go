@@ -123,11 +123,11 @@ func dataSetToApiSet(s data.TrainingSet) apidef.TrainingSet {
 
 func trainingToDataTraining(t apidef.Training) data.Training {
 	return data.Training{
-		Id:          t.Id,
-		Start:       t.Start,
-		DurationMin: t.DurationMin,
-		// TotalDistance: t.TotalDistance,
-		Sets: setsToDataSets(t.Sets, t.Id),
+		Id:            t.Id,
+		Start:         t.Start,
+		DurationMin:   t.DurationMin,
+		TotalDistance: t.TotalDistance,
+		Sets:          setsToDataSets(t.Sets, t.Id),
 	}
 }
 
@@ -148,22 +148,21 @@ func setToDataSet(set apidef.TrainingSet, tId uuid.UUID) data.TrainingSet {
 	}
 
 	ts := data.TrainingSet{
-		Id:         set.Id,
-		TrainingId: tId,
-		SetOrder:   set.SetOrder,
-		// TotalDistance:  set.TotalDistance,
+		Id:             set.Id,
+		TrainingId:     tId,
+		SetOrder:       set.SetOrder,
 		Repeat:         set.Repeat,
 		DistanceMeters: set.DistanceMeters,
 		Description:    set.Description,
-		// StartType:      string(set.StartType),
-		StartSeconds: set.StartSeconds,
-		Equipment:    &equipment,
-		Group:        (*string)(set.Group),
+		StartType:      (*string)(set.StartType),
+		StartSeconds:   set.StartSeconds,
+		Equipment:      &equipment,
+		Group:          (*string)(set.Group),
 	}
 
-	// if set.StartType == apidef.None {
-	// 	ts.StartSeconds = nil
-	// }
+	if set.StartType == nil || *set.StartType == "" {
+		ts.StartSeconds = nil
+	}
 
 	return ts
 }

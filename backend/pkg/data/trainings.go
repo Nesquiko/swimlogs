@@ -204,15 +204,18 @@ func (pool *PostgresDbPool) Training(ctx context.Context, id uuid.UUID) (Trainin
 	return t, nil
 }
 
-func (pool *PostgresDbPool) EditTraining(
+func (pool *PostgresDbPool) EditTrainingSession(
 	ctx context.Context,
 	id uuid.UUID,
-	t Training,
+	session struct {
+		DurationMin *int
+		Start       *time.Time
+	},
 ) (Training, error) {
 	return TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (Training, error) {
-		t, err := pool.editTraining(ctx, id, t, tx)
+		t, err := pool.editTrainingSession(ctx, id, session, tx)
 		if err != nil {
-			return t, fmt.Errorf("EditTraining tx: %w", err)
+			return t, fmt.Errorf("EditTrainingSession tx: %w", err)
 		}
 		return t, nil
 	})
@@ -291,37 +294,38 @@ func (pool *PostgresDbPool) persistSet(
 	return s, nil
 }
 
-var updateTraining = `
-update trainings
-set start          = $2,
-    duration_min   = $3,
-    total_distance = $4,
-    modified_at    = now()
-where id = $1
-returning id, start, duration_min, total_distance, created_at, modified_at
+var updateTrainingSession = `
+with updated as (
+    update trainings
+        set start = coalesce($2, start),
+            duration_min = coalesce($3, duration_min),
+            modified_at = now()
+        where id = $1
+        returning id, start, duration_min, created_at, modified_at)
+select t.id, t.start, t.duration_min, t.created_at, t.modified_at,
+    sum(s.repeat * s.distance_meters)
+from updated t
+         join sets s on t.id = s.training_id
+group by t.id, t.start, t.duration_min, t.created_at, t.modified_at
 `
 
-func (pool *PostgresDbPool) editTraining(
+func (pool *PostgresDbPool) editTrainingSession(
 	ctx context.Context,
 	id uuid.UUID,
-	t Training,
+	session struct {
+		DurationMin *int
+		Start       *time.Time
+	},
 	tx pgx.Tx,
 ) (Training, error) {
-	err := tx.QueryRow(ctx, updateTraining, id, t.Start, t.DurationMin).
-		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
+	t := Training{}
+	err := tx.QueryRow(ctx, updateTrainingSession, id, session.Start, session.DurationMin).
+		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt, &t.TotalDistance)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Training{}, fmt.Errorf("editTraining not found: %w", ErrRowsNotFound)
+		return Training{}, fmt.Errorf("editTrainingSession not found: %w", ErrRowsNotFound)
 	} else if err != nil {
-		return Training{}, fmt.Errorf("editTraining update training query error: %w", err)
-	}
-
-	for i, s := range t.Sets {
-		ts, err := pool.editSet(ctx, tx, s)
-		if err != nil {
-			return Training{}, fmt.Errorf("editTraining set %d: %w", i, err)
-		}
-		t.Sets[i] = ts
+		return Training{}, fmt.Errorf("editTrainingSession update training query error: %w", err)
 	}
 
 	return t, nil

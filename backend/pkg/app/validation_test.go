@@ -12,6 +12,48 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
+func Test_validateEditSessionRequestInvalidStart(t *testing.T) {
+	editSession := apidef.EditSessionRequest{Start: &time.Time{}}
+
+	err := validateEditSessionRequest(editSession)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidEditSessionRequestTitle, err.Title)
+	assert.Equal(InvalidEditSessionRequestCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(fmt.Sprintf(StartErrorDetail, time.Time{}), err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSessionRequestInvalidDuration(t *testing.T) {
+	testCases := []struct {
+		desc            string
+		invalidDuration int
+	}{
+		{desc: "Lower bound", invalidDuration: 0},
+		{desc: "Upper bound", invalidDuration: data.SmallIntMax + 1},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			editSession := apidef.EditSessionRequest{DurationMin: &tC.invalidDuration}
+
+			err := validateEditSessionRequest(editSession)
+
+			assert := assert.New(t)
+			assert.NotNil(err)
+			assert.Equal(InvalidEditSessionRequestTitle, err.Title)
+			assert.Equal(InvalidEditSessionRequestCode, err.Code)
+			assert.Equal(http.StatusBadRequest, err.Status)
+			assert.Equal(
+				fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, tC.invalidDuration),
+				err.Detail,
+			)
+			assert.Nil(err.AdditionalProperties)
+		})
+	}
+}
+
 func Test_validateNewTrainingInvalidDuration(t *testing.T) {
 	testCases := []struct {
 		desc            string
