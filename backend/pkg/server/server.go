@@ -38,6 +38,18 @@ func (e *ApiError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
+func FromValidationError(e *app.ValidationError) *ApiError {
+	return &ApiError{
+		ErrorDetail: apidef.ErrorDetail{
+			Code:                 e.Code,
+			Title:                e.Title,
+			Detail:               e.Detail,
+			Status:               e.Status,
+			AdditionalProperties: e.AdditionalProperties,
+		},
+	}
+}
+
 func NewServer(
 	app app.SwimLogsApp,
 	middlewareLogger *httplog.Logger,

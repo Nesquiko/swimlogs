@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
@@ -78,10 +79,10 @@ func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(server.InvalidSetErrorTitle, apiError.Title)
-	assert.Equal(server.NonUniqueSetOrderCode, apiError.Code)
+	assert.Equal(app.InvalidSetErrorTitle, apiError.Title)
+	assert.Equal(app.NonUniqueSetOrderCode, apiError.Code)
 	assert.Equal(http.StatusBadRequest, apiError.Status)
-	assert.Equal(fmt.Sprintf(server.NonUniqueSetOrderDetail, nonUniqueSetOrder), apiError.Detail)
+	assert.Equal(fmt.Sprintf(app.NonUniqueSetOrderDetail, nonUniqueSetOrder), apiError.Detail)
 	assert.Nil(apiError.AdditionalProperties)
 }
 
@@ -116,12 +117,12 @@ func TestCreateTraining_InvalidSet(t *testing.T) {
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(server.InvalidSetErrorTitle, apiError.Title)
-	assert.Equal(server.InvalidSetErrorCode, apiError.Code)
+	assert.Equal(app.InvalidSetErrorTitle, apiError.Title)
+	assert.Equal(app.InvalidSetErrorCode, apiError.Code)
 	assert.Equal(http.StatusBadRequest, apiError.Status)
 	assert.Equal(
 		fmt.Sprintf(
-			server.StartTypeUnknownErrorDetail,
+			app.StartTypeUnknownErrorDetail,
 			apidef.Interval,
 			apidef.Pause,
 			invalidStartType,

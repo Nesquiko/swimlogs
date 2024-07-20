@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"fmt"
@@ -48,7 +48,15 @@ var (
 	}
 )
 
-func validateNewTraining(nt apidef.NewTraining) *ApiError {
+type ValidationError struct {
+	apidef.ErrorDetail
+}
+
+func (e *ValidationError) Error() string {
+	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
+}
+
+func validateNewTraining(nt apidef.NewTraining) *ValidationError {
 	if nt.DurationMin <= 0 || nt.DurationMin > data.SmallIntMax {
 		return invalidTraining(fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, nt.DurationMin))
 	} else if nt.Start.IsZero() {
@@ -73,7 +81,7 @@ func validateNewTraining(nt apidef.NewTraining) *ApiError {
 	return nil
 }
 
-func validateNewSet(set apidef.NewTrainingSet) *ApiError {
+func validateNewSet(set apidef.NewTrainingSet) *ValidationError {
 	if set.SetOrder < 0 || set.SetOrder > data.SmallIntMax {
 		return invalidSet(
 			set.SetOrder,
@@ -111,8 +119,8 @@ func validateNewSet(set apidef.NewTrainingSet) *ApiError {
 	return nil
 }
 
-func invalidTraining(detail string) *ApiError {
-	return &ApiError{
+func invalidTraining(detail string) *ValidationError {
+	return &ValidationError{
 		ErrorDetail: apidef.ErrorDetail{
 			Title:  InvalidTrainingErrorTitle,
 			Code:   InvalidTrainingErrorCode,
@@ -122,8 +130,8 @@ func invalidTraining(detail string) *ApiError {
 	}
 }
 
-func invalidSet(setOrder int, detail string) *ApiError {
-	return &ApiError{
+func invalidSet(setOrder int, detail string) *ValidationError {
+	return &ValidationError{
 		ErrorDetail: apidef.ErrorDetail{
 			Title:                InvalidSetErrorTitle,
 			Code:                 InvalidSetErrorCode,
@@ -134,8 +142,8 @@ func invalidSet(setOrder int, detail string) *ApiError {
 	}
 }
 
-func nonUniqueSetOrder(setOrder int) *ApiError {
-	return &ApiError{
+func nonUniqueSetOrder(setOrder int) *ValidationError {
+	return &ValidationError{
 		ErrorDetail: apidef.ErrorDetail{
 			Title:  InvalidSetErrorTitle,
 			Code:   NonUniqueSetOrderCode,

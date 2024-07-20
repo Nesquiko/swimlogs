@@ -26,6 +26,11 @@ func (app SwimLogsApp) CreateTraining(
 	ctx context.Context,
 	newTraining apidef.NewTraining,
 ) (apidef.TrainingSummary, error) {
+	validationErr := validateNewTraining(newTraining)
+	if validationErr != nil {
+		return apidef.TrainingSummary{}, validationErr
+	}
+
 	t := newTrainingToDataTraining(newTraining)
 	t.Start = t.Start.Truncate(time.Minute)
 

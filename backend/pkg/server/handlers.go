@@ -18,14 +18,14 @@ func (s *SwimLogsServer) CreateTraining(
 	ctx context.Context,
 	r apidef.CreateTrainingRequest,
 ) (apidef.CreateTrainingReponse, int, error) {
-	validationErr := validateNewTraining(r)
-	if validationErr != nil {
-		slog.Warn("invalid training", slog.String("error", validationErr.Error()))
-		return apidef.TrainingSummary{}, validationErr.Status, validationErr
-	}
-
 	td, err := s.app.CreateTraining(ctx, r)
 	if err != nil {
+		if validationErr, ok := err.(*app.ValidationError); ok {
+			apiErr := FromValidationError(validationErr)
+			slog.Warn("invalid training", slog.String("error", validationErr.Error()))
+			return apidef.TrainingSummary{}, apiErr.Status, apiErr
+		}
+
 		slog.Error(
 			UnexpectedError,
 			slog.String("error", err.Error()),
