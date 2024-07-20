@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 
@@ -41,8 +42,41 @@ func (s *SwimLogsServer) SummariesPage(
 	ctx context.Context,
 	params apidef.SummariesPageParams,
 ) (apidef.TrainingSummariesResponse, int, error) {
-	panic("not implemented")
+	if params.Page < 0 {
+		slog.Warn(
+			"invalid page query params",
+			slog.Int("page", params.Page),
+		)
+		apiErr := invalidQueryParam("page", strconv.Itoa(params.Page))
+		return apidef.TrainingSummariesResponse{}, apiErr.Status, apiErr
+	} else if params.PageSize < 1 {
+		slog.Warn(
+			"invalid pageSize query params",
+			slog.Int("pageSize", params.PageSize),
+		)
+		apiErr := invalidQueryParam("pageSize", strconv.Itoa(params.Page))
+		return apidef.TrainingSummariesResponse{}, apiErr.Status, apiErr
+	}
+
+	summaries, total, err := s.app.TrainingSummariesPage(params.Page, params.PageSize)
+	if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "SummariesPage"),
+		)
+		apiErr := internalServerError()
+		return apidef.TrainingSummariesResponse{}, apiErr.Status, apiErr
+	}
+
+	pagination := apidef.Pagination{Page: params.Page, PageSize: len(summaries), Total: total}
+	return apidef.TrainingSummariesResponse{
+		Summaries:  summaries,
+		Pagination: pagination,
+	}, http.StatusOK, nil
 }
+
+// TODO context everywhere!
 
 // (GET /trainings/summaries/current-week)
 func (s *SwimLogsServer) SummariesCurrentWeek(

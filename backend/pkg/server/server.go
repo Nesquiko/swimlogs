@@ -281,24 +281,36 @@ func pathIdAndSetIdExtractor(r *http.Request) (IdSetId, error) {
 	return ids, nil
 }
 
+const (
+	InvalidQueryParamCode         = "invalid.query.param"
+	InvalidQueryParamTitleFormat  = "Invalid %q: %q"
+	InvalidQueryParamDetailFormat = "Invalid query param %q: %q"
+)
+
 func invalidQueryParam(param, value string) *ApiError {
 	return &ApiError{
 		ErrorDetail: apidef.ErrorDetail{
-			Code:   "invalid.query.param",
-			Detail: fmt.Sprintf("Invalid %q: %q", param, value),
+			Code:   InvalidQueryParamCode,
+			Title:  fmt.Sprintf(InvalidQueryParamTitleFormat, param, value),
 			Status: http.StatusBadRequest,
-			Title:  fmt.Sprintf("Invalid query param %q: %q", param, value),
+			Detail: fmt.Sprintf(InvalidQueryParamDetailFormat, param, value),
 		},
 	}
 }
 
+const (
+	InvalidPathParamCode         = "invalid.path.param"
+	InvalidPathParamTitleFormat  = "Invalid %q: %q"
+	InvalidPathParamDetailFormat = "Invalid path param %q: %q"
+)
+
 func invalidPathParam(param, value string) *ApiError {
 	return &ApiError{
 		ErrorDetail: apidef.ErrorDetail{
-			Code:   "invalid.path.param",
-			Detail: fmt.Sprintf("Invalid %q: %q", param, value),
+			Code:   InvalidPathParamCode,
+			Title:  fmt.Sprintf(InvalidPathParamTitleFormat, param, value),
 			Status: http.StatusBadRequest,
-			Title:  fmt.Sprintf("Invalid path param %q: %q", param, value),
+			Detail: fmt.Sprintf(InvalidPathParamDetailFormat, param, value),
 		},
 	}
 }

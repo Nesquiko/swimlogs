@@ -15,6 +15,7 @@ import (
 )
 
 func TestDeleteTraining_Successfully(t *testing.T) {
+	t.Parallel()
 	id := mustCreateNewTraining(t, nil).Id
 	res, err := deleteTraining(id)
 	require.NoError(t, err)
@@ -39,6 +40,7 @@ func TestDeleteTraining_Successfully(t *testing.T) {
 }
 
 func TestDeleteTraining_NotFound(t *testing.T) {
+	t.Parallel()
 	id := uuid.New()
 	res, err := deleteTraining(id)
 	defer res.Body.Close()

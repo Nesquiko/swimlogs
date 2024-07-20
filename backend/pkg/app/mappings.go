@@ -55,8 +55,13 @@ func newSetToDataSet(set apidef.NewTrainingSet, tId uuid.UUID) data.TrainingSet 
 
 func trainingToSummary(t data.Training) apidef.TrainingSummary {
 	totalDistance := 0
-	for _, s := range t.Sets {
-		totalDistance += s.Repeat * s.DistanceMeters
+
+	if len(t.Sets) == 0 {
+		totalDistance = t.TotalDistance
+	} else {
+		for _, s := range t.Sets {
+			totalDistance += s.Repeat * s.DistanceMeters
+		}
 	}
 
 	return apidef.TrainingSummary{

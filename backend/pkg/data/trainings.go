@@ -16,8 +16,9 @@ type Training struct {
 	DurationMin int
 	Sets        []TrainingSet
 
-	CreatedAt  time.Time
-	ModifiedAt time.Time
+	TotalDistance int
+	CreatedAt     time.Time
+	ModifiedAt    time.Time
 }
 
 type TrainingSet struct {
@@ -55,24 +56,27 @@ func (pool *PostgresDbPool) DeleteTraining(id uuid.UUID) error {
 	})
 }
 
-var selectTrainingDetailsPage = `
-select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at, count(*) over ()
+var selectTrainingSummariesPage = `
+select t.id, t.start, t.duration_min, t.created_at, t.modified_at,
+    sum(s.repeat * s.distance_meters), count(t.id) over ()
 from trainings t
-order by t.start desc, t.duration_min, t.total_distance, t.created_at
+    join sets s on t.id = s.training_id
+group by t.id, t.start, t.duration_min, t.created_at, t.modified_at
+order by t.start desc, t.duration_min, t.created_at
 limit $1 offset $2
 `
 
-func (pool *PostgresDbPool) TrainingDetails(page, pageSize int) ([]Training, int, error) {
+func (pool *PostgresDbPool) TrainingSummaries(page, pageSize int) ([]Training, int, error) {
 	tds := make([]Training, 0)
 
 	rows, err := pool.Query(
 		context.Background(),
-		selectTrainingDetailsPage,
+		selectTrainingSummariesPage,
 		pageSize,
 		page*pageSize,
 	)
 	if err != nil {
-		return nil, 0, fmt.Errorf("TrainingDetails query error: %w", err)
+		return nil, 0, fmt.Errorf("TrainingSummaries query error: %w", err)
 	}
 	defer rows.Close()
 
@@ -85,10 +89,11 @@ func (pool *PostgresDbPool) TrainingDetails(page, pageSize int) ([]Training, int
 			&t.DurationMin,
 			&t.CreatedAt,
 			&t.ModifiedAt,
+			&t.TotalDistance,
 			&count,
 		)
 		if err != nil {
-			return nil, 0, fmt.Errorf("TrainingDetails scanning row: %w", err)
+			return nil, 0, fmt.Errorf("TrainingSummaries scanning row: %w", err)
 		}
 		tds = append(tds, t)
 	}

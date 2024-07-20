@@ -16,6 +16,7 @@ import (
 )
 
 func TestTrainingById_MatchingResponse(t *testing.T) {
+	t.Parallel()
 	request := apidef.CreateTrainingRequest{
 		DurationMin: 60,
 		Sets: []apidef.NewTrainingSet{
@@ -64,6 +65,7 @@ func TestTrainingById_MatchingResponse(t *testing.T) {
 }
 
 func TestTrainingById_NotFound(t *testing.T) {
+	t.Parallel()
 	id := uuid.New()
 	res, err := readTraining(id)
 	defer res.Body.Close()
@@ -79,6 +81,26 @@ func TestTrainingById_NotFound(t *testing.T) {
 	assert.Equal(server.NotFoundCode, apiError.Code)
 	assert.Equal(http.StatusNotFound, apiError.Status)
 	assert.Equal(fmt.Sprintf(server.NotFoundDetailFormat, "training", id.String()), apiError.Detail)
+	assert.Nil(apiError.AdditionalProperties)
+}
+
+func TestTrainingById_InvalidUUID(t *testing.T) {
+	t.Parallel()
+	invalidId := "invalid-uuid"
+	res, err := _readTraining(invalidId)
+	defer res.Body.Close()
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	var apiError apidef.NotFoundError
+	err = json.NewDecoder(res.Body).Decode(&apiError)
+	require.NoError(t, err)
+
+	assert := assert.New(t)
+	assert.Equal(fmt.Sprintf(server.InvalidPathParamTitleFormat, "id", invalidId), apiError.Title)
+	assert.Equal(server.InvalidPathParamCode, apiError.Code)
+	assert.Equal(http.StatusBadRequest, apiError.Status)
+	assert.Equal(fmt.Sprintf(server.InvalidPathParamDetailFormat, "id", invalidId), apiError.Detail)
 	assert.Nil(apiError.AdditionalProperties)
 }
 
@@ -105,7 +127,11 @@ func mustReadTraining(t *testing.T, id uuid.UUID) apidef.Training {
 }
 
 func readTraining(id uuid.UUID) (*http.Response, error) {
-	url := ServerUrl + "/trainings/" + id.String()
+	return _readTraining(id.String())
+}
+
+func _readTraining(id string) (*http.Response, error) {
+	url := ServerUrl + "/trainings/" + id
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("readTraining post: %w", err)

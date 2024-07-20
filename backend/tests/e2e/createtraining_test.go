@@ -18,6 +18,7 @@ import (
 )
 
 func TestCreateTraining_ValidTrainingSummary(t *testing.T) {
+	t.Parallel()
 	request := apidef.CreateTrainingRequest{
 		DurationMin: 60,
 		Sets: []apidef.NewTrainingSet{
@@ -48,6 +49,7 @@ func TestCreateTraining_ValidTrainingSummary(t *testing.T) {
 }
 
 func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
+	t.Parallel()
 	nonUniqueSetOrder := 0
 	request := apidef.CreateTrainingRequest{
 		DurationMin: 60,
@@ -84,6 +86,7 @@ func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
 }
 
 func TestCreateTraining_InvalidSet(t *testing.T) {
+	t.Parallel()
 	invalidStartType := apidef.StartTypeEnum("invalid")
 	request := apidef.CreateTrainingRequest{
 		DurationMin: 60,

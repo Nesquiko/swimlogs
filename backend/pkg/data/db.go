@@ -40,6 +40,25 @@ func NewPostgresPool(conStr, migrationsDir string) (*PostgresDbPool, error) {
 	return &PostgresDbPool{conStr, migrationsDir, dbPool}, nil
 }
 
+func (p *PostgresDbPool) Reconnect(ctx context.Context) error {
+	dbConfig, err := pgxpool.ParseConfig(p.conStr)
+	if err != nil {
+		return fmt.Errorf("Reconnect parse config: %w", err)
+	}
+	dbConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		pgxUUID.Register(conn.TypeMap())
+		return nil
+	}
+
+	dbPool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
+	if err != nil {
+		return fmt.Errorf("Reconnect new: %w", err)
+	}
+
+	p.Pool = dbPool
+	return nil
+}
+
 func (psql *PostgresDbPool) Close() {
 	psql.Pool.Close()
 }

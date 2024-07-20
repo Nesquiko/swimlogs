@@ -45,21 +45,19 @@ func (app SwimLogsApp) DeleteTraining(id uuid.UUID) error {
 	return nil
 }
 
-func (app SwimLogsApp) TrainingDetailsPage(
+func (app SwimLogsApp) TrainingSummariesPage(
 	page, pageSize int,
 ) ([]apidef.TrainingSummary, int, error) {
-	// detailsPage, total, err := app.pool.TrainingDetails(page, pageSize)
-	// if err != nil {
-	// 	return nil, 0, fmt.Errorf("TrainingDetailsPage: %w", err)
-	// }
-	//
-	// details := make([]apidef.TrainingDetail, len(detailsPage))
-	// for i, d := range detailsPage {
-	// 	details[i] = trainingToSummary(d)
-	// }
-	//
-	// return details, total, nil
-	panic("not implemented")
+	summariesPage, total, err := app.pool.TrainingSummaries(page, pageSize)
+	if err != nil {
+		return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
+	}
+	summaries := make([]apidef.TrainingSummary, len(summariesPage))
+	for i, d := range summariesPage {
+		summaries[i] = trainingToSummary(d)
+	}
+
+	return summaries, total, nil
 }
 
 func (app SwimLogsApp) TrainingDetailsCurrentWeek() (apidef.TrainingSummariesCurrentWeekResponse, error) {
