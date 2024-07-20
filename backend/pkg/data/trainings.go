@@ -104,23 +104,25 @@ func (pool *PostgresDbPool) TrainingSummaries(
 	return tds, count, nil
 }
 
-var selectTrainingDetailsInDateRange = `
-select t.id, t.start, t.duration_min, t.total_distance, t.created_at, t.modified_at
+var selectTrainingSummariesInDateRange = `
+select t.id, t.start, t.duration_min, t.created_at, t.modified_at, sum(s.repeat * s.distance_meters)
 from trainings t
+    join sets s on t.id = s.training_id
 where date(t.start) between $1::date and $2::date
-order by t.start, t.duration_min, t.total_distance, t.created_at
+group by t.id, t.start, t.duration_min, t.created_at, t.modified_at
+order by t.start, t.duration_min, t.created_at
 `
 
-func (pool *PostgresDbPool) TrainingDetailsInRange(
+func (pool *PostgresDbPool) TrainingSummariesInRange(
 	ctx context.Context,
 	start, end time.Time,
 ) ([]Training, error) {
 	tds := make([]Training, 0)
 
-	rows, err := pool.Query(ctx, selectTrainingDetailsInDateRange, start, end)
+	rows, err := pool.Query(ctx, selectTrainingSummariesInDateRange, start, end)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"TrainingDetailsInRange from %s to %s query error: %w",
+			"TrainingSummariesInRange from %s to %s query error: %w",
 			start,
 			end,
 			err,
@@ -136,10 +138,11 @@ func (pool *PostgresDbPool) TrainingDetailsInRange(
 			&t.DurationMin,
 			&t.CreatedAt,
 			&t.ModifiedAt,
+			&t.TotalDistance,
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"TrainingDetailsInRange from %s to %s scanning error: %w",
+				"TrainingSummariesInRange from %s to %s scanning error: %w",
 				start,
 				end,
 				err,

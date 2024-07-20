@@ -63,22 +63,21 @@ func (app SwimLogsApp) TrainingSummariesPage(
 	return summaries, total, nil
 }
 
-func (app SwimLogsApp) TrainingDetailsCurrentWeek() (apidef.TrainingSummariesCurrentWeekResponse, error) {
-	// now := time.Now()
-	// startOfWeek := now.AddDate(0, 0, -(int(now.Weekday())+6)%7)
-	// endOfWeek := now.AddDate(0, 0, (7-int(now.Weekday()))%7)
-	//
-	// detailsInRange, err := app.pool.TrainingDetailsInRange(startOfWeek, endOfWeek)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("TrainingDetailsCurrentWeek: %w", err)
-	// }
-	//
-	// details := make([]apidef.TrainingDetail, len(detailsInRange))
-	// for i, d := range detailsInRange {
-	// 	details[i] = trainingToSummary(d)
-	// }
-	// return details, nil
-	panic("not implemented")
+func (app SwimLogsApp) TrainingSummariesCurrentWeek(
+	ctx context.Context,
+) ([]apidef.TrainingSummary, error) {
+	startOfWeek, endOfWeek := GetWeekRange(time.Now())
+
+	summariesInRane, err := app.pool.TrainingSummariesInRange(ctx, startOfWeek, endOfWeek)
+	if err != nil {
+		return nil, fmt.Errorf("TrainingSummariesCurrentWeek: %w", err)
+	}
+
+	summaries := make([]apidef.TrainingSummary, len(summariesInRane))
+	for i, ts := range summariesInRane {
+		summaries[i] = trainingToSummary(ts)
+	}
+	return summaries, nil
 }
 
 func (app SwimLogsApp) Training(ctx context.Context, id uuid.UUID) (apidef.Training, error) {
@@ -108,4 +107,22 @@ func (app SwimLogsApp) EditTraining(
 	//
 	// return trainingToSummary(edited), nil
 	panic("not implemented")
+}
+
+func GetWeekRange(t time.Time) (time.Time, time.Time) {
+	year, week := t.ISOWeek()
+	start := time.Date(year, time.January, 1, 0, 0, 0, 0, t.Location())
+
+	// Find the first Monday of the year
+	for start.Weekday() != time.Monday {
+		start = start.AddDate(0, 0, 1)
+	}
+
+	// Add the number of weeks to the first Monday to get the start of the current week
+	start = start.AddDate(0, 0, (week-1)*7)
+
+	// The end of the week is 7 days after the start
+	end := start.AddDate(0, 0, 7)
+
+	return start, end
 }
