@@ -24,7 +24,7 @@ func (s *SwimLogsServer) CreateTraining(
 		return apidef.TrainingSummary{}, validationErr.Status, validationErr
 	}
 
-	td, err := s.app.CreateTraining(r)
+	td, err := s.app.CreateTraining(ctx, r)
 	if err != nil {
 		slog.Error(
 			UnexpectedError,
@@ -58,7 +58,7 @@ func (s *SwimLogsServer) SummariesPage(
 		return apidef.TrainingSummariesResponse{}, apiErr.Status, apiErr
 	}
 
-	summaries, total, err := s.app.TrainingSummariesPage(params.Page, params.PageSize)
+	summaries, total, err := s.app.TrainingSummariesPage(ctx, params.Page, params.PageSize)
 	if err != nil {
 		slog.Error(
 			UnexpectedError,
@@ -76,8 +76,6 @@ func (s *SwimLogsServer) SummariesPage(
 	}, http.StatusOK, nil
 }
 
-// TODO context everywhere!
-
 // (GET /trainings/summaries/current-week)
 func (s *SwimLogsServer) SummariesCurrentWeek(
 	ctx context.Context,
@@ -90,7 +88,7 @@ func (s *SwimLogsServer) DeleteTraining(
 	ctx context.Context,
 	id uuid.UUID,
 ) (int, error) {
-	err := s.app.DeleteTraining(id)
+	err := s.app.DeleteTraining(ctx, id)
 
 	if errors.Is(err, app.ErrNotFound) {
 		slog.Warn(
@@ -117,7 +115,7 @@ func (s *SwimLogsServer) TrainingById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (apidef.Training, int, error) {
-	t, err := s.app.Training(id)
+	t, err := s.app.Training(ctx, id)
 
 	if errors.Is(err, app.ErrNotFound) {
 		slog.Warn("training not found",

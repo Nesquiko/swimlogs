@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -22,12 +23,13 @@ type SwimLogsApp struct {
 }
 
 func (app SwimLogsApp) CreateTraining(
+	ctx context.Context,
 	newTraining apidef.NewTraining,
 ) (apidef.TrainingSummary, error) {
 	t := newTrainingToDataTraining(newTraining)
 	t.Start = t.Start.Truncate(time.Minute)
 
-	t, err := app.pool.PersistTraining(t)
+	t, err := app.pool.PersistTraining(ctx, t)
 	if err != nil {
 		return apidef.TrainingSummary{}, fmt.Errorf("CreateTraining: %w", err)
 	}
@@ -35,8 +37,8 @@ func (app SwimLogsApp) CreateTraining(
 	return trainingToSummary(t), nil
 }
 
-func (app SwimLogsApp) DeleteTraining(id uuid.UUID) error {
-	err := app.pool.DeleteTraining(id)
+func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
+	err := app.pool.DeleteTraining(ctx, id)
 	if errors.Is(err, data.ErrRowsNotFound) {
 		return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
 	} else if err != nil {
@@ -46,9 +48,10 @@ func (app SwimLogsApp) DeleteTraining(id uuid.UUID) error {
 }
 
 func (app SwimLogsApp) TrainingSummariesPage(
+	ctx context.Context,
 	page, pageSize int,
 ) ([]apidef.TrainingSummary, int, error) {
-	summariesPage, total, err := app.pool.TrainingSummaries(page, pageSize)
+	summariesPage, total, err := app.pool.TrainingSummaries(ctx, page, pageSize)
 	if err != nil {
 		return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
 	}
@@ -78,8 +81,8 @@ func (app SwimLogsApp) TrainingDetailsCurrentWeek() (apidef.TrainingSummariesCur
 	panic("not implemented")
 }
 
-func (app SwimLogsApp) Training(id uuid.UUID) (apidef.Training, error) {
-	t, err := app.pool.Training(id)
+func (app SwimLogsApp) Training(ctx context.Context, id uuid.UUID) (apidef.Training, error) {
+	t, err := app.pool.Training(ctx, id)
 	if errors.Is(err, data.ErrRowsNotFound) {
 		return apidef.Training{}, fmt.Errorf("Training not found: %w", ErrNotFound)
 	} else if err != nil {

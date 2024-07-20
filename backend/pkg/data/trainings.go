@@ -34,9 +34,9 @@ type TrainingSet struct {
 	Group          *string
 }
 
-func (pool *PostgresDbPool) PersistTraining(t Training) (Training, error) {
-	return TxWithResult(pool, func(tx pgx.Tx) (Training, error) {
-		t, err := pool.persistTraining(t, tx)
+func (pool *PostgresDbPool) PersistTraining(ctx context.Context, t Training) (Training, error) {
+	return TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (Training, error) {
+		t, err := pool.persistTraining(ctx, t, tx)
 		if err != nil {
 			return t, fmt.Errorf("PersistTraining tx: %w", err)
 		}
@@ -44,9 +44,9 @@ func (pool *PostgresDbPool) PersistTraining(t Training) (Training, error) {
 	})
 }
 
-func (pool *PostgresDbPool) DeleteTraining(id uuid.UUID) error {
+func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) error {
 	return Tx(pool, func(tx pgx.Tx) error {
-		ct, err := tx.Exec(context.Background(), "delete from trainings where id = $1", id)
+		ct, err := tx.Exec(ctx, "delete from trainings where id = $1", id)
 		if err != nil {
 			return fmt.Errorf("DeleteTraining: %w", err)
 		} else if ct.RowsAffected() == 0 {
@@ -66,11 +66,14 @@ order by t.start desc, t.duration_min, t.created_at
 limit $1 offset $2
 `
 
-func (pool *PostgresDbPool) TrainingSummaries(page, pageSize int) ([]Training, int, error) {
+func (pool *PostgresDbPool) TrainingSummaries(
+	ctx context.Context,
+	page, pageSize int,
+) ([]Training, int, error) {
 	tds := make([]Training, 0)
 
 	rows, err := pool.Query(
-		context.Background(),
+		ctx,
 		selectTrainingSummariesPage,
 		pageSize,
 		page*pageSize,
@@ -108,10 +111,13 @@ where date(t.start) between $1::date and $2::date
 order by t.start, t.duration_min, t.total_distance, t.created_at
 `
 
-func (pool *PostgresDbPool) TrainingDetailsInRange(start, end time.Time) ([]Training, error) {
+func (pool *PostgresDbPool) TrainingDetailsInRange(
+	ctx context.Context,
+	start, end time.Time,
+) ([]Training, error) {
 	tds := make([]Training, 0)
 
-	rows, err := pool.Query(context.Background(), selectTrainingDetailsInDateRange, start, end)
+	rows, err := pool.Query(ctx, selectTrainingDetailsInDateRange, start, end)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"TrainingDetailsInRange from %s to %s query error: %w",
@@ -155,9 +161,9 @@ where t.id = $1
 order by s.set_order
 `
 
-func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
+func (pool *PostgresDbPool) Training(ctx context.Context, id uuid.UUID) (Training, error) {
 	t := Training{}
-	rows, err := pool.Query(context.Background(), selectTraining, id)
+	rows, err := pool.Query(ctx, selectTraining, id)
 	if err != nil {
 		return Training{}, fmt.Errorf("Training query error: %w", err)
 	}
@@ -195,9 +201,13 @@ func (pool *PostgresDbPool) Training(id uuid.UUID) (Training, error) {
 	return t, nil
 }
 
-func (pool *PostgresDbPool) EditTraining(id uuid.UUID, t Training) (Training, error) {
-	return TxWithResult(pool, func(tx pgx.Tx) (Training, error) {
-		t, err := pool.editTraining(id, t, tx)
+func (pool *PostgresDbPool) EditTraining(
+	ctx context.Context,
+	id uuid.UUID,
+	t Training,
+) (Training, error) {
+	return TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (Training, error) {
+		t, err := pool.editTraining(ctx, id, t, tx)
 		if err != nil {
 			return t, fmt.Errorf("EditTraining tx: %w", err)
 		}
@@ -211,15 +221,19 @@ values ($1, $2, $3, now(), now())
 returning id, start, duration_min, created_at, modified_at
 `
 
-func (pool *PostgresDbPool) persistTraining(t Training, tx pgx.Tx) (Training, error) {
-	err := tx.QueryRow(context.Background(), insertTraining, t.Id, t.Start, t.DurationMin).
+func (pool *PostgresDbPool) persistTraining(
+	ctx context.Context,
+	t Training,
+	tx pgx.Tx,
+) (Training, error) {
+	err := tx.QueryRow(ctx, insertTraining, t.Id, t.Start, t.DurationMin).
 		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
 	if err != nil {
 		return Training{}, fmt.Errorf("persistTraining persisting training: %w", err)
 	}
 
 	for i, s := range t.Sets {
-		ts, err := pool.persistSet(tx, s)
+		ts, err := pool.persistSet(ctx, tx, s)
 		if err != nil {
 			return Training{}, fmt.Errorf("persistTraining set %d: %w", i, err)
 		}
@@ -237,9 +251,13 @@ returning id, training_id, set_order, repeat, distance_meters,
     description, start_type, start_seconds, equipment, "group"
 `
 
-func (pool *PostgresDbPool) persistSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
+func (pool *PostgresDbPool) persistSet(
+	ctx context.Context,
+	tx pgx.Tx,
+	s TrainingSet,
+) (TrainingSet, error) {
 	err := tx.QueryRow(
-		context.Background(),
+		ctx,
 		insertSet,
 		s.Id,
 		s.TrainingId,
@@ -280,8 +298,13 @@ where id = $1
 returning id, start, duration_min, total_distance, created_at, modified_at
 `
 
-func (pool *PostgresDbPool) editTraining(id uuid.UUID, t Training, tx pgx.Tx) (Training, error) {
-	err := tx.QueryRow(context.Background(), updateTraining, id, t.Start, t.DurationMin).
+func (pool *PostgresDbPool) editTraining(
+	ctx context.Context,
+	id uuid.UUID,
+	t Training,
+	tx pgx.Tx,
+) (Training, error) {
+	err := tx.QueryRow(ctx, updateTraining, id, t.Start, t.DurationMin).
 		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -291,7 +314,7 @@ func (pool *PostgresDbPool) editTraining(id uuid.UUID, t Training, tx pgx.Tx) (T
 	}
 
 	for i, s := range t.Sets {
-		ts, err := pool.editSet(tx, s)
+		ts, err := pool.editSet(ctx, tx, s)
 		if err != nil {
 			return Training{}, fmt.Errorf("editTraining set %d: %w", i, err)
 		}
@@ -317,19 +340,23 @@ returning id, training_id, set_order, repeat, distance_meters, description,
     start_type, start_seconds, total_distance, equipment, "group"
 `
 
-func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, error) {
-	setExists, err := pool.setExists(tx, s)
+func (pool *PostgresDbPool) editSet(
+	ctx context.Context,
+	tx pgx.Tx,
+	s TrainingSet,
+) (TrainingSet, error) {
+	setExists, err := pool.setExists(ctx, tx, s)
 	if err != nil {
 		return TrainingSet{}, fmt.Errorf("editSet exists query: %w", err)
 	}
 
 	if !setExists {
 		s.Id = uuid.New()
-		return pool.persistSet(tx, s)
+		return pool.persistSet(ctx, tx, s)
 	}
 
 	err = tx.QueryRow(
-		context.Background(),
+		ctx,
 		updateSet,
 		s.Id,
 		s.SetOrder,
@@ -361,9 +388,9 @@ func (pool *PostgresDbPool) editSet(tx pgx.Tx, s TrainingSet) (TrainingSet, erro
 
 var setExists = "select exists(select 1 from sets where id = $1)"
 
-func (pool *PostgresDbPool) setExists(tx pgx.Tx, s TrainingSet) (bool, error) {
+func (pool *PostgresDbPool) setExists(ctx context.Context, tx pgx.Tx, s TrainingSet) (bool, error) {
 	var exists bool
-	err := tx.QueryRow(context.Background(), setExists, s.Id).Scan(&exists)
+	err := tx.QueryRow(ctx, setExists, s.Id).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("isSetNew query error: %w, id: %s", err, s.Id)
 	}

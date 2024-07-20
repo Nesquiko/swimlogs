@@ -88,20 +88,24 @@ func Tx(pool *PostgresDbPool, f func(pgx.Tx) error) error {
 	return nil
 }
 
-func TxWithResult[R any](pool *PostgresDbPool, f func(pgx.Tx) (R, error)) (R, error) {
+func TxWithResult[R any](
+	ctx context.Context,
+	pool *PostgresDbPool,
+	f func(context.Context, pgx.Tx) (R, error),
+) (R, error) {
 	var res R
-	tx, err := pool.Begin(context.Background())
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		return res, fmt.Errorf("TxWithResult init: %w", err)
 	}
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 
-	res, err = f(tx)
+	res, err = f(ctx, tx)
 	if err != nil {
 		return res, fmt.Errorf("TxWithResult: %w", err)
 	}
 
-	err = tx.Commit(context.Background())
+	err = tx.Commit(ctx)
 	if err != nil {
 		return res, fmt.Errorf("TxWithResult commit: %w", err)
 	}
