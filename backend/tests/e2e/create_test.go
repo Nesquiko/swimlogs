@@ -153,20 +153,7 @@ func createNewTraining(
 	request *apidef.CreateTrainingRequest,
 ) (*http.Response, error) {
 	if request == nil {
-		request = &apidef.CreateTrainingRequest{
-			DurationMin: 60,
-			Sets: []apidef.NewTrainingSet{{
-				SetOrder:       0,
-				Repeat:         4,
-				DistanceMeters: 100,
-				Description:    asPtr("Some description"),
-				Equipment:      &[]apidef.EquipmentEnum{apidef.Board, apidef.Fins},
-				Group:          asPtr(apidef.Long),
-				StartSeconds:   asPtr(60),
-				StartType:      asPtr(apidef.Interval),
-			}},
-			Start: time.Date(2024, 6, 24, 18, 0, 0, 0, time.UTC),
-		}
+		request = defaultNewTraining()
 	}
 	req, err := json.Marshal(request)
 	if err != nil {
@@ -179,4 +166,21 @@ func createNewTraining(
 		return nil, fmt.Errorf("createNewTraining post: %w", err)
 	}
 	return res, nil
+}
+
+func defaultNewTraining() *apidef.CreateTrainingRequest {
+	return &apidef.CreateTrainingRequest{
+		DurationMin: 60,
+		Sets: []apidef.NewTrainingSet{{
+			SetOrder:       0,
+			Repeat:         4,
+			DistanceMeters: 100,
+			Description:    asPtr("Some description"),
+			Equipment:      &[]apidef.EquipmentEnum{apidef.Board, apidef.Fins},
+			Group:          asPtr(apidef.Long),
+			StartSeconds:   asPtr(60),
+			StartType:      asPtr(apidef.Interval),
+		}},
+		Start: time.Date(2024, 6, 24, 18, 0, 0, 0, time.UTC),
+	}
 }

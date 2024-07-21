@@ -176,7 +176,27 @@ func (s *SwimLogsServer) DeleteSet(
 	ctx context.Context,
 	params IdSetId,
 ) (int, error) {
-	panic("not implemented")
+	err := s.app.DeleteSet(ctx, params.id, params.setId)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"set not found",
+			slog.String("error", err.Error()),
+			slog.String("trainingId", params.id.String()),
+			slog.String("setId", params.setId.String()),
+		)
+		return http.StatusNotFound, notFound("set", params.setId.String())
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "DeleteSet"),
+		)
+		apiErr := internalServerError()
+		return apiErr.Status, apiErr
+	}
+
+	return http.StatusNoContent, nil
 }
 
 // (PATCH /trainings/{id}/sets/{setId})

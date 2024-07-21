@@ -122,6 +122,16 @@ func (app SwimLogsApp) EditTrainingSession(
 	return trainingToSummary(edited), nil
 }
 
+func (app SwimLogsApp) DeleteSet(ctx context.Context, trainingId, setId uuid.UUID) error {
+	err := app.pool.DeleteSet(ctx, trainingId, setId)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return fmt.Errorf("DeleteSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return fmt.Errorf("DeleteSet: %w", err)
+	}
+	return nil
+}
+
 func GetWeekRange(t time.Time) (time.Time, time.Time) {
 	year, week := t.ISOWeek()
 	start := time.Date(year, time.January, 1, 0, 0, 0, 0, t.Location())

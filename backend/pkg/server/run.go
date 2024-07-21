@@ -105,8 +105,7 @@ func Run(ctx context.Context, args []string) error {
 		defer wg.Done()
 		<-ctx.Done()
 		slog.Info("interrupt received, shutting down server")
-		shutdownCtx := context.Background()
-		shutdownCtx, shutdownCancel := context.WithTimeout(ctx, 10*time.Second)
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer shutdownCancel()
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			slog.Error("error shutting down http server", slog.String("error", err.Error()))

@@ -79,12 +79,13 @@ func SqlWithResult(pool *PostgresDbPool, sql string, args, dest []any) error {
 	return nil
 }
 
-func Tx(pool *PostgresDbPool, f func(pgx.Tx) error) error {
-	err := pgx.BeginFunc(context.Background(), pool.Pool, f)
+func Tx(ctx context.Context, pool *PostgresDbPool, f func(context.Context, pgx.Tx) error) error {
+	_, err := TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (struct{}, error) {
+		return struct{}{}, f(ctx, tx)
+	})
 	if err != nil {
 		return fmt.Errorf("Tx: %w", err)
 	}
-
 	return nil
 }
 

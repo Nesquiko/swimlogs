@@ -45,15 +45,23 @@ func (pool *PostgresDbPool) PersistTraining(ctx context.Context, t Training) (Tr
 }
 
 func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) error {
-	return Tx(pool, func(tx pgx.Tx) error {
-		ct, err := tx.Exec(ctx, "delete from trainings where id = $1", id)
-		if err != nil {
-			return fmt.Errorf("DeleteTraining: %w", err)
-		} else if ct.RowsAffected() == 0 {
-			return fmt.Errorf("DeleteTraining training doesnt exist: %w", ErrRowsNotFound)
-		}
-		return nil
+	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
+		return pool.deleteTraining(ctx, id, tx)
 	})
+	if err != nil {
+		return fmt.Errorf("DeleteTraining: %w", err)
+	}
+	return nil
+}
+
+func (pool *PostgresDbPool) deleteTraining(ctx context.Context, id uuid.UUID, tx pgx.Tx) error {
+	ct, err := tx.Exec(ctx, "delete from trainings where id = $1", id)
+	if err != nil {
+		return fmt.Errorf("deleteTraining: %w", err)
+	} else if ct.RowsAffected() == 0 {
+		return fmt.Errorf("deleteTraining training doesnt exist: %w", ErrRowsNotFound)
+	}
+	return nil
 }
 
 var selectTrainingSummariesPage = `
@@ -329,6 +337,71 @@ func (pool *PostgresDbPool) editTrainingSession(
 	}
 
 	return t, nil
+}
+
+func (pool *PostgresDbPool) DeleteSet(ctx context.Context, trainingId, setId uuid.UUID) error {
+	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
+		return pool.deleteSet(ctx, trainingId, setId, tx)
+	})
+	if err != nil {
+		return fmt.Errorf("DeleteSet: %w", err)
+	}
+	return nil
+}
+
+func (pool *PostgresDbPool) deleteSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	tx pgx.Tx,
+) error {
+	ct, err := tx.Exec(
+		ctx,
+		"delete from sets where id = $1 and training_id = $2",
+		setId,
+		trainingId,
+	)
+	if err != nil {
+		return fmt.Errorf("deleteSet: %w", err)
+	} else if ct.RowsAffected() == 0 {
+		return fmt.Errorf("deleteSet set not found: %w", ErrRowsNotFound)
+	}
+
+	setsCount, err := pool.countTrainingSets(ctx, trainingId, tx)
+	if err != nil {
+		return fmt.Errorf("deleteSet set count: %w", err)
+	}
+
+	if setsCount != 0 {
+		return nil
+	}
+
+	err = pool.deleteTraining(ctx, trainingId, tx)
+	if err != nil {
+		return fmt.Errorf("deleteSet delete training: %w", err)
+	}
+
+	return nil
+}
+
+var setCountInTraining = `
+select count(*)
+    from trainings t
+    join sets s on t.id = s.training_id
+where t.id = $1
+`
+
+func (pool *PostgresDbPool) countTrainingSets(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	tx pgx.Tx,
+) (int, error) {
+	count := -1
+	err := tx.QueryRow(ctx, setCountInTraining, trainingId).Scan(&count)
+	if err != nil {
+		return -1, fmt.Errorf("countTrainingSets query: %w", err)
+	}
+	return count, nil
 }
 
 var updateSet = `

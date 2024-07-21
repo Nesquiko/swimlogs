@@ -23,20 +23,8 @@ func TestSummariesCurrentWeek_CorrectResponse(t *testing.T) {
 	for i := 0; i < n; i++ {
 		start := startOfWeek.AddDate(0, 0, i%7)
 
-		request := &apidef.CreateTrainingRequest{
-			DurationMin: 60 + i,
-			Sets: []apidef.NewTrainingSet{{
-				SetOrder:       0,
-				Repeat:         4,
-				DistanceMeters: 100,
-				Description:    asPtr("Some description"),
-				Equipment:      &[]apidef.EquipmentEnum{apidef.Board, apidef.Fins},
-				Group:          asPtr(apidef.Long),
-				StartSeconds:   asPtr(60),
-				StartType:      asPtr(apidef.Interval),
-			}},
-			Start: start,
-		}
+		request := defaultNewTraining()
+		request.Start = start
 
 		mustCreateNewTraining(t, request)
 	}
@@ -85,20 +73,8 @@ func TestSummariesPage_ReadPage(t *testing.T) {
 		now := time.Now()
 		now = now.AddDate(1, 0, i)
 
-		request := &apidef.CreateTrainingRequest{
-			DurationMin: 60 + i,
-			Sets: []apidef.NewTrainingSet{{
-				SetOrder:       0,
-				Repeat:         4,
-				DistanceMeters: 100,
-				Description:    asPtr("Some description"),
-				Equipment:      &[]apidef.EquipmentEnum{apidef.Board, apidef.Fins},
-				Group:          asPtr(apidef.Long),
-				StartSeconds:   asPtr(60),
-				StartType:      asPtr(apidef.Interval),
-			}},
-			Start: now,
-		}
+		request := defaultNewTraining()
+		request.Start = now
 
 		ts := mustCreateNewTraining(t, request)
 		created = append(created, ts)
