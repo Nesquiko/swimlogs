@@ -25,9 +25,8 @@ local: ## run local server, needs a local postgres database
 		-tz Europe/Bratislava
 
 .PHONY: test
-test: ## run tests against a dockerized postgres database created with testcontainers lib
-	@echo "Running integration tests"
-	go test -v ./...
+test: ## run tests against a dockerized postgres database created with testcontainers
+	go test ./... -v -tags=integration -coverprofile=c.out -coverpkg=github.com/Nesquiko/swimlogs/pkg/...
 
 .PHONY: migrations-new
 migrations-new: ## [name=$1] create a new database migration with the given name
