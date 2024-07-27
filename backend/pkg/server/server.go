@@ -38,7 +38,7 @@ func (e *ApiError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
-func FromValidationError(e *app.ValidationError) *ApiError {
+func fromValidationError(e *app.ValidationError) *ApiError {
 	return &ApiError{
 		ErrorDetail: apidef.ErrorDetail{
 			Code:                 e.Code,

@@ -18,7 +18,188 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
+func TestEditSet(t *testing.T) {
+	t.Parallel()
+
+	newTrainingRequest := apidef.CreateTrainingRequest{
+		DurationMin: 60,
+		Sets: []apidef.NewTrainingSet{
+			{
+				DistanceMeters: 400,
+				Repeat:         1,
+				SetOrder:       0,
+				Group:          asPtr(apidef.Mono),
+			},
+			{
+				Description:    asPtr("some Description"),
+				DistanceMeters: 50,
+				Equipment:      &[]apidef.EquipmentEnum{apidef.Fins},
+				Repeat:         8,
+				SetOrder:       1,
+				StartSeconds:   asPtr(90),
+				StartType:      asPtr(apidef.Interval),
+			},
+		},
+		Start: time.Now(),
+	}
+	ts := mustCreateNewTraining(t, &newTrainingRequest)
+	training := mustReadTraining(t, ts.Id)
+	set := training.Sets[0]
+
+	newDescription := "new description"
+	newDistance := 75
+	newRepeat := 7
+	newEquipment := []apidef.EquipmentEnum{apidef.Monofin, apidef.Fins, apidef.Board}
+	newGroup := apidef.Sprint
+	newStartType := apidef.Pause
+	newStartSeconds := 45
+	request := apidef.EditSetRequest{
+		Description:    &newDescription,
+		Repeat:         &newRepeat,
+		DistanceMeters: &newDistance,
+		Equipment:      &newEquipment,
+		Group:          &newGroup,
+		StartType:      &newStartType,
+		StartSeconds:   &newStartSeconds,
+	}
+
+	res := mustEditSet(t, training.Id, set.Id, request)
+	editedSet := res.Set
+	assert := assert.New(t)
+
+	assert.Equal(ts.TotalDistance-400+newDistance*newRepeat, res.TotalDistance)
+	assert.Equal(newDescription, *editedSet.Description)
+	assert.Equal(newDistance, editedSet.DistanceMeters)
+	assert.Equal(newRepeat, editedSet.Repeat)
+	assert.Equal(newEquipment, *editedSet.Equipment)
+	assert.Equal(newGroup, *editedSet.Group)
+	assert.Equal(newStartType, *editedSet.StartType)
+	assert.Equal(newStartSeconds, *editedSet.StartSeconds)
+}
+
+func TestEditSet_Validation(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name           string
+		request        apidef.EditSetRequest
+		expectedTitle  string
+		expectedDetail string
+	}{
+		{
+			name:           "Invalid Repeat",
+			request:        apidef.EditSetRequest{Repeat: asPtr(0)},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(app.RepeatErrorDetail, data.SmallIntMax, 0),
+		},
+		{
+			name:          "Invalid Distance",
+			request:       apidef.EditSetRequest{DistanceMeters: asPtr(data.SmallIntMax + 1)},
+			expectedTitle: app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(
+				app.DistanceErrorDetail,
+				data.SmallIntMax,
+				data.SmallIntMax+1,
+			),
+		},
+		{
+			name: "Unknown StartType",
+			request: apidef.EditSetRequest{
+				StartType: (*apidef.StartTypeEnum)(asPtr("unknown")),
+			},
+			expectedTitle: app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(
+				app.StartTypeUnknownErrorDetail,
+				apidef.Interval,
+				apidef.Pause,
+				"unknown",
+			),
+		},
+		{
+			name:           "Missing StartSeconds",
+			request:        apidef.EditSetRequest{StartType: asPtr(apidef.Interval)},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: app.StartSecondsRequiredErrorDetail,
+		},
+		{
+			name: "Invalid StartSeconds",
+			request: apidef.EditSetRequest{
+				StartType:    asPtr(apidef.Pause),
+				StartSeconds: asPtr(0),
+			},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(app.StartSecondsErrorDetail, data.SmallIntMax, 0),
+		},
+		{
+			name: "Unknown Equipment",
+			request: apidef.EditSetRequest{
+				Equipment: &[]apidef.EquipmentEnum{apidef.EquipmentEnum("unknown")},
+			},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(app.EquipmentErrorDetail, "unknown"),
+		},
+		{
+			name: "Unknown Group",
+			request: apidef.EditSetRequest{
+				Group: (*apidef.GroupEnum)(asPtr("unknown")),
+			},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: fmt.Sprintf(app.GroupErrorDetail, "unknown"),
+		},
+		{
+			name:           "No Change",
+			request:        apidef.EditSetRequest{},
+			expectedTitle:  app.InvalidSetErrorTitle,
+			expectedDetail: app.NoSetChangesDetail,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			ts := mustCreateNewTraining(t, nil)
+			training := mustReadTraining(t, ts.Id)
+			set := training.Sets[0]
+
+			res, err := editSet(training.Id, set.Id, tC.request)
+			require.NoError(t, err)
+			require.Equalf(t, http.StatusBadRequest, res.StatusCode, "response: %+v", res)
+
+			var apiError apidef.InvalidSetError
+			err = json.NewDecoder(res.Body).Decode(&apiError)
+			require.NoError(t, err)
+
+			assert := assert.New(t)
+			assert.Equal(tC.expectedTitle, apiError.Title)
+			assert.Equal(app.InvalidSetErrorCode, apiError.Code)
+			assert.Equal(http.StatusBadRequest, apiError.Status)
+			assert.Equal(tC.expectedDetail, apiError.Detail)
+		})
+	}
+}
+
+func TestEditSet_NotFound(t *testing.T) {
+	t.Parallel()
+	trainingId := uuid.New()
+	setId := uuid.New()
+
+	res, err := editSet(trainingId, setId, apidef.EditSetRequest{Description: asPtr("some desc")})
+	defer res.Body.Close()
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, res.StatusCode)
+
+	var apiError apidef.NotFoundError
+	err = json.NewDecoder(res.Body).Decode(&apiError)
+	require.NoError(t, err)
+
+	assert := assert.New(t)
+	assert.Equal(fmt.Sprintf(server.NotFoundTitleFormat, "set"), apiError.Title)
+	assert.Equal(server.NotFoundCode, apiError.Code)
+	assert.Equal(http.StatusNotFound, apiError.Status)
+	assert.Equal(fmt.Sprintf(server.NotFoundDetailFormat, "set", setId.String()), apiError.Detail)
+	assert.Nil(apiError.AdditionalProperties)
+}
+
 func TestEditTrainingSession(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		request apidef.EditSessionRequest
@@ -55,31 +236,28 @@ func TestEditTrainingSession(t *testing.T) {
 }
 
 func TestEditTrainingSession_Validation(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name           string
 		request        apidef.EditSessionRequest
-		expectedCode   int
 		expectedTitle  string
 		expectedDetail string
 	}{
 		{
 			name:           "Invalid Duration",
 			request:        apidef.EditSessionRequest{DurationMin: asPtr(0)},
-			expectedCode:   http.StatusBadRequest,
 			expectedTitle:  app.InvalidEditSessionRequestTitle,
 			expectedDetail: fmt.Sprintf(app.DurationErrorDetail, data.SmallIntMax, 0),
 		},
 		{
 			name:           "Invalid Start",
 			request:        apidef.EditSessionRequest{Start: &time.Time{}},
-			expectedCode:   http.StatusBadRequest,
 			expectedTitle:  app.InvalidEditSessionRequestTitle,
 			expectedDetail: fmt.Sprintf(app.StartErrorDetail, &time.Time{}),
 		},
 		{
 			name:           "No Change",
 			request:        apidef.EditSessionRequest{},
-			expectedCode:   http.StatusBadRequest,
 			expectedTitle:  app.InvalidEditSessionRequestTitle,
 			expectedDetail: app.NoSessionChangesDetail,
 		},
@@ -91,7 +269,7 @@ func TestEditTrainingSession_Validation(t *testing.T) {
 
 			res, err := editTrainingSession(ts.Id, tC.request)
 			require.NoError(t, err)
-			require.Equal(t, tC.expectedCode, res.StatusCode, "response: %+v", res)
+			require.Equal(t, http.StatusBadRequest, res.StatusCode, "response: %+v", res)
 
 			var apiError apidef.InvalidSessionResponse
 			err = json.NewDecoder(res.Body).Decode(&apiError)
@@ -100,10 +278,34 @@ func TestEditTrainingSession_Validation(t *testing.T) {
 			assert := assert.New(t)
 			assert.Equal(tC.expectedTitle, apiError.Title)
 			assert.Equal(app.InvalidEditSessionRequestCode, apiError.Code)
-			assert.Equal(tC.expectedCode, apiError.Status)
+			assert.Equal(http.StatusBadRequest, apiError.Status)
 			assert.Equal(tC.expectedDetail, apiError.Detail)
 		})
 	}
+}
+
+func TestEditTrainingSession_NotFound(t *testing.T) {
+	t.Parallel()
+	id := uuid.New()
+
+	res, err := editTrainingSession(
+		id,
+		apidef.EditSessionRequest{Start: &defaultNewTraining().Start},
+	)
+	defer res.Body.Close()
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, res.StatusCode)
+
+	var apiError apidef.NotFoundError
+	err = json.NewDecoder(res.Body).Decode(&apiError)
+	require.NoError(t, err)
+
+	assert := assert.New(t)
+	assert.Equal(fmt.Sprintf(server.NotFoundTitleFormat, "training"), apiError.Title)
+	assert.Equal(server.NotFoundCode, apiError.Code)
+	assert.Equal(http.StatusNotFound, apiError.Status)
+	assert.Equal(fmt.Sprintf(server.NotFoundDetailFormat, "training", id.String()), apiError.Detail)
+	assert.Nil(apiError.AdditionalProperties)
 }
 
 func mustEditTrainingSession(
@@ -113,12 +315,12 @@ func mustEditTrainingSession(
 ) apidef.TrainingSummary {
 	res, err := editTrainingSession(id, r)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, res.StatusCode, "response: %+v", res)
+	require.Equalf(t, http.StatusOK, res.StatusCode, "response: %+v", res)
 
 	var ts apidef.TrainingSummary
 	err = json.NewDecoder(res.Body).Decode(&ts)
 	res.Body.Close()
-	require.NoError(t, err, "response: %+v", res)
+	require.NoErrorf(t, err, "response: %+v", res)
 
 	return ts
 }
@@ -141,6 +343,46 @@ func editTrainingSession(id uuid.UUID, r apidef.EditSessionRequest) (*http.Respo
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("editTrainingSession do: %w", err)
+	}
+
+	return res, nil
+}
+
+func mustEditSet(
+	t *testing.T,
+	trainingId, setId uuid.UUID,
+	r apidef.EditSetRequest,
+) apidef.EditSetResponse {
+	res, err := editSet(trainingId, setId, r)
+	require.NoError(t, err)
+	require.Equalf(t, http.StatusOK, res.StatusCode, "response: %+v", res)
+
+	var esr apidef.EditSetResponse
+	err = json.NewDecoder(res.Body).Decode(&esr)
+	res.Body.Close()
+	require.NoErrorf(t, err, "response: %+v", res)
+
+	return esr
+}
+
+func editSet(trainingId, setId uuid.UUID, r apidef.EditSetRequest) (*http.Response, error) {
+	url := ServerUrl + "/trainings/" + trainingId.String() + "/sets/" + setId.String()
+	client := http.Client{}
+
+	body, err := json.Marshal(r)
+	if err != nil {
+		return nil, fmt.Errorf("editSet marshal: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("editSet request: %w", err)
+	}
+	req.Header.Add(server.ContentType, server.ApplicationJSON)
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("editSet do: %w", err)
 	}
 
 	return res, nil

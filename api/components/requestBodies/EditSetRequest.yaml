@@ -5,9 +5,6 @@ content:
     schema:
       type: object
       properties:
-        setOrder:
-          type: integer
-          description: Indicates on what place in training this set is
         repeat:
           type: integer
           description: How many times to repeat this set
@@ -18,10 +15,6 @@ content:
           type: string
           description: Description of what to swim
           example: Freestyle
-        totalDistance:
-          type: integer
-          description: Total distance in this set
-          example: 800
         equipment:
           type: array
           items:

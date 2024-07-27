@@ -17,5 +17,4 @@ properties:
 required:
   - start
   - durationMin
-  - totalDistance
   - sets

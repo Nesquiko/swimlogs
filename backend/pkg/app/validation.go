@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/Nesquiko/swimlogs/apidef"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -53,7 +54,7 @@ type ValidationError struct {
 }
 
 func (e *ValidationError) Error() string {
-	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
+	return fmt.Sprintf("error %q, status %d, detail %q", e.Title, e.Status, e.Detail)
 }
 
 const (
@@ -63,7 +64,7 @@ const (
 )
 
 func validateEditSessionRequest(req apidef.EditSessionRequest) *ValidationError {
-	if req.DurationMin == nil && req.Start == nil {
+	if allNilFields(req) {
 		return invalidSession(NoSessionChangesDetail)
 	}
 
@@ -141,6 +142,36 @@ func validateNewSet(set apidef.NewTrainingSet) *ValidationError {
 	return nil
 }
 
+const NoSetChangesDetail = "Request contained no changes to set."
+
+func validateEditSetRequest(set apidef.EditSetRequest) *ValidationError {
+	if allNilFields(set) {
+		return invalidEditSet(NoSetChangesDetail)
+	}
+
+	if set.Repeat != nil && (*set.Repeat < 1 || *set.Repeat > data.SmallIntMax) {
+		return invalidEditSet(fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, *set.Repeat))
+	} else if set.DistanceMeters != nil && (*set.DistanceMeters <= 0 || *set.DistanceMeters > data.SmallIntMax) {
+		return invalidEditSet(fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, *set.DistanceMeters))
+	} else if set.StartType != nil && !StartTypesSet[*set.StartType] {
+		return invalidEditSet(fmt.Sprintf(StartTypeUnknownErrorDetail, apidef.Interval, apidef.Pause, *set.StartType))
+	} else if set.StartType != nil && set.StartSeconds == nil {
+		return invalidEditSet(StartSecondsRequiredErrorDetail)
+	} else if set.StartType != nil && set.StartSeconds != nil && (*set.StartSeconds <= 0 || *set.StartSeconds > data.SmallIntMax) {
+		return invalidEditSet(fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, *set.StartSeconds))
+	} else if set.Equipment != nil && len(*set.Equipment) != 0 {
+		for _, eq := range *set.Equipment {
+			if !EquipmentSet[eq] {
+				return invalidEditSet(fmt.Sprintf(EquipmentErrorDetail, eq))
+			}
+		}
+	} else if set.Group != nil && !GroupSet[*set.Group] {
+		return invalidEditSet(fmt.Sprintf(GroupErrorDetail, *set.Group))
+	}
+
+	return nil
+}
+
 func invalidSession(detail string) *ValidationError {
 	return &ValidationError{
 		ErrorDetail: apidef.ErrorDetail{
@@ -161,6 +192,12 @@ func invalidTraining(detail string) *ValidationError {
 			Status: http.StatusBadRequest,
 		},
 	}
+}
+
+func invalidEditSet(detail string) *ValidationError {
+	err := invalidSet(-1, detail)
+	err.AdditionalProperties = nil
+	return err
 }
 
 func invalidSet(setOrder int, detail string) *ValidationError {
@@ -184,4 +221,19 @@ func nonUniqueSetOrder(setOrder int) *ValidationError {
 			Status: http.StatusBadRequest,
 		},
 	}
+}
+
+func allNilFields(s any) bool {
+	structType := reflect.TypeOf(s)
+	if structType.Kind() != reflect.Struct {
+		return false
+	}
+
+	structVal := reflect.ValueOf(s)
+	for i := 0; i < structVal.NumField(); i++ {
+		if f := structVal.Field(i); f.IsValid() && !f.IsNil() {
+			return false
+		}
+	}
+	return true
 }

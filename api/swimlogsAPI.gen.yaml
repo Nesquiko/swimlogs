@@ -174,7 +174,6 @@ components:
         - setOrder
         - repeat
         - distanceMeters
-        - totalDistance
     NewTraining:
       type: object
       properties:
@@ -195,7 +194,6 @@ components:
       required:
         - start
         - durationMin
-        - totalDistance
         - sets
     TrainingSummary:
       type: object
@@ -388,9 +386,6 @@ components:
           schema:
             type: object
             properties:
-              setOrder:
-                type: integer
-                description: Indicates on what place in training this set is
               repeat:
                 type: integer
                 description: How many times to repeat this set
@@ -401,10 +396,6 @@ components:
                 type: string
                 description: Description of what to swim
                 example: Freestyle
-              totalDistance:
-                type: integer
-                description: Total distance in this set
-                example: 800
               equipment:
                 type: array
                 items:

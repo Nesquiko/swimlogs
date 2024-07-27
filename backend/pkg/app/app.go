@@ -132,6 +132,50 @@ func (app SwimLogsApp) DeleteSet(ctx context.Context, trainingId, setId uuid.UUI
 	return nil
 }
 
+func (app SwimLogsApp) EditSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	edited apidef.EditSetRequest,
+) (apidef.TrainingSet, int, error) {
+	validationErr := validateEditSetRequest(edited)
+	if validationErr != nil {
+		return apidef.TrainingSet{}, 0, validationErr
+	}
+
+	var equipment []string = nil
+	if edited.Equipment != nil {
+		for _, e := range *edited.Equipment {
+			equipment = append(equipment, string(e))
+		}
+	}
+
+	set, trainingTotalDist, err := app.pool.EditSet(ctx, trainingId, setId, struct {
+		Repeat         *int
+		DistanceMeters *int
+		Description    *string
+		Equipment      *[]string
+		StartType      *string
+		StartSeconds   *int
+		Group          *string
+	}{
+		Repeat:         edited.Repeat,
+		DistanceMeters: edited.DistanceMeters,
+		Description:    edited.Description,
+		Equipment:      &equipment,
+		StartType:      (*string)(edited.StartType),
+		StartSeconds:   edited.StartSeconds,
+		Group:          (*string)(edited.Group),
+	})
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return apidef.TrainingSet{}, 0, fmt.Errorf("EditSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return apidef.TrainingSet{}, 0, fmt.Errorf("EditSet: %w", err)
+	}
+
+	return dataSetToApiSet(set), trainingTotalDist, nil
+}
+
 func GetWeekRange(t time.Time) (time.Time, time.Time) {
 	year, week := t.ISOWeek()
 	start := time.Date(year, time.January, 1, 0, 0, 0, 0, t.Location())

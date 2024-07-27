@@ -12,7 +12,182 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
-func Test_validateEditSessionRequestInvalidStart(t *testing.T) {
+func Test_validateEditSetRequest_InvalidGroup(t *testing.T) {
+	unknownGroup := apidef.GroupEnum("unknownGroup")
+	editSet := apidef.EditSetRequest{
+		Group: &unknownGroup,
+	}
+	err := validateEditSetRequest(editSet)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidSetErrorTitle, err.Title)
+	assert.Equal(InvalidSetErrorCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(fmt.Sprintf(GroupErrorDetail, unknownGroup), err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSetRequest_InvalidEquipment(t *testing.T) {
+	unknownEquipment := apidef.EquipmentEnum("unknownEquipment")
+
+	editSet := apidef.EditSetRequest{
+		Equipment: &[]apidef.EquipmentEnum{unknownEquipment},
+	}
+	err := validateEditSetRequest(editSet)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidSetErrorTitle, err.Title)
+	assert.Equal(InvalidSetErrorCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(fmt.Sprintf(EquipmentErrorDetail, unknownEquipment), err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSetRequest_InvalidStartSeconds(t *testing.T) {
+	testCases := []struct {
+		desc                string
+		invalidStartSeconds int
+	}{
+		{desc: "Lower bound", invalidStartSeconds: 0},
+		{desc: "Upper bound", invalidStartSeconds: data.SmallIntMax + 1},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			editSet := apidef.EditSetRequest{
+				StartType:    asPtr(apidef.Interval),
+				StartSeconds: &tC.invalidStartSeconds,
+			}
+			err := validateEditSetRequest(editSet)
+
+			assert := assert.New(t)
+			assert.NotNil(err)
+			assert.Equal(InvalidSetErrorTitle, err.Title)
+			assert.Equal(InvalidSetErrorCode, err.Code)
+			assert.Equal(http.StatusBadRequest, err.Status)
+			assert.Equal(
+				fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, tC.invalidStartSeconds),
+				err.Detail,
+			)
+			assert.Nil(err.AdditionalProperties)
+		})
+	}
+}
+
+func Test_validateEditSetRequest_NoStartSeconds(t *testing.T) {
+	editSet := apidef.EditSetRequest{StartType: asPtr(apidef.Interval)}
+	err := validateEditSetRequest(editSet)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidSetErrorTitle, err.Title)
+	assert.Equal(InvalidSetErrorCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(StartSecondsRequiredErrorDetail, err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSetRequest_InvalidStartType(t *testing.T) {
+	invalidStartType := apidef.StartTypeEnum("invalid")
+	editSet := apidef.EditSetRequest{StartType: &invalidStartType}
+	err := validateEditSetRequest(editSet)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidSetErrorTitle, err.Title)
+	assert.Equal(InvalidSetErrorCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(
+		fmt.Sprintf(StartTypeUnknownErrorDetail, apidef.Interval, apidef.Pause, invalidStartType),
+		err.Detail,
+	)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSetRequest_InvalidDistance(t *testing.T) {
+	testCases := []struct {
+		desc            string
+		invalidDistance int
+	}{
+		{desc: "Lower bound", invalidDistance: 0},
+		{desc: "Upper bound", invalidDistance: data.SmallIntMax + 1},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			editSet := apidef.EditSetRequest{DistanceMeters: &tC.invalidDistance}
+			err := validateEditSetRequest(editSet)
+
+			assert := assert.New(t)
+			assert.NotNil(err)
+			assert.Equal(InvalidSetErrorTitle, err.Title)
+			assert.Equal(InvalidSetErrorCode, err.Code)
+			assert.Equal(http.StatusBadRequest, err.Status)
+			assert.Equal(
+				fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, tC.invalidDistance),
+				err.Detail,
+			)
+			assert.Nil(err.AdditionalProperties)
+		})
+	}
+}
+
+func Test_validateEditSetRequest_InvalidRepeat(t *testing.T) {
+	testCases := []struct {
+		desc          string
+		invalidRepeat int
+	}{
+		{desc: "Lower bound", invalidRepeat: 0},
+		{desc: "Upper bound", invalidRepeat: data.SmallIntMax + 1},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			editSet := apidef.EditSetRequest{Repeat: &tC.invalidRepeat}
+			err := validateEditSetRequest(editSet)
+
+			assert := assert.New(t)
+			assert.NotNil(err)
+			assert.Equal(InvalidSetErrorTitle, err.Title)
+			assert.Equal(InvalidSetErrorCode, err.Code)
+			assert.Equal(http.StatusBadRequest, err.Status)
+			assert.Equal(
+				fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, tC.invalidRepeat),
+				err.Detail,
+			)
+			assert.Nil(err.AdditionalProperties)
+		})
+	}
+}
+
+func Test_validateEditSetRequest_NoChanges(t *testing.T) {
+	editSession := apidef.EditSetRequest{}
+
+	err := validateEditSetRequest(editSession)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidSetErrorTitle, err.Title)
+	assert.Equal(InvalidSetErrorCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(NoSetChangesDetail, err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSessionRequest_NoChanges(t *testing.T) {
+	editSession := apidef.EditSessionRequest{}
+
+	err := validateEditSessionRequest(editSession)
+
+	assert := assert.New(t)
+	assert.NotNil(err)
+	assert.Equal(InvalidEditSessionRequestTitle, err.Title)
+	assert.Equal(InvalidEditSessionRequestCode, err.Code)
+	assert.Equal(http.StatusBadRequest, err.Status)
+	assert.Equal(NoSessionChangesDetail, err.Detail)
+	assert.Nil(err.AdditionalProperties)
+}
+
+func Test_validateEditSessionRequest_InvalidStart(t *testing.T) {
 	editSession := apidef.EditSessionRequest{Start: &time.Time{}}
 
 	err := validateEditSessionRequest(editSession)
@@ -26,7 +201,7 @@ func Test_validateEditSessionRequestInvalidStart(t *testing.T) {
 	assert.Nil(err.AdditionalProperties)
 }
 
-func Test_validateEditSessionRequestInvalidDuration(t *testing.T) {
+func Test_validateEditSessionRequest_InvalidDuration(t *testing.T) {
 	testCases := []struct {
 		desc            string
 		invalidDuration int

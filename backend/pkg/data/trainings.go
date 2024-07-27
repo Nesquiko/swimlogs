@@ -404,49 +404,89 @@ func (pool *PostgresDbPool) countTrainingSets(
 	return count, nil
 }
 
+func (pool *PostgresDbPool) EditSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	s struct {
+		Repeat         *int
+		DistanceMeters *int
+		Description    *string
+		Equipment      *[]string
+		StartType      *string
+		StartSeconds   *int
+		Group          *string
+	},
+) (TrainingSet, int, error) {
+	result, err := TxWithResult(
+		ctx,
+		pool,
+		func(ctx context.Context, tx pgx.Tx) (struct {
+			set               TrainingSet
+			trainingTotalDist int
+		}, error,
+		) {
+			set, trainingTotalDist, err := pool.editSet(ctx, trainingId, setId, s, tx)
+			return struct {
+				set               TrainingSet
+				trainingTotalDist int
+			}{set, trainingTotalDist}, err
+		},
+	)
+	if err != nil {
+		return TrainingSet{}, 0, fmt.Errorf("EditSet: %w", err)
+	}
+
+	return result.set, result.trainingTotalDist, nil
+}
+
 var updateSet = `
 update sets
-set set_order       = $2,
-    repeat          = $3,
-    distance_meters = $4,
-    description     = $5,
-    start_type      = $6,
-    start_seconds   = $7,
-    total_distance  = $8,
-    equipment       = $9,
-    "group"             = $10
-where id = $1
-returning id, training_id, set_order, repeat, distance_meters, description,
-    start_type, start_seconds, total_distance, equipment, "group"
+   set repeat = coalesce($3, repeat),
+       distance_meters = coalesce($4, distance_meters),
+       description = coalesce($5, description),
+       start_type = coalesce($6, start_type),
+       start_seconds = coalesce($7, start_seconds),
+       equipment = coalesce($8, equipment),
+       "group" = coalesce($9, "group")
+where training_id = $1 and id = $2
+returning id, training_id, set_order, repeat, distance_meters, description, start_type, start_seconds, equipment, "group"
+`
+
+var totalDistanceInTraining = `
+select sum(s.repeat * s.distance_meters)
+from trainings t join sets s on t.id = s.training_id
+where t.id = $1;
 `
 
 func (pool *PostgresDbPool) editSet(
 	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	edited struct {
+		Repeat         *int
+		DistanceMeters *int
+		Description    *string
+		Equipment      *[]string
+		StartType      *string
+		StartSeconds   *int
+		Group          *string
+	},
 	tx pgx.Tx,
-	s TrainingSet,
-) (TrainingSet, error) {
-	setExists, err := pool.setExists(ctx, tx, s)
-	if err != nil {
-		return TrainingSet{}, fmt.Errorf("editSet exists query: %w", err)
-	}
-
-	if !setExists {
-		s.Id = uuid.New()
-		return pool.persistSet(ctx, tx, s)
-	}
-
-	err = tx.QueryRow(
+) (TrainingSet, int, error) {
+	s := TrainingSet{}
+	err := tx.QueryRow(
 		ctx,
 		updateSet,
-		s.Id,
-		s.SetOrder,
-		s.Repeat,
-		s.DistanceMeters,
-		s.Description,
-		s.StartType,
-		s.StartSeconds,
-		s.Equipment,
-		s.Group,
+		trainingId,
+		setId,
+		edited.Repeat,
+		edited.DistanceMeters,
+		edited.Description,
+		edited.StartType,
+		edited.StartSeconds,
+		edited.Equipment,
+		edited.Group,
 	).Scan(
 		&s.Id,
 		&s.TrainingId,
@@ -459,11 +499,19 @@ func (pool *PostgresDbPool) editSet(
 		&s.Equipment,
 		&s.Group,
 	)
-	if err != nil {
-		return TrainingSet{}, fmt.Errorf("editSet query error: %w, id: %s", err, s.Id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return TrainingSet{}, 0, fmt.Errorf("editSet not found: %w", ErrRowsNotFound)
+	} else if err != nil {
+		return TrainingSet{}, 0, fmt.Errorf("editSet update query error: %w, id: %s", err, s.Id)
 	}
 
-	return s, nil
+	trainingTotalDist := 0
+	err = tx.QueryRow(ctx, totalDistanceInTraining, trainingId).Scan(&trainingTotalDist)
+	if err != nil {
+		return TrainingSet{}, 0, fmt.Errorf("editSet sum query error: %w", err)
+	}
+
+	return s, trainingTotalDist, nil
 }
 
 var setExists = "select exists(select 1 from sets where id = $1)"

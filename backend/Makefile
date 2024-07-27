@@ -28,6 +28,10 @@ local: ## run local server, needs a local postgres database
 test: ## run tests against a dockerized postgres database created with testcontainers
 	go test ./... -v -tags=integration -coverprofile=c.out -coverpkg=github.com/Nesquiko/swimlogs/pkg/...
 
+.PHONY: coverage-ui
+coverage-ui: ## display coverage HTML report in browser
+	go tool cover -html="c.out"
+
 .PHONY: migrations-new
 migrations-new: ## [name=$1] create a new database migration with the given name
 	@echo 'Creating migration files for ${name}'
