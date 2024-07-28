@@ -90,6 +90,10 @@ func NewServer(
 			"/trainings/{id}/sets/{setId}",
 			handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet),
 		)
+		r.Patch(
+			"/trainings/{id}/sets/move/{setId}",
+			handlePathInOut(pathIdAndSetIdExtractor, srv.MoveSet),
+		)
 	})
 
 	return r

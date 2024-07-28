@@ -527,13 +527,57 @@ func (pool *PostgresDbPool) editSet(
 	return s, trainingTotalDist, nil
 }
 
-var setExists = "select exists(select 1 from sets where id = $1)"
+var moveSets = `
+with to_be_moved as (select * from sets s where s.id = $1 and s.training_id = $2)
+update sets
+set set_order = case when to_be_moved.set_order > $3 then sets.set_order + 1 else sets.set_order - 1 end
+from to_be_moved
+where case
+          when to_be_moved.set_order > $3 then
+              sets.set_order between $3 and to_be_moved.set_order
+          else
+              sets.set_order between to_be_moved.set_order and $3 end
+  and sets.training_id = to_be_moved.training_id;
+`
 
-func (pool *PostgresDbPool) setExists(ctx context.Context, tx pgx.Tx, s TrainingSet) (bool, error) {
-	var exists bool
-	err := tx.QueryRow(ctx, setExists, s.Id).Scan(&exists)
+var updateSetOrder = `
+update sets
+set set_order = $3
+where id = $1 and training_id = $2
+`
+
+func (pool *PostgresDbPool) MoveSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	newSetOrder int,
+) error {
+	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
+		return pool.moveSet(ctx, trainingId, setId, newSetOrder, tx)
+	})
 	if err != nil {
-		return false, fmt.Errorf("isSetNew query error: %w, id: %s", err, s.Id)
+		return fmt.Errorf("MoveSet: %w", err)
 	}
-	return exists, nil
+	return nil
+}
+
+func (pool *PostgresDbPool) moveSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	newSetOrder int,
+	tx pgx.Tx,
+) error {
+	ct, err := tx.Exec(ctx, moveSets, setId, trainingId, newSetOrder)
+	if err != nil {
+		return fmt.Errorf("moveSet move query: %w", err)
+	}
+
+	ct, err = tx.Exec(ctx, updateSet, setId, trainingId, newSetOrder)
+	if err != nil {
+		return fmt.Errorf("moveSet update query: %w", err)
+	} else if ct.RowsAffected() == 0 {
+		return fmt.Errorf("moveSet update query set not found: %w", ErrRowsNotFound)
+	}
+	return nil
 }

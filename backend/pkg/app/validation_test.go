@@ -12,6 +12,32 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
+func Test_validateNewSetOrder(t *testing.T) {
+	testCases := []struct {
+		desc               string
+		invalidNewSetOrder int
+	}{
+		{desc: "Lower bound", invalidNewSetOrder: 0},
+		{desc: "Upper bound", invalidNewSetOrder: data.SmallIntMax + 1},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			err := validateNewSetOrder(tC.invalidNewSetOrder)
+
+			assert := assert.New(t)
+			assert.NotNil(err)
+			assert.Equal(InvalidNewOrderSetTitle, err.Title)
+			assert.Equal(InvalidNewOrderSetCode, err.Code)
+			assert.Equal(http.StatusBadRequest, err.Status)
+			assert.Equal(
+				fmt.Sprintf(InvalidNewOrderSetDetail, data.SmallIntMax, tC.invalidNewSetOrder),
+				err.Detail,
+			)
+			assert.Nil(err.AdditionalProperties)
+		})
+	}
+}
+
 func Test_validateEditSetRequest_InvalidGroup(t *testing.T) {
 	unknownGroup := apidef.GroupEnum("unknownGroup")
 	editSet := apidef.EditSetRequest{

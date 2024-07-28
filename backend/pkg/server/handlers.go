@@ -13,8 +13,6 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
-// TODO move set up/down
-
 // (POST /trainings)
 func (s *SwimLogsServer) CreateTraining(
 	ctx context.Context,
@@ -247,4 +245,28 @@ func (s *SwimLogsServer) EditSet(
 		Set:           set,
 		TotalDistance: totalDistance,
 	}, http.StatusOK, nil
+}
+
+func (s *SwimLogsServer) MoveSet(
+	ctx context.Context,
+	params IdSetId,
+	r apidef.MoveSetRequest,
+) (apidef.Training, int, error) {
+	t, err := s.app.MoveSet(ctx, params.id, params.setId, r.NewSetOrder)
+
+	if validationErr, ok := err.(*app.ValidationError); ok {
+		apiErr := fromValidationError(validationErr)
+		slog.Warn("invalid new set order", slog.String("error", validationErr.Error()))
+		return apidef.Training{}, apiErr.Status, apiErr
+	} else if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"set not found",
+			slog.String("error", err.Error()),
+			slog.String("trainingId", params.id.String()),
+			slog.String("setId", params.setId.String()),
+		)
+		return apidef.Training{}, http.StatusNotFound, notFound("set", params.setId.String())
+	}
+
+	return t, http.StatusOK, nil
 }

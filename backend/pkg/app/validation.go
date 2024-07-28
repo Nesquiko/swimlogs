@@ -58,6 +58,26 @@ func (e *ValidationError) Error() string {
 }
 
 const (
+	InvalidNewOrderSetCode   = "invalid.setorder"
+	InvalidNewOrderSetTitle  = "New set order is invalid"
+	InvalidNewOrderSetDetail = "Set order must be between 0 and %d, was %d"
+)
+
+func validateNewSetOrder(newSetOrder int) *ValidationError {
+	if newSetOrder <= 0 || newSetOrder > data.SmallIntMax {
+		return &ValidationError{
+			ErrorDetail: apidef.ErrorDetail{
+				Title:  InvalidNewOrderSetTitle,
+				Code:   InvalidNewOrderSetCode,
+				Detail: fmt.Sprintf(InvalidNewOrderSetDetail, data.SmallIntMax, newSetOrder),
+				Status: http.StatusBadRequest,
+			},
+		}
+	}
+	return nil
+}
+
+const (
 	InvalidEditSessionRequestCode  = "invalid.session"
 	InvalidEditSessionRequestTitle = "Invalid edit session"
 	NoSessionChangesDetail         = "Request contained no changes start nor duration changes."

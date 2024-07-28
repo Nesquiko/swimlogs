@@ -176,6 +176,34 @@ func (app SwimLogsApp) EditSet(
 	return dataSetToApiSet(set), trainingTotalDist, nil
 }
 
+func (app SwimLogsApp) MoveSet(
+	ctx context.Context,
+	trainingId uuid.UUID,
+	setId uuid.UUID,
+	newSetOrder int,
+) (apidef.Training, error) {
+	validationErr := validateNewSetOrder(newSetOrder)
+	if validationErr != nil {
+		return apidef.Training{}, validationErr
+	}
+
+	err := app.pool.MoveSet(ctx, trainingId, setId, newSetOrder)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return apidef.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return apidef.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	t, err := app.pool.Training(ctx, trainingId)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return apidef.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return apidef.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	return dataTrainingToApiTraining(t), nil
+}
+
 func GetWeekRange(t time.Time) (time.Time, time.Time) {
 	year, week := t.ISOWeek()
 	start := time.Date(year, time.January, 1, 0, 0, 0, 0, t.Location())
