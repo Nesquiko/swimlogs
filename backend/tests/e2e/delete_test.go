@@ -44,7 +44,36 @@ func TestDeleteSet_Successfully(t *testing.T) {
 
 	training = mustReadTraining(t, trainingId)
 	assert.Len(t, training.Sets, 1)
-	assert.Equal(t, training.Sets[0].SetOrder, 1)
+	assert.Equal(t, training.Sets[0].SetOrder, 0)
+}
+
+func TestDeleteSet_ReorderRemainingSets(t *testing.T) {
+	t.Parallel()
+
+	request := apidef.CreateTrainingRequest{
+		DurationMin: 60,
+		Sets: []apidef.NewTrainingSet{
+			{SetOrder: 0, DistanceMeters: 1, Repeat: 1},
+			{SetOrder: 1, DistanceMeters: 2, Repeat: 1},
+			{SetOrder: 2, DistanceMeters: 3, Repeat: 1},
+			{SetOrder: 3, DistanceMeters: 4, Repeat: 1},
+			{SetOrder: 4, DistanceMeters: 5, Repeat: 1},
+		},
+		Start: time.Now(),
+	}
+	trainingId := mustCreateNewTraining(t, &request).Id
+	training := mustReadTraining(t, trainingId)
+	setId := training.Sets[1].Id
+
+	res, err := deleteSet(trainingId, setId)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNoContent, res.StatusCode)
+
+	training = mustReadTraining(t, trainingId)
+	assert.Len(t, training.Sets, 4)
+	for i := 0; i < 4; i++ {
+		assert.Equal(t, i, training.Sets[i].SetOrder)
+	}
 }
 
 func TestDeleteSet_AlsoDeleteTraining(t *testing.T) {

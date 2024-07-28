@@ -349,22 +349,35 @@ func (pool *PostgresDbPool) DeleteSet(ctx context.Context, trainingId, setId uui
 	return nil
 }
 
+var reorderRemainingSets = `
+with to_be_deleted as (select * from sets s where s.id = $1 and s.training_id = $2)
+update sets
+set set_order = sets.set_order - 1
+from to_be_deleted
+where sets.set_order > to_be_deleted.set_order and sets.training_id = to_be_deleted.training_id
+`
+
 func (pool *PostgresDbPool) deleteSet(
 	ctx context.Context,
 	trainingId uuid.UUID,
 	setId uuid.UUID,
 	tx pgx.Tx,
 ) error {
-	ct, err := tx.Exec(
+	ct, err := tx.Exec(ctx, reorderRemainingSets, setId, trainingId)
+	if err != nil {
+		return fmt.Errorf("deleteSet reorder query: %w", err)
+	}
+
+	ct, err = tx.Exec(
 		ctx,
 		"delete from sets where id = $1 and training_id = $2",
 		setId,
 		trainingId,
 	)
 	if err != nil {
-		return fmt.Errorf("deleteSet: %w", err)
+		return fmt.Errorf("deleteSet delete query: %w", err)
 	} else if ct.RowsAffected() == 0 {
-		return fmt.Errorf("deleteSet set not found: %w", ErrRowsNotFound)
+		return fmt.Errorf("deleteSet delete query set not found: %w", ErrRowsNotFound)
 	}
 
 	setsCount, err := pool.countTrainingSets(ctx, trainingId, tx)
