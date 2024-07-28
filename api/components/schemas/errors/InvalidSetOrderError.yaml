@@ -1,0 +1,7 @@
+allOf:
+  - $ref: "./ErrorDetail.yaml"
+example:
+  title: New set order is invalid
+  status: 400
+  code: "invalid.setorder"
+  detail: "Set order must be between X and y"

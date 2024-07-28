@@ -21,6 +21,8 @@ paths:
     $ref: "./paths/trainings_{trainingId}.yaml"
   /trainings/{trainingId}/sets/{setId}:
     $ref: "./paths/trainings_{trainingId}_sets_{setId}.yaml"
+  /trainings/{trainingId}/sets/move/{setId}:
+    $ref: "./paths/trainings_{trainingId}_sets_move_{setId}.yaml"
   /trainings/summaries:
     $ref: "./paths/trainings_summaries.yaml"
   /trainings/summaries/current-week:

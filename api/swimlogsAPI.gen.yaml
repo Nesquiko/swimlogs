@@ -90,6 +90,24 @@ paths:
           description: Set was deleted
         '404':
           $ref: '#/components/responses/NotFoundResponse'
+  /trainings/{trainingId}/sets/move/{setId}:
+    parameters:
+      - $ref: '#/components/parameters/TrainingIdParam'
+      - $ref: '#/components/parameters/SetIdParam'
+    patch:
+      summary: Move set
+      tags:
+        - Trainings
+      operationId: moveSet
+      requestBody:
+        $ref: '#/components/requestBodies/MoveSetRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TrainingResponse'
+        '400':
+          $ref: '#/components/responses/InvalidSetOrderResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
   /trainings/summaries:
     get:
       summary: Training summaries
@@ -333,6 +351,14 @@ components:
         status: 404
         code: not.found
         detail: Resource with id 'aa1ed13a-6455-4d93-b788-bab98b08b40c' was not found
+    InvalidSetOrderError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: New set order is inalid
+        status: 400
+        code: invalid.setorder
+        detail: Set order must be between X and y
     Pagination:
       description: Pagination metadata about paginated response
       type: object
@@ -408,6 +434,19 @@ components:
                 example: 60
               group:
                 $ref: '#/components/schemas/GroupEnum'
+    MoveSetRequest:
+      description: Request for moving set in order of training sets
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newSetOrder:
+                type: integer
+                description: New setOrder of the set
+            required:
+              - newSetOrder
   responses:
     CreateTrainingReponse:
       description: New training was successfully created and summary about new training is returned
@@ -471,6 +510,12 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/InvalidSetError'
+    InvalidSetOrderResponse:
+      description: Submitted new set order was invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/InvalidSetOrderError'
     TrainingSummariesResponse:
       description: Paginated list of training summaries
       content:

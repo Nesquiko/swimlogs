@@ -1,0 +1,12 @@
+description: Request for moving set in order of training sets
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        newSetOrder:
+          type: integer
+          description: New setOrder of the set
+      required:
+        - newSetOrder
