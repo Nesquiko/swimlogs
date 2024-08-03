@@ -530,7 +530,7 @@ func (pool *PostgresDbPool) editSet(
 var moveSets = `
 with to_be_moved as (select * from sets s where s.id = $1 and s.training_id = $2)
 update sets
-set set_order = case when to_be_moved.set_order > $3 then sets.set_order + 1 else sets.set_order - 1 end
+set set_order = case when to_be_moved.set_order > $3 then sets.set_order + 1 else greatest(sets.set_order - 1, 0) end
 from to_be_moved
 where case
           when to_be_moved.set_order > $3 then
@@ -573,7 +573,7 @@ func (pool *PostgresDbPool) moveSet(
 		return fmt.Errorf("moveSet move query: %w", err)
 	}
 
-	ct, err = tx.Exec(ctx, updateSet, setId, trainingId, newSetOrder)
+	ct, err = tx.Exec(ctx, updateSetOrder, setId, trainingId, newSetOrder)
 	if err != nil {
 		return fmt.Errorf("moveSet update query: %w", err)
 	} else if ct.RowsAffected() == 0 {

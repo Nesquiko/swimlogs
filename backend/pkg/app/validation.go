@@ -64,7 +64,7 @@ const (
 )
 
 func validateNewSetOrder(newSetOrder int) *ValidationError {
-	if newSetOrder <= 0 || newSetOrder > data.SmallIntMax {
+	if newSetOrder < 0 || newSetOrder > data.SmallIntMax {
 		return &ValidationError{
 			ErrorDetail: apidef.ErrorDetail{
 				Title:  InvalidNewOrderSetTitle,

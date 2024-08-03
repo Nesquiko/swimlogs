@@ -17,7 +17,7 @@ func Test_validateNewSetOrder(t *testing.T) {
 		desc               string
 		invalidNewSetOrder int
 	}{
-		{desc: "Lower bound", invalidNewSetOrder: 0},
+		{desc: "Lower bound", invalidNewSetOrder: -1},
 		{desc: "Upper bound", invalidNewSetOrder: data.SmallIntMax + 1},
 	}
 	for _, tC := range testCases {

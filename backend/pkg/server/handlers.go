@@ -266,6 +266,14 @@ func (s *SwimLogsServer) MoveSet(
 			slog.String("setId", params.setId.String()),
 		)
 		return apidef.Training{}, http.StatusNotFound, notFound("set", params.setId.String())
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "MoveSet"),
+		)
+		apiErr := internalServerError()
+		return apidef.Training{}, apiErr.Status, apiErr
 	}
 
 	return t, http.StatusOK, nil
