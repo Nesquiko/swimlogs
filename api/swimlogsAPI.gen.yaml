@@ -25,9 +25,9 @@ paths:
           $ref: '#/components/responses/CreateTrainingReponse'
         '400':
           $ref: '#/components/responses/InvalidTrainingResponse'
-  /trainings/{trainingId}:
+  /trainings/{id}:
     parameters:
-      - $ref: '#/components/parameters/TrainingIdParam'
+      - $ref: '#/components/parameters/IdParam'
     get:
       summary: Get a training by id
       tags:
@@ -62,14 +62,13 @@ paths:
           description: Training was deleted
         '404':
           $ref: '#/components/responses/NotFoundResponse'
-  /trainings/{trainingId}/sets/{setId}:
+  /sets/{id}:
     parameters:
-      - $ref: '#/components/parameters/TrainingIdParam'
-      - $ref: '#/components/parameters/SetIdParam'
+      - $ref: '#/components/parameters/IdParam'
     patch:
       summary: Edit set
       tags:
-        - Trainings
+        - Sets
       operationId: editSet
       requestBody:
         $ref: '#/components/requestBodies/EditSetRequest'
@@ -83,21 +82,20 @@ paths:
     delete:
       summary: Delete a set
       tags:
-        - Trainings
+        - Sets
       operationId: deleteSet
       responses:
         '204':
           description: Set was deleted
         '404':
           $ref: '#/components/responses/NotFoundResponse'
-  /trainings/{trainingId}/sets/move/{setId}:
+  /sets/{id}/move:
     parameters:
-      - $ref: '#/components/parameters/TrainingIdParam'
-      - $ref: '#/components/parameters/SetIdParam'
+      - $ref: '#/components/parameters/IdParam'
     patch:
       summary: Move set
       tags:
-        - Trainings
+        - Sets
       operationId: moveSet
       requestBody:
         $ref: '#/components/requestBodies/MoveSetRequest'
@@ -355,7 +353,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/ErrorDetail'
       example:
-        title: New set order is inalid
+        title: New set order is invalid
         status: 400
         code: invalid.setorder
         detail: Set order must be between X and y
@@ -551,19 +549,11 @@ components:
                 items:
                   $ref: '#/components/schemas/TrainingSummary'
   parameters:
-    TrainingIdParam:
-      name: trainingId
+    IdParam:
+      name: id
       in: path
       required: true
-      description: Id of a training
-      schema:
-        type: string
-        format: uuid
-    SetIdParam:
-      name: setId
-      in: path
-      required: true
-      description: Id of a set
+      description: Id of a resource
       schema:
         type: string
         format: uuid

@@ -1,11 +1,10 @@
 parameters:
-  - $ref: "../components/parameters/TrainingIdParam.yaml"
-  - $ref: "../components/parameters/SetIdParam.yaml"
+  - $ref: "../components/parameters/IdParam.yaml"
 
 patch:
   summary: Move set
   tags:
-    - Trainings
+    - Sets
   operationId: moveSet
   requestBody:
     $ref: "../components/requestBodies/MoveSetRequest.yaml"

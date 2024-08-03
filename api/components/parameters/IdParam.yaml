@@ -1,7 +1,7 @@
-name: trainingId
+name: id
 in: path
 required: true
-description: Id of a training
+description: Id of a resource
 schema:
   type: string
   format: uuid

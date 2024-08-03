@@ -1,11 +1,10 @@
 parameters:
-  - $ref: "../components/parameters/TrainingIdParam.yaml"
-  - $ref: "../components/parameters/SetIdParam.yaml"
+  - $ref: "../components/parameters/IdParam.yaml"
 
 patch:
   summary: Edit set
   tags:
-    - Trainings
+    - Sets
   operationId: editSet
   requestBody:
     $ref: "../components/requestBodies/EditSetRequest.yaml"
@@ -20,7 +19,7 @@ patch:
 delete:
   summary: Delete a set
   tags:
-    - Trainings
+    - Sets
   operationId: deleteSet
   responses:
     204:

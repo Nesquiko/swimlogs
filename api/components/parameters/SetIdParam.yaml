@@ -1,7 +1,0 @@
-name: setId
-in: path
-required: true
-description: Id of a set
-schema:
-  type: string
-  format: uuid

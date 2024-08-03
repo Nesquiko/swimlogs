@@ -1,5 +1,5 @@
 parameters:
-  - $ref: "../components/parameters/TrainingIdParam.yaml"
+  - $ref: "../components/parameters/IdParam.yaml"
 
 get:
   summary: Get a training by id

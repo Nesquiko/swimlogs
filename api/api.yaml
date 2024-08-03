@@ -17,12 +17,12 @@ tags:
 paths:
   /trainings:
     $ref: "./paths/trainings.yaml"
-  /trainings/{trainingId}:
-    $ref: "./paths/trainings_{trainingId}.yaml"
-  /trainings/{trainingId}/sets/{setId}:
-    $ref: "./paths/trainings_{trainingId}_sets_{setId}.yaml"
-  /trainings/{trainingId}/sets/move/{setId}:
-    $ref: "./paths/trainings_{trainingId}_sets_move_{setId}.yaml"
+  /trainings/{id}:
+    $ref: "./paths/trainings_{id}.yaml"
+  /sets/{id}:
+    $ref: "./paths/sets_{id}.yaml"
+  /sets/{id}/move:
+    $ref: "./paths/sets_{id}_move.yaml"
   /trainings/summaries:
     $ref: "./paths/trainings_summaries.yaml"
   /trainings/summaries/current-week:
