@@ -1,7 +1,7 @@
 type: string
 enum:
-  - Fins
-  - Monofin
-  - Snorkel
-  - Board
-  - Paddles
+  - fins
+  - monofin
+  - snorkel
+  - board
+  - paddles

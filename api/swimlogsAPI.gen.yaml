@@ -132,16 +132,16 @@ components:
     EquipmentEnum:
       type: string
       enum:
-        - Fins
-        - Monofin
-        - Snorkel
-        - Board
-        - Paddles
+        - fins
+        - monofin
+        - snorkel
+        - board
+        - paddles
     StartTypeEnum:
       type: string
       enum:
-        - Interval
-        - Pause
+        - interval
+        - pause
     GroupEnum:
       type: string
       enum:

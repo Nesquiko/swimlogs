@@ -36,8 +36,3 @@
 3. [generic handler functions](https://www.willem.dev/articles/generic-http-handlers/)
 4. uptimerobot endpoint
 5. docker scan
-
-## Cleanup
-
-1. DB types in lowercase so I can I don't have to lower them manually in frontend
-   when accessing translations
