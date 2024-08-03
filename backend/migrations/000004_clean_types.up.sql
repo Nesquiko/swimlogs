@@ -4,9 +4,14 @@ alter table sets
     drop constraint if exists sets_rule_check;
 
 alter table sets
-    alter column start_type type new_start_type using start_type::text::new_start_type;
+    alter column start_type type text using start_type::text;
 
 drop type start_type;
+
+update sets set start_type = lower(start_type);
+
+alter table sets
+    alter column start_type type new_start_type using start_type::text::new_start_type;
 
 alter type new_start_type rename to start_type;
 
@@ -17,8 +22,13 @@ alter table sets
 create type new_equipment as enum ('fins', 'monofin', 'snorkel', 'board', 'paddles');
 
 alter table sets
-    alter column equipment type new_equipment[] using equipment::equipment[]::text[]::new_equipment[];
+    alter column equipment type text[] using equipment::equipment[]::text[];
 
 drop type equipment;
+
+update sets set equipment = lower(equipment::text)::text[];
+
+alter table sets
+    alter column equipment type new_equipment[] using equipment::text[]::new_equipment[];
 
 alter type new_equipment rename to equipment;
