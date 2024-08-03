@@ -79,7 +79,7 @@ func TestMoveSet(t *testing.T) {
 			setId := sets[tC.initialSetOrder].Id
 
 			request := apidef.MoveSetRequest{NewSetOrder: tC.newSetOrder}
-			training := mustMoveSet(t, trainingId, setId, request)
+			training := mustMoveSet(t, setId, request)
 
 			assert := assert.New(t)
 			assert.Len(training.Sets, len(sets))
@@ -93,13 +93,8 @@ func TestMoveSet(t *testing.T) {
 	}
 }
 
-func mustMoveSet(
-	t *testing.T,
-	trainingId uuid.UUID,
-	setId uuid.UUID,
-	request apidef.MoveSetRequest,
-) apidef.Training {
-	res, err := moveSet(trainingId, setId, request)
+func mustMoveSet(t *testing.T, setId uuid.UUID, request apidef.MoveSetRequest) apidef.Training {
+	res, err := moveSet(setId, request)
 	defer res.Body.Close()
 	require.NoError(t, err)
 
@@ -120,12 +115,8 @@ func mustMoveSet(
 	return tr
 }
 
-func moveSet(
-	trainingId uuid.UUID,
-	setId uuid.UUID,
-	request apidef.MoveSetRequest,
-) (*http.Response, error) {
-	url := ServerUrl + "/trainings/" + trainingId.String() + "/sets/move/" + setId.String()
+func moveSet(id uuid.UUID, request apidef.MoveSetRequest) (*http.Response, error) {
+	url := ServerUrl + "/sets/" + id.String() + "/move"
 	client := http.Client{}
 
 	body, err := json.Marshal(request)

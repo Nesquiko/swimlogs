@@ -63,7 +63,7 @@ func TestEditSet(t *testing.T) {
 		StartSeconds:   &newStartSeconds,
 	}
 
-	res := mustEditSet(t, training.Id, set.Id, request)
+	res := mustEditSet(t, set.Id, request)
 	editedSet := res.Set
 	assert := assert.New(t)
 
@@ -159,7 +159,7 @@ func TestEditSet_Validation(t *testing.T) {
 			training := mustReadTraining(t, ts.Id)
 			set := training.Sets[0]
 
-			res, err := editSet(training.Id, set.Id, tC.request)
+			res, err := editSet(set.Id, tC.request)
 			require.NoError(t, err)
 			require.Equalf(t, http.StatusBadRequest, res.StatusCode, "response: %+v", res)
 
@@ -178,10 +178,9 @@ func TestEditSet_Validation(t *testing.T) {
 
 func TestEditSet_NotFound(t *testing.T) {
 	t.Parallel()
-	trainingId := uuid.New()
 	setId := uuid.New()
 
-	res, err := editSet(trainingId, setId, apidef.EditSetRequest{Description: asPtr("some desc")})
+	res, err := editSet(setId, apidef.EditSetRequest{Description: asPtr("some desc")})
 	defer res.Body.Close()
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
@@ -348,12 +347,8 @@ func editTrainingSession(id uuid.UUID, r apidef.EditSessionRequest) (*http.Respo
 	return res, nil
 }
 
-func mustEditSet(
-	t *testing.T,
-	trainingId, setId uuid.UUID,
-	r apidef.EditSetRequest,
-) apidef.EditSetResponse {
-	res, err := editSet(trainingId, setId, r)
+func mustEditSet(t *testing.T, setId uuid.UUID, r apidef.EditSetRequest) apidef.EditSetResponse {
+	res, err := editSet(setId, r)
 	require.NoError(t, err)
 	require.Equalf(t, http.StatusOK, res.StatusCode, "response: %+v", res)
 
@@ -365,8 +360,8 @@ func mustEditSet(
 	return esr
 }
 
-func editSet(trainingId, setId uuid.UUID, r apidef.EditSetRequest) (*http.Response, error) {
-	url := ServerUrl + "/trainings/" + trainingId.String() + "/sets/" + setId.String()
+func editSet(id uuid.UUID, r apidef.EditSetRequest) (*http.Response, error) {
+	url := ServerUrl + "/sets/" + id.String()
 	client := http.Client{}
 
 	body, err := json.Marshal(r)

@@ -68,32 +68,14 @@ func NewServer(
 		r.Use(publicMiddleware(middlewareLogger)...)
 
 		r.Post("/trainings", handleInOut(srv.CreateTraining))
-		r.Get(
-			"/trainings/summaries",
-			handleQueryOut(pageParamsExtractor, srv.SummariesPage),
-		)
+		r.Get("/trainings/summaries", handleQueryOut(pageParamsExtractor, srv.SummariesPage))
 		r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek))
-		r.Delete(
-			"/trainings/{id}",
-			handlePathStatus(pathIdExtractor, srv.DeleteTraining),
-		)
+		r.Delete("/trainings/{id}", handlePathStatus(pathIdExtractor, srv.DeleteTraining))
 		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById))
-		r.Patch(
-			"/trainings/{id}",
-			handlePathInOut(pathIdExtractor, srv.EditTrainingSession),
-		)
-		r.Delete(
-			"/trainings/{id}/sets/{setId}",
-			handlePathStatus(pathIdAndSetIdExtractor, srv.DeleteSet),
-		)
-		r.Patch(
-			"/trainings/{id}/sets/{setId}",
-			handlePathInOut(pathIdAndSetIdExtractor, srv.EditSet),
-		)
-		r.Patch(
-			"/trainings/{id}/sets/move/{setId}",
-			handlePathInOut(pathIdAndSetIdExtractor, srv.MoveSet),
-		)
+		r.Patch("/trainings/{id}", handlePathInOut(pathIdExtractor, srv.EditTrainingSession))
+		r.Delete("/sets/{id}", handlePathStatus(pathIdExtractor, srv.DeleteSet))
+		r.Patch("/sets/{id}", handlePathInOut(pathIdExtractor, srv.EditSet))
+		r.Patch("/sets/{id}/move", handlePathInOut(pathIdExtractor, srv.MoveSet))
 	})
 
 	return r
@@ -277,26 +259,6 @@ type IdSetId struct {
 	setId uuid.UUID
 }
 
-func pathIdAndSetIdExtractor(r *http.Request) (IdSetId, error) {
-	id := chi.URLParam(r, "id")
-	setId := chi.URLParam(r, "setId")
-	uid, err := uuid.Parse(id)
-	ids := IdSetId{}
-
-	if err != nil {
-		return IdSetId{}, invalidPathParam("id", id)
-	}
-	ids.id = uid
-
-	setUid, err := uuid.Parse(setId)
-	if err != nil {
-		return IdSetId{}, invalidPathParam("setId", setId)
-	}
-	ids.setId = setUid
-
-	return ids, nil
-}
-
 const (
 	InvalidQueryParamCode         = "invalid.query.param"
 	InvalidQueryParamTitleFormat  = "Invalid %q: %q"
@@ -358,6 +320,10 @@ const (
 	NotFoundTitleFormat  = "%s was not found"
 	NotFoundDetailFormat = "%s with id '%s' was not found"
 )
+
+func notFoundId(resoure string, id uuid.UUID) *ApiError {
+	return notFound(resoure, id.String())
+}
 
 func notFound(resoure, id string) *ApiError {
 	if resoure == "" {

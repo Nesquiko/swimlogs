@@ -107,7 +107,7 @@ func (s *SwimLogsServer) DeleteTraining(
 			slog.String("error", err.Error()),
 			slog.String("id", id.String()),
 		)
-		return http.StatusNotFound, notFound("training", id.String())
+		return http.StatusNotFound, notFoundId("training", id)
 	} else if err != nil {
 		slog.Error(
 			UnexpectedError,
@@ -132,7 +132,7 @@ func (s *SwimLogsServer) TrainingById(
 		slog.Warn("training not found",
 			slog.String("error", NotFoundCode),
 			slog.String("id", id.String()))
-		return apidef.Training{}, http.StatusNotFound, notFound("training", id.String())
+		return apidef.Training{}, http.StatusNotFound, notFoundId("training", id)
 	} else if err != nil {
 		slog.Error(
 			UnexpectedError,
@@ -164,7 +164,7 @@ func (s *SwimLogsServer) EditTrainingSession(
 			slog.Warn("training not found",
 				slog.String("error", NotFoundCode),
 				slog.String("id", id.String()))
-			return apidef.TrainingSummary{}, http.StatusNotFound, notFound("training", id.String())
+			return apidef.TrainingSummary{}, http.StatusNotFound, notFoundId("training", id)
 		}
 
 		slog.Error(
@@ -178,21 +178,17 @@ func (s *SwimLogsServer) EditTrainingSession(
 	return td, http.StatusOK, nil
 }
 
-// (DELETE /trainings/{id}/sets/{setId})
-func (s *SwimLogsServer) DeleteSet(
-	ctx context.Context,
-	params IdSetId,
-) (int, error) {
-	err := s.app.DeleteSet(ctx, params.id, params.setId)
+// (DELETE /sets/{id})
+func (s *SwimLogsServer) DeleteSet(ctx context.Context, id uuid.UUID) (int, error) {
+	err := s.app.DeleteSet(ctx, id)
 
 	if errors.Is(err, app.ErrNotFound) {
 		slog.Warn(
 			"set not found",
 			slog.String("error", err.Error()),
-			slog.String("trainingId", params.id.String()),
-			slog.String("setId", params.setId.String()),
+			slog.String("id", id.String()),
 		)
-		return http.StatusNotFound, notFound("set", params.setId.String())
+		return http.StatusNotFound, notFoundId("set", id)
 	} else if err != nil {
 		slog.Error(
 			UnexpectedError,
@@ -206,13 +202,13 @@ func (s *SwimLogsServer) DeleteSet(
 	return http.StatusNoContent, nil
 }
 
-// (PATCH /trainings/{id}/sets/{setId})
+// (PATCH /sets/{id})
 func (s *SwimLogsServer) EditSet(
 	ctx context.Context,
-	params IdSetId,
+	id uuid.UUID,
 	r apidef.EditSetRequest,
 ) (apidef.EditSetResponse, int, error) {
-	set, totalDistance, err := s.app.EditSet(ctx, params.id, params.setId, r)
+	set, totalDistance, err := s.app.EditSet(ctx, id, r)
 	if err != nil {
 		if validationErr, ok := err.(*app.ValidationError); ok {
 			apiErr := fromValidationError(validationErr)
@@ -224,13 +220,9 @@ func (s *SwimLogsServer) EditSet(
 			slog.Warn(
 				"set not found",
 				slog.String("error", err.Error()),
-				slog.String("trainingId", params.id.String()),
-				slog.String("setId", params.setId.String()),
+				slog.String("id", id.String()),
 			)
-			return apidef.EditSetResponse{}, http.StatusNotFound, notFound(
-				"set",
-				params.setId.String(),
-			)
+			return apidef.EditSetResponse{}, http.StatusNotFound, notFoundId("set", id)
 		}
 
 		slog.Error(
@@ -249,10 +241,10 @@ func (s *SwimLogsServer) EditSet(
 
 func (s *SwimLogsServer) MoveSet(
 	ctx context.Context,
-	params IdSetId,
+	id uuid.UUID,
 	r apidef.MoveSetRequest,
 ) (apidef.Training, int, error) {
-	t, err := s.app.MoveSet(ctx, params.id, params.setId, r.NewSetOrder)
+	t, err := s.app.MoveSet(ctx, id, r.NewSetOrder)
 
 	if validationErr, ok := err.(*app.ValidationError); ok {
 		apiErr := fromValidationError(validationErr)
@@ -262,10 +254,9 @@ func (s *SwimLogsServer) MoveSet(
 		slog.Warn(
 			"set not found",
 			slog.String("error", err.Error()),
-			slog.String("trainingId", params.id.String()),
-			slog.String("setId", params.setId.String()),
+			slog.String("id", id.String()),
 		)
-		return apidef.Training{}, http.StatusNotFound, notFound("set", params.setId.String())
+		return apidef.Training{}, http.StatusNotFound, notFoundId("set", id)
 	} else if err != nil {
 		slog.Error(
 			UnexpectedError,

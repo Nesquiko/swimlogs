@@ -122,8 +122,8 @@ func (app SwimLogsApp) EditTrainingSession(
 	return trainingToSummary(edited), nil
 }
 
-func (app SwimLogsApp) DeleteSet(ctx context.Context, trainingId, setId uuid.UUID) error {
-	err := app.pool.DeleteSet(ctx, trainingId, setId)
+func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {
+	err := app.pool.DeleteSet(ctx, id)
 	if errors.Is(err, data.ErrRowsNotFound) {
 		return fmt.Errorf("DeleteSet not found: %w", ErrNotFound)
 	} else if err != nil {
@@ -134,8 +134,7 @@ func (app SwimLogsApp) DeleteSet(ctx context.Context, trainingId, setId uuid.UUI
 
 func (app SwimLogsApp) EditSet(
 	ctx context.Context,
-	trainingId uuid.UUID,
-	setId uuid.UUID,
+	id uuid.UUID,
 	edited apidef.EditSetRequest,
 ) (apidef.TrainingSet, int, error) {
 	validationErr := validateEditSetRequest(edited)
@@ -150,7 +149,7 @@ func (app SwimLogsApp) EditSet(
 		}
 	}
 
-	set, trainingTotalDist, err := app.pool.EditSet(ctx, trainingId, setId, struct {
+	set, trainingTotalDist, err := app.pool.EditSet(ctx, id, struct {
 		Repeat         *int
 		DistanceMeters *int
 		Description    *string
@@ -178,8 +177,7 @@ func (app SwimLogsApp) EditSet(
 
 func (app SwimLogsApp) MoveSet(
 	ctx context.Context,
-	trainingId uuid.UUID,
-	setId uuid.UUID,
+	id uuid.UUID,
 	newSetOrder int,
 ) (apidef.Training, error) {
 	validationErr := validateNewSetOrder(newSetOrder)
@@ -187,9 +185,16 @@ func (app SwimLogsApp) MoveSet(
 		return apidef.Training{}, validationErr
 	}
 
-	err := app.pool.MoveSet(ctx, trainingId, setId, newSetOrder)
+	err := app.pool.MoveSet(ctx, id, newSetOrder)
 	if errors.Is(err, data.ErrRowsNotFound) {
 		return apidef.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return apidef.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	trainingId, err := app.pool.TrainingIdBySetId(ctx, id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return apidef.Training{}, fmt.Errorf("MoveSet training id not found: %w", ErrNotFound)
 	} else if err != nil {
 		return apidef.Training{}, fmt.Errorf("MoveSet: %w", err)
 	}

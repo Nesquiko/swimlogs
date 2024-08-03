@@ -38,7 +38,7 @@ func TestDeleteSet_Successfully(t *testing.T) {
 	training := mustReadTraining(t, trainingId)
 	setId := training.Sets[0].Id
 
-	res, err := deleteSet(trainingId, setId)
+	res, err := deleteSet(setId)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
 
@@ -65,7 +65,7 @@ func TestDeleteSet_ReorderRemainingSets(t *testing.T) {
 	training := mustReadTraining(t, trainingId)
 	setId := training.Sets[1].Id
 
-	res, err := deleteSet(trainingId, setId)
+	res, err := deleteSet(setId)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
 
@@ -83,7 +83,7 @@ func TestDeleteSet_AlsoDeleteTraining(t *testing.T) {
 	training := mustReadTraining(t, trainingId)
 	setId := training.Sets[0].Id
 
-	res, err := deleteSet(trainingId, setId)
+	res, err := deleteSet(setId)
 	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
@@ -110,9 +110,8 @@ func TestDeleteSet_AlsoDeleteTraining(t *testing.T) {
 
 func TestDeleteSet_NotFound(t *testing.T) {
 	t.Parallel()
-	trainingId := uuid.New()
 	setId := uuid.New()
-	res, err := deleteSet(trainingId, setId)
+	res, err := deleteSet(setId)
 	defer res.Body.Close()
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
@@ -191,8 +190,8 @@ func deleteTraining(id uuid.UUID) (*http.Response, error) {
 	return res, nil
 }
 
-func deleteSet(trainingId, setId uuid.UUID) (*http.Response, error) {
-	url := ServerUrl + "/trainings/" + trainingId.String() + "/sets/" + setId.String()
+func deleteSet(id uuid.UUID) (*http.Response, error) {
+	url := ServerUrl + "/sets/" + id.String()
 	client := http.Client{}
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
