@@ -2,10 +2,10 @@
   "tsx": true,
   "componentDir": "./src/components/ui",
   "tailwind": {
-    "config": "tailwind.config.js",
+    "config": "tailwind.config.cjs",
     "css": "src/index.css"
   },
   "aliases": {
-    "path": "../../*"
+    "path": "~/*"
   }
 }

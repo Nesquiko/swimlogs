@@ -1,60 +1,62 @@
-import 'flowbite';
-import { Component, createSignal } from 'solid-js';
-import { Drawer } from './components/Drawer';
-import Header from './components/Header';
-import DismissibleToast, { ToastMode } from './components/DismissibleToast';
-import { Router } from '@solidjs/router';
-import { TransProvider } from '@mbarzda/solid-i18next';
-import i18next from 'i18next';
-import I18NextHttpBackend from 'i18next-http-backend';
-import I18nextBrowserLanguageDetector from 'i18next-browser-languagedetector';
-import Routes, { OnBackContextProvider } from './pages/Routing';
-
-const [openToast, setOpenToast] = createSignal(false);
-const [toastMessage, setToastMessage] = createSignal('');
-const [toastMode, setToastMode] = createSignal(ToastMode.SUCCESS);
-
-const showToast = (
-  message: string,
-  mode: ToastMode = ToastMode.SUCCESS
-): void => {
-  setToastMessage(message);
-  setToastMode(mode);
-  setOpenToast(true);
-};
+import { Component, Suspense } from 'solid-js';
+import { Route, Router } from '@solidjs/router';
+import Home from './pages/Home';
+import { MetaProvider } from '@solidjs/meta';
+import { AppContextProvider } from './AppContext';
+import BottomNav from './components/BottomNav';
+import ThemeToggle from './components/ThemeToggle';
+import ThemePreview from './pages/ThemePreview';
 
 const App: Component = () => {
-  i18next.use(I18NextHttpBackend);
-  i18next.use(I18nextBrowserLanguageDetector);
-  const backend = { loadPath: '/locales/{{lng}}/{{ns}}.json' };
-
   return (
-    <Router
-      root={(props) => (
-        <TransProvider
-          options={{
-            backend,
-            fallbackLng: 'en',
-          }}
+    <MetaProvider>
+      <main class="min-h-screen bg-background">
+        <Router
+          root={(props) => (
+            <AppContextProvider>
+              <ThemeToggle />
+              <Suspense>{props.children}</Suspense>
+              <BottomNav />
+            </AppContextProvider>
+          )}
         >
-          <OnBackContextProvider>
-            <Header />
-            <Drawer />
-            <DismissibleToast
-              open={openToast()}
-              onDismiss={() => setOpenToast(false)}
-              mode={toastMode()}
-              message={toastMessage()}
-            />
-            <div class="py-2">{props.children}</div>
-          </OnBackContextProvider>
-        </TransProvider>
-      )}
-    >
-      <Routes />
-    </Router>
+          <Routes />
+        </Router>
+      </main>
+    </MetaProvider>
+  );
+};
+
+const Routes: Component = () => {
+  const placeholder = (label: string) => <div>{label}</div>;
+  return (
+    <>
+      <Route path="/theme-preview" component={ThemePreview} />
+      <Route path="/" component={() => placeholder('Home')} />
+      <Route path="/calendar" component={() => placeholder('Calendar')} />
+      <Route path="/profile" component={() => placeholder('Profile')} />
+      {/* <Route path="/training/new" component={TrainingCreatePage} /> */}
+      {/* <Route path="/training/:id"> */}
+      {/*   <Route */}
+      {/*     path="/display" */}
+      {/*     component={TrainingDisplayPage} */}
+      {/*     load={(args) => { */}
+      {/*       return { trainingPromise: loadTrainingById(args) }; */}
+      {/*     }} */}
+      {/*   /> */}
+      {/*   <Route */}
+      {/*     path="/edit" */}
+      {/*     component={TrainingEditPage} */}
+      {/*     load={(args) => { */}
+      {/*       return { trainingPromise: loadTrainingById(args) }; */}
+      {/*     }} */}
+      {/*   /> */}
+      {/*   <Route path="/edit/session" component={() => <>Edit Session</>} /> */}
+      {/* </Route> */}
+      {/**/}
+      {/* <Route path="/trainings" component={TrainingHistoryPage} /> */}
+    </>
   );
 };
 
 export default App;
-export { showToast };
