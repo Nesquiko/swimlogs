@@ -1,11 +1,10 @@
 import { Component, Suspense } from 'solid-js';
 import { Route, Router } from '@solidjs/router';
-import Home from './pages/Home';
 import { MetaProvider } from '@solidjs/meta';
 import { AppContextProvider } from './AppContext';
 import BottomNav from './components/BottomNav';
-import ThemeToggle from './components/ThemeToggle';
 import ThemePreview from './pages/ThemePreview';
+import ProfilePage from './pages/profile/ProfilePage';
 
 const App: Component = () => {
   return (
@@ -14,8 +13,9 @@ const App: Component = () => {
         <Router
           root={(props) => (
             <AppContextProvider>
-              <ThemeToggle />
-              <Suspense>{props.children}</Suspense>
+              <div class="px-4 py-6">
+                <Suspense>{props.children}</Suspense>
+              </div>
               <BottomNav />
             </AppContextProvider>
           )}
@@ -34,7 +34,7 @@ const Routes: Component = () => {
       <Route path="/theme-preview" component={ThemePreview} />
       <Route path="/" component={() => placeholder('Home')} />
       <Route path="/calendar" component={() => placeholder('Calendar')} />
-      <Route path="/profile" component={() => placeholder('Profile')} />
+      <Route path="/profile" component={ProfilePage} />
       {/* <Route path="/training/new" component={TrainingCreatePage} /> */}
       {/* <Route path="/training/:id"> */}
       {/*   <Route */}

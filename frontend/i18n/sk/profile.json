@@ -1,0 +1,14 @@
+{
+  "headline": "Profil",
+  "preferences": {
+    "headline": "Nastavenia",
+    "theme": {
+      "headline": "Téma",
+      "light": "Svetlá",
+      "dark": "Tmavá"
+    },
+    "language": {
+      "headline": "Jazyk"
+    }
+  }
+}

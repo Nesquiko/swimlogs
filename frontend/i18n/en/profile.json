@@ -1,0 +1,14 @@
+{
+  "headline": "Profile",
+  "preferences": {
+    "headline": "Preferences",
+    "theme": {
+      "headline": "Theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "headline": "Language"
+    }
+  }
+}

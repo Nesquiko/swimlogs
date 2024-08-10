@@ -7,7 +7,7 @@ import { IconProps } from 'solid-icons';
 import { useLocation, useNavigate } from '@solidjs/router';
 
 interface NavItem {
-  labelKey: keyof Dictionary;
+  labelKey: Extract<keyof Dictionary, `nav.${any}`>;
   icon: Component<IconProps>;
   location: string;
 }
@@ -31,7 +31,7 @@ const BottomNav: Component = () => {
     return (
       <Button
         variant="outline"
-        class="flex w-full flex-col rounded-none py-6"
+        class="flex w-full flex-col rounded-none border-0 border-t py-6"
         classList={{
           'text-primary hover:text-primary':
             location.pathname === item.location,

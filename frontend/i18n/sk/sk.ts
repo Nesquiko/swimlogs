@@ -1,7 +1,7 @@
-import themes from './themes.json';
+import profile from './profile.json';
 import nav from './nav.json';
 
 export const dict = {
-  themes,
+  profile,
   nav,
 };
