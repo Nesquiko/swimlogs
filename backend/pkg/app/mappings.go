@@ -20,7 +20,8 @@ func newTrainingToDataTraining(nt apidef.NewTraining) data.Training {
 func newSetsToDataSets(sets []apidef.NewTrainingSet, tId uuid.UUID) []data.TrainingSet {
 	dataSets := make([]data.TrainingSet, 0, len(sets))
 	for _, set := range sets {
-		dataSets = append(dataSets, newSetToDataSet(set, tId))
+		s := newSetToDataSet(set, tId)
+		dataSets = append(dataSets, s)
 	}
 	return dataSets
 }
@@ -33,6 +34,10 @@ func newSetToDataSet(set apidef.NewTrainingSet, tId uuid.UUID) data.TrainingSet 
 		}
 	}
 
+	isMain := false
+	if set.IsMain != nil && *set.IsMain {
+		isMain = true
+	}
 	ts := data.TrainingSet{
 		Id:             uuid.New(),
 		TrainingId:     tId,
@@ -44,6 +49,7 @@ func newSetToDataSet(set apidef.NewTrainingSet, tId uuid.UUID) data.TrainingSet 
 		StartSeconds:   set.StartSeconds,
 		Equipment:      &equipment,
 		Group:          (*string)(set.Group),
+		IsMain:         isMain,
 	}
 
 	if set.StartType == nil {
@@ -107,6 +113,7 @@ func dataSetToApiSet(s data.TrainingSet) apidef.TrainingSet {
 		StartSeconds:   s.StartSeconds,
 		TotalDistance:  s.Repeat * s.DistanceMeters,
 		Group:          (*apidef.GroupEnum)(s.Group),
+		IsMain:         s.IsMain,
 	}
 
 	if s.Equipment == nil {
@@ -158,6 +165,7 @@ func setToDataSet(set apidef.TrainingSet, tId uuid.UUID) data.TrainingSet {
 		StartSeconds:   set.StartSeconds,
 		Equipment:      &equipment,
 		Group:          (*string)(set.Group),
+		IsMain:         set.IsMain,
 	}
 
 	if set.StartType == nil || *set.StartType == "" {

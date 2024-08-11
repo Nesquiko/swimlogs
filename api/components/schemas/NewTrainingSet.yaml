@@ -33,6 +33,8 @@ properties:
     maximum: 32767
   group:
     $ref: "./GroupEnum.yaml"
+  isMain:
+    type: boolean
 required:
   - setOrder
   - repeat

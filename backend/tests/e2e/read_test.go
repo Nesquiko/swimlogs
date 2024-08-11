@@ -34,6 +34,7 @@ func TestTrainingById_MatchingResponse(t *testing.T) {
 				SetOrder:       1,
 				StartSeconds:   asPtr(90),
 				StartType:      asPtr(apidef.Interval),
+				IsMain:         asPtr(true),
 			},
 		},
 		Start: time.Now(),
@@ -61,6 +62,9 @@ func TestTrainingById_MatchingResponse(t *testing.T) {
 		assert.Equal(expectedSet.Group, set.Group)
 		assert.Equal(expectedSet.StartSeconds, set.StartSeconds)
 		assert.Equal(expectedSet.StartType, set.StartType)
+		if expectedSet.IsMain != nil {
+			assert.Equal(*expectedSet.IsMain, set.IsMain)
+		}
 	}
 }
 

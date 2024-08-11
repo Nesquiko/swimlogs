@@ -140,6 +140,7 @@ func (app SwimLogsApp) EditSet(
 		StartType      *string
 		StartSeconds   *int
 		Group          *string
+		IsMain         *bool
 	}{
 		Repeat:         edited.Repeat,
 		DistanceMeters: edited.DistanceMeters,
@@ -148,6 +149,7 @@ func (app SwimLogsApp) EditSet(
 		StartType:      (*string)(edited.StartType),
 		StartSeconds:   edited.StartSeconds,
 		Group:          (*string)(edited.Group),
+		IsMain:         edited.IsMain,
 	})
 	if errors.Is(err, data.ErrRowsNotFound) {
 		return apidef.TrainingSet{}, 0, fmt.Errorf("EditSet not found: %w", ErrNotFound)

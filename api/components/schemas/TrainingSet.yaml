@@ -32,9 +32,12 @@ properties:
     example: 60
   group:
     $ref: "./GroupEnum.yaml"
+  isMain:
+    type: boolean
 required:
   - id
   - setOrder
   - repeat
   - distanceMeters
   - totalDistance
+  - isMain

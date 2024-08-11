@@ -38,6 +38,7 @@ func TestEditSet(t *testing.T) {
 				SetOrder:       1,
 				StartSeconds:   asPtr(90),
 				StartType:      asPtr(apidef.Interval),
+				IsMain:         asPtr(true),
 			},
 		},
 		Start: time.Now(),
@@ -53,6 +54,7 @@ func TestEditSet(t *testing.T) {
 	newGroup := apidef.Sprint
 	newStartType := apidef.Pause
 	newStartSeconds := 45
+	newIsMain := false
 	request := apidef.EditSetRequest{
 		Description:    &newDescription,
 		Repeat:         &newRepeat,
@@ -61,6 +63,7 @@ func TestEditSet(t *testing.T) {
 		Group:          &newGroup,
 		StartType:      &newStartType,
 		StartSeconds:   &newStartSeconds,
+		IsMain:         &newIsMain,
 	}
 
 	res := mustEditSet(t, set.Id, request)
@@ -75,6 +78,7 @@ func TestEditSet(t *testing.T) {
 	assert.Equal(newGroup, *editedSet.Group)
 	assert.Equal(newStartType, *editedSet.StartType)
 	assert.Equal(newStartSeconds, *editedSet.StartSeconds)
+	assert.Equal(newIsMain, editedSet.IsMain)
 }
 
 func TestEditSet_Validation(t *testing.T) {

@@ -27,3 +27,5 @@ content:
           example: 60
         group:
           $ref: "../schemas/GroupEnum.yaml"
+        isMain:
+          type: boolean

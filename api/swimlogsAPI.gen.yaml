@@ -177,6 +177,8 @@ components:
           maximum: 32767
         group:
           $ref: '#/components/schemas/GroupEnum'
+        isMain:
+          type: boolean
       required:
         - setOrder
         - repeat
@@ -298,12 +300,15 @@ components:
           example: 60
         group:
           $ref: '#/components/schemas/GroupEnum'
+        isMain:
+          type: boolean
       required:
         - id
         - setOrder
         - repeat
         - distanceMeters
         - totalDistance
+        - isMain
     Training:
       type: object
       properties:
@@ -423,6 +428,8 @@ components:
                 example: 60
               group:
                 $ref: '#/components/schemas/GroupEnum'
+              isMain:
+                type: boolean
     MoveSetRequest:
       description: Request for moving set in order of training sets
       required: true

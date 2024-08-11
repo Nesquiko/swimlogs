@@ -32,6 +32,7 @@ type TrainingSet struct {
 	StartType      *string
 	StartSeconds   *int
 	Group          *string
+	IsMain         bool
 }
 
 func (pool *PostgresDbPool) PersistTraining(ctx context.Context, t Training) (Training, error) {
@@ -116,7 +117,7 @@ var selectTraining = `
 select
     t.id, t.start, t.duration_min, t.created_at, t.modified_at,
     s.id, s.training_id, s.set_order, s.repeat, s.distance_meters, s.description,
-    s.start_type, s.start_seconds, s.equipment, s.group
+    s.start_type, s.start_seconds, s.equipment, s.group, s.is_main
 from trainings t join sets s on t.id = s.training_id
 where t.id = $1
 order by s.set_order
@@ -147,6 +148,7 @@ func (pool *PostgresDbPool) Training(ctx context.Context, id uuid.UUID) (Trainin
 			&s.StartSeconds,
 			&s.Equipment,
 			&s.Group,
+			&s.IsMain,
 		)
 		if err != nil {
 			return Training{}, fmt.Errorf("Training scanning error: %w", err)
@@ -209,10 +211,10 @@ func (pool *PostgresDbPool) persistTraining(
 
 var insertSet = `
 insert into sets (id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, equipment, "group")
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    description, start_type, start_seconds, equipment, "group", is_main)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 returning id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, equipment, "group"
+    description, start_type, start_seconds, equipment, "group", is_main
 `
 
 func (pool *PostgresDbPool) persistSet(
@@ -233,6 +235,7 @@ func (pool *PostgresDbPool) persistSet(
 		s.StartSeconds,
 		s.Equipment,
 		s.Group,
+		s.IsMain,
 	).Scan(
 		&s.Id,
 		&s.TrainingId,
@@ -244,6 +247,7 @@ func (pool *PostgresDbPool) persistSet(
 		&s.StartSeconds,
 		&s.Equipment,
 		&s.Group,
+		&s.IsMain,
 	)
 	if err != nil {
 		return TrainingSet{}, fmt.Errorf("persistSet: %w", err)
@@ -373,6 +377,7 @@ func (pool *PostgresDbPool) EditSet(
 		StartType      *string
 		StartSeconds   *int
 		Group          *string
+		IsMain         *bool
 	},
 ) (TrainingSet, int, error) {
 	result, err := TxWithResult(
@@ -405,9 +410,10 @@ update sets
        start_type = coalesce($5, start_type),
        start_seconds = coalesce($6, start_seconds),
        equipment = coalesce($7, equipment),
-       "group" = coalesce($8, "group")
+       "group" = coalesce($8, "group"),
+       is_main = coalesce($9, is_main)
 where id = $1
-returning id, training_id, set_order, repeat, distance_meters, description, start_type, start_seconds, equipment, "group"
+returning id, training_id, set_order, repeat, distance_meters, description, start_type, start_seconds, equipment, "group", is_main
 `
 
 var totalDistanceInTraining = `
@@ -427,6 +433,7 @@ func (pool *PostgresDbPool) editSet(
 		StartType      *string
 		StartSeconds   *int
 		Group          *string
+		IsMain         *bool
 	},
 	tx pgx.Tx,
 ) (TrainingSet, int, error) {
@@ -442,6 +449,7 @@ func (pool *PostgresDbPool) editSet(
 		edited.StartSeconds,
 		edited.Equipment,
 		edited.Group,
+		edited.IsMain,
 	).Scan(
 		&s.Id,
 		&s.TrainingId,
@@ -453,6 +461,7 @@ func (pool *PostgresDbPool) editSet(
 		&s.StartSeconds,
 		&s.Equipment,
 		&s.Group,
+		&s.IsMain,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return TrainingSet{}, 0, fmt.Errorf("editSet not found: %w", ErrRowsNotFound)

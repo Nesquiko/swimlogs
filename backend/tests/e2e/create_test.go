@@ -37,6 +37,7 @@ func TestCreateTraining_ValidTrainingSummary(t *testing.T) {
 				SetOrder:       1,
 				StartSeconds:   asPtr(90),
 				StartType:      asPtr(apidef.Interval),
+				IsMain:         asPtr(true),
 			},
 		},
 		Start: time.Now(),
