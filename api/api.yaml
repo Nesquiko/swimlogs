@@ -25,5 +25,3 @@ paths:
     $ref: "./paths/sets_{id}_move.yaml"
   /trainings/summaries:
     $ref: "./paths/trainings_summaries.yaml"
-  /trainings/summaries/current-week:
-    $ref: "./paths/trainings_summaries_current-week.yaml"

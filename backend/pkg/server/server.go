@@ -69,7 +69,6 @@ func NewServer(
 
 		r.Post("/trainings", handleInOut(srv.CreateTraining))
 		r.Get("/trainings/summaries", handleQueryOut(pageParamsExtractor, srv.SummariesPage))
-		r.Get("/trainings/summaries/current-week", handleOut(srv.SummariesCurrentWeek))
 		r.Delete("/trainings/{id}", handlePathStatus(pathIdExtractor, srv.DeleteTraining))
 		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById))
 		r.Patch("/trainings/{id}", handlePathInOut(pathIdExtractor, srv.EditTrainingSession))

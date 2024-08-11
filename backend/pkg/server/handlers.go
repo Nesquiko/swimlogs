@@ -76,24 +76,6 @@ func (s *SwimLogsServer) SummariesPage(
 	}, http.StatusOK, nil
 }
 
-// (GET /trainings/summaries/current-week)
-func (s *SwimLogsServer) SummariesCurrentWeek(
-	ctx context.Context,
-) (apidef.TrainingSummariesCurrentWeekResponse, int, error) {
-	summaries, err := s.app.TrainingSummariesCurrentWeek(ctx)
-	if err != nil {
-		slog.Error(
-			UnexpectedError,
-			slog.String("error", err.Error()),
-			slog.String("where", "SummariesCurrentWeek"),
-		)
-		apiErr := internalServerError()
-		return apidef.TrainingSummariesCurrentWeekResponse{}, apiErr.Status, apiErr
-	}
-
-	return apidef.TrainingSummariesCurrentWeekResponse{Summaries: summaries}, http.StatusOK, nil
-}
-
 // (DELETE /trainings/{id})
 func (s *SwimLogsServer) DeleteTraining(
 	ctx context.Context,

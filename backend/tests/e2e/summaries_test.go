@@ -12,31 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Nesquiko/swimlogs/apidef"
-	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
-
-func TestSummariesCurrentWeek_CorrectResponse(t *testing.T) {
-	n := 10
-	startOfWeek, endOfWeek := app.GetWeekRange(time.Now())
-
-	for i := 0; i < n; i++ {
-		start := startOfWeek.AddDate(0, 0, i%7)
-
-		request := defaultNewTraining()
-		request.Start = start
-
-		mustCreateNewTraining(t, request)
-	}
-
-	assert := assert.New(t)
-	summaries := mustReadSummariesCurrentWeek(t)
-	assert.NotEmpty(summaries.Summaries)
-
-	for _, summary := range summaries.Summaries {
-		assert.WithinRange(summary.Start, startOfWeek, endOfWeek)
-	}
-}
 
 func TestSummariesPage_CorrectPaging(t *testing.T) {
 	n := 30
@@ -190,22 +167,4 @@ func readSummariesPage(page, pageSize int) (*http.Response, error) {
 	}
 
 	return res, nil
-}
-
-func mustReadSummariesCurrentWeek(t *testing.T) apidef.TrainingSummariesCurrentWeekResponse {
-	url := ServerUrl + "/trainings/summaries/current-week"
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	require.NoError(t, err)
-
-	client := http.Client{}
-	res, err := client.Do(req)
-	require.NoError(t, err)
-
-	require.Equalf(t, http.StatusOK, res.StatusCode, "response: %+v", res)
-	var summaries apidef.TrainingSummariesCurrentWeekResponse
-	err = json.NewDecoder(res.Body).Decode(&summaries)
-	res.Body.Close()
-	require.NoErrorf(t, err, "response: %+v", res)
-
-	return summaries
 }
