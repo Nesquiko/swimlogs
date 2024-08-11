@@ -54,9 +54,15 @@ func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
 
 func (app SwimLogsApp) TrainingSummariesPage(
 	ctx context.Context,
-	page, pageSize int,
+	params apidef.SummariesPageParams,
 ) ([]apidef.TrainingSummary, int, error) {
-	summariesPage, total, err := app.pool.TrainingSummaries(ctx, page, pageSize)
+	summariesPage, total, err := app.pool.TrainingSummaries(
+		ctx,
+		params.Page,
+		params.PageSize,
+		params.From,
+		params.Until,
+	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
 	}

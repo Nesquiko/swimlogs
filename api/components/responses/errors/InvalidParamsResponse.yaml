@@ -1,0 +1,5 @@
+description: Submitted query params were invalid
+content:
+  application/problem+json:
+    schema:
+      $ref: "../../schemas/errors/InvalidParamsError.yaml"

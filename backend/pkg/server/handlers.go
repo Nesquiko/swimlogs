@@ -58,7 +58,7 @@ func (s *SwimLogsServer) SummariesPage(
 		return apidef.TrainingSummariesResponse{}, apiErr.Status, apiErr
 	}
 
-	summaries, total, err := s.app.TrainingSummariesPage(ctx, params.Page, params.PageSize)
+	summaries, total, err := s.app.TrainingSummariesPage(ctx, params)
 	if err != nil {
 		slog.Error(
 			UnexpectedError,

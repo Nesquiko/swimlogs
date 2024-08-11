@@ -66,26 +66,42 @@ func (pool *PostgresDbPool) deleteTraining(ctx context.Context, id uuid.UUID, tx
 }
 
 var selectTrainingSummariesPage = `
-select t.id, t.start, t.duration_min, t.created_at, t.modified_at,
-    sum(s.repeat * s.distance_meters), count(t.id) over ()
-from trainings t
-    join sets s on t.id = s.training_id
-group by t.id, t.start, t.duration_min, t.created_at, t.modified_at
+with filtered as (
+    select t.id, t.start, t.duration_min, t.created_at, t.modified_at, sum(s.repeat * s.distance_meters)
+    from trainings t join sets s on t.id = s.training_id
+    where t.start between $3 and $4
+    group by t.id, t.start, t.duration_min, t.created_at, t.modified_at)
+select t.*, count(t.id) over ()
+from filtered t
 order by t.start desc, t.duration_min, t.created_at
 limit $1 offset $2
 `
 
+// TODO from and until filters
 func (pool *PostgresDbPool) TrainingSummaries(
 	ctx context.Context,
 	page, pageSize int,
+	from, until *time.Time,
 ) ([]Training, int, error) {
 	tds := make([]Training, 0)
+
+	fromStr := "-infinity"
+	untilStr := "infinity"
+
+	if from != nil {
+		fromStr = from.Format(time.RFC3339)
+	}
+	if until != nil {
+		untilStr = until.Format(time.RFC3339)
+	}
 
 	rows, err := pool.Query(
 		ctx,
 		selectTrainingSummariesPage,
 		pageSize,
 		page*pageSize,
+		fromStr,
+		untilStr,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("TrainingSummaries query error: %w", err)

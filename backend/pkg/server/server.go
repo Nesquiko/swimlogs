@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
@@ -238,9 +239,31 @@ func pageParamsExtractor(r *http.Request) (apidef.SummariesPageParams, error) {
 		)
 	}
 
+	fromStr := r.URL.Query().Get("from")
+	var from *time.Time
+	if fromStr != "" {
+		parsed, err := time.Parse(time.RFC3339, fromStr)
+		if err != nil {
+			return apidef.SummariesPageParams{}, invalidQueryParam("from", fromStr)
+		}
+		from = &parsed
+	}
+
+	untilStr := r.URL.Query().Get("until")
+	var until *time.Time
+	if untilStr != "" {
+		parsed, err := time.Parse(time.RFC3339, untilStr)
+		if err != nil {
+			return apidef.SummariesPageParams{}, invalidQueryParam("until", untilStr)
+		}
+		until = &parsed
+	}
+
 	return apidef.SummariesPageParams{
 		Page:     page,
 		PageSize: pageSize,
+		From:     from,
+		Until:    until,
 	}, nil
 }
 

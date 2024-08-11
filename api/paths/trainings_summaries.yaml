@@ -6,6 +6,10 @@ get:
   parameters:
     - $ref: "../components/parameters/PageParam.yaml"
     - $ref: "../components/parameters/PageSizeParam.yaml"
+    - $ref: "../components/parameters/FromParam.yaml"
+    - $ref: "../components/parameters/UntilParam.yaml"
   responses:
     200:
       $ref: "../components/responses/TrainingSummariesResponse.yaml"
+    400:
+      $ref: "../components/responses/errors/InvalidParamsResponse.yaml"

@@ -1,0 +1,6 @@
+name: from
+in: query
+description: The beginning of the date time range.
+schema:
+  type: string
+  format: date-time

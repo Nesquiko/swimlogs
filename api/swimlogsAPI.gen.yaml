@@ -115,9 +115,13 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/FromParam'
+        - $ref: '#/components/parameters/UntilParam'
       responses:
         '200':
           $ref: '#/components/responses/TrainingSummariesResponse'
+        '400':
+          $ref: '#/components/responses/InvalidParamsResponse'
 components:
   schemas:
     EquipmentEnum:
@@ -373,6 +377,14 @@ components:
         - total
         - page
         - pageSize
+    InvalidParamsError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Invalid query parameter
+        status: 400
+        code: invalid.query.param
+        detail: 'Invalid query param ''from'': ''2024-13-32T25:60:60'
   requestBodies:
     CreateTrainingRequest:
       description: Request for creating a training
@@ -533,6 +545,12 @@ components:
             required:
               - summaries
               - pagination
+    InvalidParamsResponse:
+      description: Submitted query params were invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/InvalidParamsError'
   parameters:
     IdParam:
       name: id
@@ -560,3 +578,17 @@ components:
         type: integer
         example: 10
         minimum: 1
+    FromParam:
+      name: from
+      in: query
+      description: The beginning of the date time range.
+      schema:
+        type: string
+        format: date-time
+    UntilParam:
+      name: until
+      in: query
+      description: The end of the date time range
+      schema:
+        type: string
+        format: date-time

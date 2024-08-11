@@ -15,6 +15,55 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
+func TestSummariesPage_CorrectStartFiltering(t *testing.T) {
+	n := 30
+	startStr := "2023-08-11T13:00:00+01:00"
+	created := make([]apidef.TrainingSummary, 0, n)
+	for i := 0; i < n; i++ {
+		now, err := time.Parse(time.RFC3339, startStr)
+		require.NoError(t, err)
+
+		now = now.Add(time.Duration(i) * time.Minute)
+
+		request := defaultNewTraining()
+		request.Start = now
+
+		ts := mustCreateNewTraining(t, request)
+		created = append(created, ts)
+	}
+
+	expectedTotal := 10
+	from, err := time.Parse(time.RFC3339, "2023-08-11T12:59:00+01:00")
+	require.NoError(t, err)
+	until := from.Add(time.Duration(expectedTotal) * time.Minute)
+
+	pageSize := 5
+	summaries := mustReadSummariesPage(t, 0, pageSize, &from, &until)
+	assert := assert.New(t)
+	assert.Len(summaries.Summaries, pageSize)
+	for i := 0; i < pageSize; i++ {
+		assert.Equal(created[expectedTotal-i-1].Id, summaries.Summaries[i].Id)
+	}
+	assert.Equal(0, summaries.Pagination.Page)
+	assert.Equal(pageSize, summaries.Pagination.PageSize)
+	assert.Equal(expectedTotal, summaries.Pagination.Total)
+
+	summaries = mustReadSummariesPage(t, 1, pageSize, &from, &until)
+	assert.Len(summaries.Summaries, pageSize)
+	for i := pageSize; i < 2*pageSize; i++ {
+		assert.Equal(created[expectedTotal-i-1].Id, summaries.Summaries[i-pageSize].Id)
+	}
+	assert.Equal(1, summaries.Pagination.Page)
+	assert.Equal(pageSize, summaries.Pagination.PageSize)
+	assert.Equal(expectedTotal, summaries.Pagination.Total)
+
+	summaries = mustReadSummariesPage(t, 0, n, &from, nil)
+	assert.Len(summaries.Summaries, n)
+	assert.Equal(0, summaries.Pagination.Page)
+	assert.Equal(n, summaries.Pagination.PageSize)
+	assert.Equal(n, summaries.Pagination.Total)
+}
+
 func TestSummariesPage_CorrectPaging(t *testing.T) {
 	n := 30
 	for i := 0; i < n; i++ {
@@ -24,19 +73,19 @@ func TestSummariesPage_CorrectPaging(t *testing.T) {
 	assert := assert.New(t)
 	pageSize := 5
 
-	summaries := mustReadSummariesPage(t, 0, pageSize)
+	summaries := mustReadSummariesPage(t, 0, pageSize, nil, nil)
 	assert.Len(summaries.Summaries, pageSize)
 	assert.Equal(0, summaries.Pagination.Page)
 	assert.Equal(pageSize, summaries.Pagination.PageSize)
 	assert.GreaterOrEqual(summaries.Pagination.Total, n)
 
 	total := summaries.Pagination.Total
-	summaries = mustReadSummariesPage(t, 1, total)
+	summaries = mustReadSummariesPage(t, 1, total, nil, nil)
 	assert.Empty(summaries.Summaries)
 	assert.Equal(1, summaries.Pagination.Page)
 	assert.Equal(0, summaries.Pagination.PageSize)
 
-	summaries = mustReadSummariesPage(t, 1, total-1)
+	summaries = mustReadSummariesPage(t, 1, total-1, nil, nil)
 	assert.Len(summaries.Summaries, 1)
 	assert.Equal(1, summaries.Pagination.Page)
 	assert.Equal(1, summaries.Pagination.PageSize)
@@ -57,7 +106,7 @@ func TestSummariesPage_ReadPage(t *testing.T) {
 		created = append(created, ts)
 	}
 
-	summaries := mustReadSummariesPage(t, 0, len(created))
+	summaries := mustReadSummariesPage(t, 0, len(created), nil, nil)
 
 	assert := assert.New(t)
 	assert.Len(summaries.Summaries, len(created))
@@ -84,7 +133,7 @@ outer:
 
 func TestSummariesPage_InvalidPageSize(t *testing.T) {
 	invalidPageSize := 0
-	res, err := readSummariesPage(0, invalidPageSize)
+	res, err := readSummariesPage(0, invalidPageSize, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -112,7 +161,7 @@ func TestSummariesPage_InvalidPageSize(t *testing.T) {
 
 func TestSummariesPage_InvalidPage(t *testing.T) {
 	invalidPage := -1
-	res, err := readSummariesPage(invalidPage, 10)
+	res, err := readSummariesPage(invalidPage, 10, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -134,8 +183,14 @@ func TestSummariesPage_InvalidPage(t *testing.T) {
 	assert.Nil(apiError.AdditionalProperties)
 }
 
-func mustReadSummariesPage(t *testing.T, page, pageSize int) apidef.TrainingSummariesResponse {
-	res, err := readSummariesPage(page, pageSize)
+func mustReadSummariesPage(
+	t *testing.T,
+	page int,
+	pageSize int,
+	from *time.Time,
+	until *time.Time,
+) apidef.TrainingSummariesResponse {
+	res, err := readSummariesPage(page, pageSize, from, until)
 
 	require.NoError(t, err)
 	require.Equalf(t, http.StatusOK, res.StatusCode, "response: %+v", res)
@@ -148,7 +203,12 @@ func mustReadSummariesPage(t *testing.T, page, pageSize int) apidef.TrainingSumm
 	return summaries
 }
 
-func readSummariesPage(page, pageSize int) (*http.Response, error) {
+func readSummariesPage(
+	page int,
+	pageSize int,
+	from *time.Time,
+	until *time.Time,
+) (*http.Response, error) {
 	url := ServerUrl + "/trainings/summaries"
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -157,6 +217,12 @@ func readSummariesPage(page, pageSize int) (*http.Response, error) {
 	q := req.URL.Query()
 	q.Add("page", strconv.Itoa(page))
 	q.Add("pageSize", strconv.Itoa(pageSize))
+	if from != nil {
+		q.Add("from", from.Format(time.RFC3339))
+	}
+	if until != nil {
+		q.Add("until", until.Format(time.RFC3339))
+	}
 	req.URL.RawQuery = q.Encode()
 
 	client := http.Client{}
