@@ -48,6 +48,8 @@ func TestCreateTraining_ValidTrainingSummary(t *testing.T) {
 	assert.Equal(request.DurationMin, ts.DurationMin)
 	assert.Equal(800, ts.TotalDistance)
 	assert.True(compareTimes(request.Start, ts.Start))
+	assert.Len(*ts.MainSets, 1)
+	assert.Equal(request.Sets[1].DistanceMeters, (*ts.MainSets)[0].DistanceMeters)
 }
 
 func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
@@ -181,7 +183,8 @@ func defaultNewTraining() *apidef.CreateTrainingRequest {
 			Group:          asPtr(apidef.Long),
 			StartSeconds:   asPtr(60),
 			StartType:      asPtr(apidef.Interval),
+			IsMain:         asPtr(true),
 		}},
-		Start: time.Date(2024, 6, 24, 18, 0, 0, 0, time.UTC),
+		Start: time.Date(2022, 6, 24, 18, 0, 0, 0, time.UTC),
 	}
 }

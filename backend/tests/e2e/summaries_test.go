@@ -15,6 +15,41 @@ import (
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
+func TestSummariesPage_ReturnsMainSets(t *testing.T) {
+	n := 10
+	startStr := "2020-05-11T13:00:00+01:00"
+	for i := 0; i < n; i++ {
+		now, err := time.Parse(time.RFC3339, startStr)
+		require.NoError(t, err)
+		now = now.Add(time.Duration(i) * time.Minute)
+
+		request := defaultNewTraining()
+		request.Sets[0].IsMain = asPtr(i%2 == 0)
+		request.Sets = append(request.Sets, apidef.NewTrainingSet{
+			SetOrder:       1,
+			Repeat:         4,
+			DistanceMeters: 100,
+			IsMain:         asPtr(i%2 == 0),
+		})
+		request.Start = now
+
+		mustCreateNewTraining(t, request)
+	}
+
+	from, err := time.Parse(time.RFC3339, "2020-05-11T12:59:00+01:00")
+	require.NoError(t, err)
+	until := from.Add(time.Duration(n) * time.Minute)
+
+	assert := assert.New(t)
+	summaries := mustReadSummariesPage(t, 0, n, &from, &until)
+	for _, summary := range summaries.Summaries {
+		if summary.MainSets == nil || len(*summary.MainSets) == 0 {
+			continue
+		}
+		assert.Len(*summary.MainSets, 2)
+	}
+}
+
 func TestSummariesPage_CorrectStartFiltering(t *testing.T) {
 	n := 30
 	startStr := "2023-08-11T13:00:00+01:00"

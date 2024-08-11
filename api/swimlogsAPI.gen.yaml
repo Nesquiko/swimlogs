@@ -208,67 +208,6 @@ components:
         - start
         - durationMin
         - sets
-    TrainingSummary:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        start:
-          type: string
-          format: date-time
-          description: On what date and time does the training occur
-        durationMin:
-          type: integer
-          description: How long does the session last, in minutes
-          example: 60
-        totalDistance:
-          type: integer
-          description: Total distance in the training in meters
-          example: 2200
-      required:
-        - id
-        - start
-        - durationMin
-        - totalDistance
-    ErrorDetail:
-      type: object
-      properties:
-        title:
-          type: string
-          description: Short human-readable summary of the error
-        status:
-          type: integer
-          description: HTTP result status
-        code:
-          type: string
-          description: Machine understandable code of the error instance
-        detail:
-          type: string
-          description: A human-readable explanation of the error
-      additionalProperties: true
-      required:
-        - title
-        - status
-        - code
-        - detail
-    InvalidTrainingError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Invalid training session
-        status: 400
-        code: training.session.invalid
-        detail: Submitted training is invalid...
-    InvalidSetError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Set is not valid
-        status: 400
-        code: invalid.set
-        detail: Set "1" is not valid
-        setOrder: 1
     TrainingSet:
       type: object
       properties:
@@ -313,6 +252,71 @@ components:
         - distanceMeters
         - totalDistance
         - isMain
+    TrainingSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMin:
+          type: integer
+          description: How long does the session last, in minutes
+          example: 60
+        totalDistance:
+          type: integer
+          description: Total distance in the training in meters
+          example: 2200
+        mainSets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingSet'
+      required:
+        - id
+        - start
+        - durationMin
+        - totalDistance
+    ErrorDetail:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Short human-readable summary of the error
+        status:
+          type: integer
+          description: HTTP result status
+        code:
+          type: string
+          description: Machine understandable code of the error instance
+        detail:
+          type: string
+          description: A human-readable explanation of the error
+      additionalProperties: true
+      required:
+        - title
+        - status
+        - code
+        - detail
+    InvalidTrainingError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Invalid training session
+        status: 400
+        code: training.session.invalid
+        detail: Submitted training is invalid...
+    InvalidSetError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorDetail'
+      example:
+        title: Set is not valid
+        status: 400
+        code: invalid.set
+        detail: Set "1" is not valid
+        setOrder: 1
     Training:
       type: object
       properties:
@@ -540,6 +544,7 @@ components:
                     - start
                     - durationMin
                     - totalDistance
+                    - mainSets
               pagination:
                 $ref: '#/components/schemas/Pagination'
             required:

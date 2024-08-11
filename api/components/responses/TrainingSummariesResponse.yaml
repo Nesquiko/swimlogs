@@ -13,6 +13,7 @@ content:
               - start
               - durationMin
               - totalDistance
+              - mainSets
         pagination:
           $ref: "../schemas/Pagination.yaml"
       required:

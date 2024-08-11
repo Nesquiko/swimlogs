@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -71,11 +72,53 @@ with filtered as (
     from trainings t join sets s on t.id = s.training_id
     where t.start between $3 and $4
     group by t.id, t.start, t.duration_min, t.created_at, t.modified_at)
-select t.*, count(t.id) over ()
-from filtered t
+select t.*, count(t.id) over (), s.*
+from filtered t left join sets s on s.training_id = t.id and s.is_main = true
 order by t.start desc, t.duration_min, t.created_at
 limit $1 offset $2
 `
+
+type EmptyTrainingSet struct {
+	Id             *uuid.UUID
+	TrainingId     *uuid.UUID
+	SetOrder       *int
+	Repeat         *int
+	DistanceMeters *int
+	Description    *string
+	Equipment      *[]string
+	StartType      *string
+	StartSeconds   *int
+	Group          *string
+	IsMain         *bool
+}
+
+func (s EmptyTrainingSet) isFilled() bool {
+	return s.Id != nil && s.TrainingId != nil && s.SetOrder != nil && s.Repeat != nil &&
+		s.DistanceMeters != nil && s.IsMain != nil
+}
+
+func (s EmptyTrainingSet) intoTrainingSet() TrainingSet {
+	if s.Id == nil {
+		slog.Error(
+			"EmptyTrainingSet.intoTrainingSe: this should't be called, on non validated EmptyTrainingSet",
+		)
+		return TrainingSet{}
+	}
+
+	return TrainingSet{
+		Id:             *s.Id,
+		TrainingId:     *s.TrainingId,
+		SetOrder:       *s.SetOrder,
+		Repeat:         *s.Repeat,
+		DistanceMeters: *s.DistanceMeters,
+		Description:    s.Description,
+		Equipment:      s.Equipment,
+		StartType:      s.StartType,
+		StartSeconds:   s.StartSeconds,
+		Group:          s.Group,
+		IsMain:         *s.IsMain,
+	}
+}
 
 // TODO from and until filters
 func (pool *PostgresDbPool) TrainingSummaries(
@@ -83,7 +126,7 @@ func (pool *PostgresDbPool) TrainingSummaries(
 	page, pageSize int,
 	from, until *time.Time,
 ) ([]Training, int, error) {
-	tds := make([]Training, 0)
+	ts := make([]Training, 0)
 
 	fromStr := "-infinity"
 	untilStr := "infinity"
@@ -109,9 +152,12 @@ func (pool *PostgresDbPool) TrainingSummaries(
 	defer rows.Close()
 
 	count := 0
+	lastTrainingId := uuid.UUID{}
 	for rows.Next() {
-		var t Training
-		err := rows.Scan(
+		t := Training{}
+		s := EmptyTrainingSet{}
+
+		scanArgs := []any{
 			&t.Id,
 			&t.Start,
 			&t.DurationMin,
@@ -119,14 +165,35 @@ func (pool *PostgresDbPool) TrainingSummaries(
 			&t.ModifiedAt,
 			&t.TotalDistance,
 			&count,
-		)
+			&s.Id,
+			&s.TrainingId,
+			&s.SetOrder,
+			&s.Repeat,
+			&s.DistanceMeters,
+			&s.Description,
+			&s.StartType,
+			&s.StartSeconds,
+			&s.Equipment,
+			&s.Group,
+			&s.IsMain,
+		}
+		err := rows.Scan(scanArgs...)
 		if err != nil {
 			return nil, 0, fmt.Errorf("TrainingSummaries scanning row: %w", err)
 		}
-		tds = append(tds, t)
+
+		if lastTrainingId != t.Id {
+			if s.isFilled() {
+				t.Sets = append(t.Sets, s.intoTrainingSet())
+			}
+			ts = append(ts, t)
+			lastTrainingId = t.Id
+		} else if s.isFilled() {
+			ts[len(ts)-1].Sets = append(ts[len(ts)-1].Sets, s.intoTrainingSet())
+		}
 	}
 
-	return tds, count, nil
+	return ts, count, nil
 }
 
 var selectTraining = `
