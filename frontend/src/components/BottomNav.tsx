@@ -46,7 +46,7 @@ const BottomNav: Component = () => {
   };
 
   return (
-    <nav class="fixed bottom-0 flex w-full justify-center">
+    <nav class="fixed bottom-0 flex w-full justify-center bg-background">
       <For each={NavItems}>{navItem}</For>
     </nav>
   );

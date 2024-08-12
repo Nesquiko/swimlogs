@@ -1,15 +1,19 @@
-export const DayEnum = {
-  Monday: 'Monday',
-  Tuesday: 'Tuesday',
-  Wednesday: 'Wednesday',
-  Thursday: 'Thursday',
-  Friday: 'Friday',
-  Saturday: 'Saturday',
-  Sunday: 'Sunday',
+export const Days = {
+  Monday: 'monday',
+  Tuesday: 'tuesday',
+  Wednesday: 'wednesday',
+  Thursday: 'thursday',
+  Friday: 'friday',
+  Saturday: 'saturday',
+  Sunday: 'sunday',
 } as const;
-export type DayEnum = (typeof DayEnum)[keyof typeof DayEnum];
+export type Day = (typeof Days)[keyof typeof Days];
 
-export function formatDate(date: Date | undefined): string {
+export function formatDate(
+  date: Date | undefined,
+  withoutYear?: boolean
+): string {
+  withoutYear = withoutYear || true;
   if (!date) {
     return '';
   }
@@ -17,7 +21,7 @@ export function formatDate(date: Date | undefined): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = String(date.getFullYear());
 
-  return `${day}.${month}.${year}`;
+  return `${day}.${month}.${withoutYear ? '' : year}`;
 }
 
 export function formatTime(date: Date | undefined): string {
@@ -83,6 +87,25 @@ export function minutesToHoursAndMintes(minutes: number): string {
 
   if (remainingMinutes > 0 || result === '') {
     result += `${remainingMinutes}m`;
+  }
+
+  return result;
+}
+
+export function secondsToMintesAndSeconds(seconds?: number): string {
+  if (!seconds) return '';
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  let result = '';
+
+  if (minutes > 0) {
+    result += `${minutes}' `;
+  }
+
+  if (remainingSeconds > 0 || result === '') {
+    result += `${remainingSeconds}"`;
   }
 
   return result;

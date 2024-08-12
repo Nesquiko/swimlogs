@@ -1,39 +1,35 @@
 import { type IconProps as SolidIconProps } from 'solid-icons';
-import { BiRegularSun, BiSolidHome, BiRegularCalendar } from 'solid-icons/bi';
+import { HiOutlineXMark } from 'solid-icons/hi';
+import {
+  BiRegularSun,
+  BiSolidHome,
+  BiRegularCalendar,
+  BiRegularStopwatch,
+} from 'solid-icons/bi';
 import {
   IoMoonOutline,
   IoLanguageOutline,
   IoContrastOutline,
 } from 'solid-icons/io';
 import { Component } from 'solid-js';
-import { FaRegularUser } from 'solid-icons/fa';
+import {
+  FaRegularUser,
+  FaSolidBug,
+  FaRegularClock,
+  FaSolidRepeat,
+} from 'solid-icons/fa';
 
 export type IconProps = SolidIconProps;
 
-export const IconSun: Component<IconProps> = (props) => (
-  <BiRegularSun {...props} />
-);
-
-export const IconMoon: Component<IconProps> = (props) => (
-  <IoMoonOutline {...props} />
-);
-
-export const IconHome: Component<IconProps> = (props) => (
-  <BiSolidHome {...props} />
-);
-
-export const IconCalendar: Component<IconProps> = (props) => (
-  <BiRegularCalendar {...props} />
-);
-
-export const IconUser: Component<IconProps> = (props) => (
-  <FaRegularUser {...props} />
-);
-
-export const IconLanguage: Component<IconProps> = (props) => (
-  <IoLanguageOutline {...props} />
-);
-
-export const IconColorTheme: Component<IconProps> = (props) => (
-  <IoContrastOutline {...props} />
-);
+export const IconSun: Component<IconProps> = BiRegularSun;
+export const IconMoon: Component<IconProps> = IoMoonOutline;
+export const IconHome: Component<IconProps> = BiSolidHome;
+export const IconCalendar: Component<IconProps> = BiRegularCalendar;
+export const IconUser: Component<IconProps> = FaRegularUser;
+export const IconLanguage: Component<IconProps> = IoLanguageOutline;
+export const IconColorTheme: Component<IconProps> = IoContrastOutline;
+export const IconBug: Component<IconProps> = FaSolidBug;
+export const IconStopwatch: Component<IconProps> = BiRegularStopwatch;
+export const IconClock: Component<IconProps> = FaRegularClock;
+export const IconRepeat: Component<IconProps> = FaSolidRepeat;
+export const IconX: Component<IconProps> = HiOutlineXMark;

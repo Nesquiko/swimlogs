@@ -5,6 +5,7 @@ import { AppContextProvider } from './AppContext';
 import BottomNav from './components/BottomNav';
 import ThemePreview from './pages/ThemePreview';
 import ProfilePage from './pages/profile/ProfilePage';
+import Home from './pages/home/Home';
 
 const App: Component = () => {
   return (
@@ -32,7 +33,7 @@ const Routes: Component = () => {
   return (
     <>
       <Route path="/theme-preview" component={ThemePreview} />
-      <Route path="/" component={() => placeholder('Home')} />
+      <Route path="/" component={Home} />
       <Route path="/calendar" component={() => placeholder('Calendar')} />
       <Route path="/profile" component={ProfilePage} />
       {/* <Route path="/training/new" component={TrainingCreatePage} /> */}
