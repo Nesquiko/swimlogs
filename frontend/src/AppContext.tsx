@@ -64,7 +64,7 @@ function deserializeSettings(value: string, location: Location): Settings {
   };
 }
 
-interface AppState {
+export interface AppState {
   get isDark(): boolean;
   setDark(value: boolean): void;
   get locale(): Locale;

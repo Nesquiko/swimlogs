@@ -1,0 +1,8 @@
+{
+  "failed": {
+    "summaries": {
+      "title": "Nepodarilo sa načítať tréningy",
+      "description": "Nastala neočakávaná chyba a nepodarilo sa načítať tréningy."
+    }
+  }
+}

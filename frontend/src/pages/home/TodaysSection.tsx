@@ -1,15 +1,18 @@
 import { useNavigate } from '@solidjs/router';
-import { For, Show, type Component } from 'solid-js';
+import { For, JSX, ParentComponent, Show, type Component } from 'solid-js';
 import { TrainingSummary } from 'swimlogs-api';
 import { useAppState } from '~/AppContext';
 import {
+  IconBug,
   IconClock,
   IconRepeat,
   IconStopwatch,
   IconX,
 } from '~/components/icons';
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Separator } from '~/components/ui/separator';
+import { Skeleton } from '~/components/ui/skeleton';
 import {
   formatDate,
   formatTime,
@@ -25,24 +28,51 @@ const TodaySection: Component<TodaySectionProps> = (props) => {
   const { t } = useAppState();
 
   return (
-    <Card class="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>
+    <TodaySectionCard
+      title={
+        <>
           {t('home.today.title')}{' '}
           <span class="font-normal">{formatDate(new Date(), true)}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <For each={props.trainings}>
-          {(training) => (
-            <TodaysTraining
-              training={training}
-              onClick={(id) => navigate('/training/' + id)}
-            />
-          )}
-        </For>
-      </CardContent>
-    </Card>
+        </>
+      }
+    >
+      <For each={props.trainings}>
+        {(training) => (
+          <TodaysTraining
+            training={training}
+            onClick={(id) => navigate('/training/' + id)}
+          />
+        )}
+      </For>
+    </TodaySectionCard>
+  );
+};
+
+export const TodaySectionError: Component = () => {
+  const { t } = useAppState();
+
+  return (
+    <Alert variant="destructive">
+      <IconBug />
+      <AlertTitle>{t('messages.failed.today.summaries.title')}</AlertTitle>
+      <AlertDescription>
+        {t('messages.failed.today.summaries.description')}
+      </AlertDescription>
+    </Alert>
+  );
+};
+
+export const TodaySectionLoading: Component = () => {
+  return (
+    <TodaySectionCard title={<Skeleton height={16} width={120} radius={10} />}>
+      <div class="flex w-full flex-col gap-2 px-6 py-2">
+        <Separator />
+        <span class="flex items-center gap-4">
+          <Skeleton height={16} width={100} radius={10} />
+          <Skeleton height={16} width={124} radius={10} />
+        </span>
+      </div>
+    </TodaySectionCard>
   );
 };
 
@@ -56,9 +86,9 @@ const TodaysTraining: Component<TodaysTrainingProps> = (props) => {
 
   const mainSets = () => {
     return (
-      <For each={props.training.mainSets}>
-        {(mainSet) => (
-          <p>
+      <div class="flex w-full flex-col gap-2 px-6 py-2">
+        <For each={props.training.mainSets}>
+          {(mainSet) => (
             <span class="flex items-center gap-4">
               <span class="flex items-center gap-1">
                 <IconRepeat class="inline text-primary" />
@@ -78,9 +108,9 @@ const TodaysTraining: Component<TodaysTrainingProps> = (props) => {
                 )}
               </Show>
             </span>
-          </p>
-        )}
-      </For>
+          )}
+        </For>
+      </div>
     );
   };
 
@@ -98,9 +128,28 @@ const TodaysTraining: Component<TodaysTrainingProps> = (props) => {
           </span>
           <span>{props.training.totalDistance / 1000} km</span>
         </div>
-        <div class="flex w-full flex-col gap-2 px-6 py-2">{mainSets()}</div>
+        {mainSets()}
       </div>
     </div>
+  );
+};
+
+interface TodaySectionCardProps {
+  title?: string | JSX.Element;
+}
+
+const TodaySectionCard: ParentComponent<TodaySectionCardProps> = (props) => {
+  return (
+    <Card class="w-full max-w-lg">
+      <Show when={props.title}>
+        <CardHeader>
+          <CardTitle>{props.title}</CardTitle>
+        </CardHeader>
+      </Show>
+      <Show when={props.children}>
+        <CardContent>{props.children}</CardContent>
+      </Show>
+    </Card>
   );
 };
 

@@ -1,8 +1,8 @@
 {
   "failed": {
-    "summaries": {
-      "title": "Couldn't load trainings",
-      "description": "Unexpected error occured and trainings couldn't be loaded."
+    "today.summaries": {
+      "title": "Couldn't load today's trainings",
+      "description": "Unexpected error occured and today's trainings couldn't be loaded."
     }
   }
 }

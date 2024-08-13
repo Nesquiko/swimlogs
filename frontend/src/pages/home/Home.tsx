@@ -7,7 +7,7 @@ import {
   Match,
 } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import { getTodaysTrainings } from '~/api/trainings';
+import { getThisWeekTrainings, getTodaysTrainings } from '~/api/trainings';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { IconBug } from '~/components/icons';
 import { useAppState } from '~/AppContext';
@@ -22,7 +22,10 @@ import {
 import { Dictionary } from '~/components/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Separator } from '~/components/ui/separator';
-import TodaySection from './TodaysSection';
+import TodaySection, {
+  TodaySectionError,
+  TodaySectionLoading,
+} from './TodaysSection';
 
 // TODO fetch todays training and pass them to TodaySection
 // TODO three sections, first with chart of swam distance, when I will have
@@ -32,29 +35,15 @@ import TodaySection from './TodaysSection';
 // and finally this weeks trainings
 const Home: Component = () => {
   const [todaysTrainings] = createResource(getTodaysTrainings);
-  const { t } = useAppState();
-
-  const alertByError = (_err: Error) => {
-    return (
-      <Alert variant="destructive">
-        <IconBug />
-        <AlertTitle>{t('messages.failed.summaries.title')}</AlertTitle>
-        <AlertDescription>
-          {t('messages.failed.summaries.description')}
-        </AlertDescription>
-      </Alert>
-    );
-  };
 
   return (
     <div class="flex flex-col items-center">
-      <Show when={todaysTrainings.loading}>
-        <p>Loading...</p>
-      </Show>
-
       <Switch>
+        <Match when={todaysTrainings.loading} keyed>
+          <TodaySectionLoading />
+        </Match>
         <Match when={todaysTrainings.error} keyed>
-          {alertByError}
+          {<TodaySectionError />}
         </Match>
         <Match when={todaysTrainings()} keyed>
           {(trainings) => <TodaySection trainings={trainings.summaries} />}

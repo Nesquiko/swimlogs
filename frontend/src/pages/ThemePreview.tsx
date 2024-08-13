@@ -1,8 +1,13 @@
 import { type Component } from 'solid-js';
+import { ThemeToggleButton } from './profile/AppearanceSection';
+import { useAppState } from '~/AppContext';
 
 const ThemePreview: Component = () => {
+  const context = useAppState();
+
   return (
     <div class="flex flex-col gap-4 p-2">
+      <ThemeToggleButton context={context} />
       <p class="bg-background text-xl text-foreground">
         Background + Foreground
       </p>

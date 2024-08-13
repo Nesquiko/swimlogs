@@ -1,5 +1,5 @@
 import { type Component } from 'solid-js';
-import { useAppState } from '~/AppContext';
+import { AppState, useAppState } from '~/AppContext';
 import {
   IconColorTheme,
   IconLanguage,
@@ -43,19 +43,25 @@ const AppearanceSection: Component = () => {
         label={t('profile.preferences.theme.headline')}
         afterLabel={` - ${context.isDark ? t('profile.preferences.theme.dark') : t('profile.preferences.theme.light')}`}
       >
-        <Button
-          aria-label={t('profile.preferences.theme.headline')}
-          variant="ghost"
-          onClick={() => context.setDark(!context.isDark)}
-        >
-          {context.isDark ? (
-            <IconMoon class="size-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          ) : (
-            <IconSun class="size-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          )}
-        </Button>
+        <ThemeToggleButton context={context} />
       </SectionItem>
     </div>
+  );
+};
+
+export const ThemeToggleButton: Component<{ context: AppState }> = (props) => {
+  return (
+    <Button
+      aria-label={props.context.t('profile.preferences.theme.headline')}
+      variant="ghost"
+      onClick={() => props.context.setDark(!props.context.isDark)}
+    >
+      {props.context.isDark ? (
+        <IconMoon class="size-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      ) : (
+        <IconSun class="size-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      )}
+    </Button>
   );
 };
 

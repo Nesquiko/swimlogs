@@ -27,7 +27,7 @@ const BottomNav: Component = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navItem = (item: NavItem) => {
+  const navItem = (item: NavItem, i: number) => {
     return (
       <Button
         variant="outline"
@@ -36,6 +36,8 @@ const BottomNav: Component = () => {
           'text-primary hover:text-primary':
             location.pathname === item.location,
           'hover:text-accent-foreground': location.pathname !== item.location,
+          'rounded-tl-2xl': i === 0,
+          'rounded-tr-2xl': i === NavItems.length - 1,
         }}
         onClick={() => navigate(item.location)}
       >
@@ -47,7 +49,7 @@ const BottomNav: Component = () => {
 
   return (
     <nav class="fixed bottom-0 flex w-full justify-center bg-background">
-      <For each={NavItems}>{navItem}</For>
+      <For each={NavItems}>{(item, i) => navItem(item, i())}</For>
     </nav>
   );
 };
