@@ -3,9 +3,10 @@ import { Route, Router } from '@solidjs/router';
 import { MetaProvider } from '@solidjs/meta';
 import { AppContextProvider } from './AppContext';
 import BottomNav from './components/BottomNav';
-import ThemePreview from './pages/ThemePreview';
 import ProfilePage from './pages/profile/ProfilePage';
-import Home from './pages/home/Home';
+import HomePage from './pages/home/HomePage';
+import ThemePreviewPage from './pages/ThemePreviewPage';
+import CreateTrainingPage from './pages/new-training/CreateTrainingPage';
 
 const App: Component = () => {
   return (
@@ -32,10 +33,11 @@ const Routes: Component = () => {
   const placeholder = (label: string) => <div>{label}</div>;
   return (
     <>
-      <Route path="/theme-preview" component={ThemePreview} />
-      <Route path="/" component={Home} />
+      <Route path="/theme-preview" component={ThemePreviewPage} />
+      <Route path="/" component={HomePage} />
       <Route path="/calendar" component={() => placeholder('Calendar')} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/training/create" component={CreateTrainingPage} />
       {/* <Route path="/training/new" component={TrainingCreatePage} /> */}
       {/* <Route path="/training/:id"> */}
       {/*   <Route */}

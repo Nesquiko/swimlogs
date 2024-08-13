@@ -2,7 +2,7 @@ import { type Component } from 'solid-js';
 import { ThemeToggleButton } from './profile/AppearanceSection';
 import { useAppState } from '~/AppContext';
 
-const ThemePreview: Component = () => {
+const ThemePreviewPage: Component = () => {
   const context = useAppState();
 
   return (
@@ -30,4 +30,4 @@ const ThemePreview: Component = () => {
   );
 };
 
-export default ThemePreview;
+export default ThemePreviewPage;

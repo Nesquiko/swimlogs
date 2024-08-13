@@ -1,15 +1,7 @@
-import {
-  type Component,
-  Show,
-  For,
-  createResource,
-  Switch,
-  Match,
-} from 'solid-js';
+import { type Component, For, createResource, Switch, Match } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import { getThisWeekTrainings, getTodaysTrainings } from '~/api/trainings';
-import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
-import { IconBug } from '~/components/icons';
+import { getTodaysTrainings } from '~/api/trainings';
+import { IconPlus } from '~/components/icons';
 import { useAppState } from '~/AppContext';
 import { TrainingSummary } from 'swimlogs-api';
 import {
@@ -26,18 +18,15 @@ import TodaySection, {
   TodaySectionError,
   TodaySectionLoading,
 } from './TodaysSection';
+import { Button } from '~/components/ui/button';
 
-// TODO fetch todays training and pass them to TodaySection
-// TODO three sections, first with chart of swam distance, when I will have
-// the intensity on trainings then I guess bar chart with different colors based
-// on intensity
-// then todays training section
-// and finally this weeks trainings
-const Home: Component = () => {
+const HomePage: Component = () => {
+  const navigate = useNavigate();
+
   const [todaysTrainings] = createResource(getTodaysTrainings);
 
   return (
-    <div class="flex flex-col items-center">
+    <div class="flex w-full flex-col items-center justify-center gap-4">
       <Switch>
         <Match when={todaysTrainings.loading} keyed>
           <TodaySectionLoading />
@@ -49,6 +38,10 @@ const Home: Component = () => {
           {(trainings) => <TodaySection trainings={trainings.summaries} />}
         </Match>
       </Switch>
+      <Button class="w-full" onClick={() => navigate('/training/create')}>
+        <IconPlus />
+        <span class="px-2">Add training</span>
+      </Button>
 
       {/*   <h1 class="text-2xl font-bold"> */}
       {/*     <Trans key="this.week" /> */}
@@ -158,4 +151,4 @@ const SummaryItem: Component<{
   );
 };
 
-export default Home;
+export default HomePage;

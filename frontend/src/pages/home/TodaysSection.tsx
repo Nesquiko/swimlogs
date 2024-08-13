@@ -36,7 +36,10 @@ const TodaySection: Component<TodaySectionProps> = (props) => {
         </>
       }
     >
-      <For each={props.trainings}>
+      <For
+        each={props.trainings}
+        fallback={<p>{t('home.today.no.trainings')}</p>}
+      >
         {(training) => (
           <TodaysTraining
             training={training}
@@ -140,7 +143,7 @@ interface TodaySectionCardProps {
 
 const TodaySectionCard: ParentComponent<TodaySectionCardProps> = (props) => {
   return (
-    <Card class="w-full max-w-lg">
+    <Card class="w-full">
       <Show when={props.title}>
         <CardHeader>
           <CardTitle>{props.title}</CardTitle>
