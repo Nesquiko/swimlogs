@@ -1,20 +1,14 @@
-type: object
-properties:
-  start:
-    type: string
-    format: date-time
-    description: On what date and time does the training occur
-  durationMin:
-    type: integer
-    description: How long does the session last, in minutes
-    minimum: 1
-    maximum: 32767
-    example: 60
-  sets:
-    type: array
-    items:
-      $ref: "./NewTrainingSet.yaml"
-required:
-  - start
-  - durationMin
-  - sets
+allOf:
+  - $ref: "./BaseTraining.yaml"
+  - type: object
+    properties:
+      sets:
+        minItems: 1
+        maxItems: 50
+        type: array
+        items:
+          $ref: "./NewTrainingSet.yaml"
+    required:
+      - start
+      - durationMinutes
+      - sets

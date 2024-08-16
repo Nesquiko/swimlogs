@@ -1,41 +1,23 @@
-type: object
-properties:
-  setOrder:
-    type: integer
-    description: Indicates on what place in training this set is
-    minimum: 0
-    maximum: 32767
-  repeat:
-    type: integer
-    description: How many times to repeat this set
-    minimum: 1
-    maximum: 32767
-  distanceMeters:
-    type: integer
-    example: 400
-    minimum: 1
-    maximum: 32767
-  description:
-    type: string
-    description: Description of what to swim
-    example: Freestyle
-  equipment:
-    type: array
-    items:
-      $ref: "./EquipmentEnum.yaml"
-  startType:
-    $ref: "./StartTypeEnum.yaml"
-  startSeconds:
-    type: integer
-    description: Used by starts which require a time parameter
-    example: 60
-    minimum: 1
-    maximum: 32767
-  group:
-    $ref: "./GroupEnum.yaml"
-  isMain:
-    type: boolean
-required:
-  - setOrder
-  - repeat
-  - distanceMeters
+allOf:
+  - $ref: "./BaseTrainingSet.yaml"
+  - type: object
+    properties:
+      setOrder:
+        type: integer
+        description: Indicates on what place in training this set is
+        minimum: 0
+        maximum: 49
+      styleId:
+        type: string
+        format: uuid
+      components:
+        type: array
+        minItems: 1
+        maxItems: 50
+        items:
+          $ref: "./NewSetComponent.yaml"
+    required:
+      - setOrder
+      - repeat
+      - distanceMeters
+      - type

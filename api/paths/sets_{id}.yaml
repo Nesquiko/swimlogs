@@ -10,11 +10,26 @@ patch:
     $ref: "../components/requestBodies/EditSetRequest.yaml"
   responses:
     200:
-      $ref: "../components/responses/EditSetResponse.yaml"
+      $ref: "../components/responses/TrainingResponse.yaml"
     400:
-      $ref: "../components/responses/errors/InvalidSetResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
+
+put:
+  summary: Replace set's components
+  tags:
+    - Sets
+  operationId: replaceSetComponents
+  requestBody:
+    $ref: "../components/requestBodies/ReplaceSetComponentsRequest.yaml"
+  responses:
+    200:
+      $ref: "../components/responses/TrainingResponse.yaml"
+    400:
+      $ref: "../components/responses/ErrorResponse.yaml"
+    404:
+      $ref: "../components/responses/ErrorResponse.yaml"
 
 delete:
   summary: Delete a set
@@ -25,4 +40,4 @@ delete:
     204:
       description: Set was deleted
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"

@@ -1,0 +1,16 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+  name:
+    type: string
+    maxLength: 50
+  execriseName:
+    type: string
+    maxLength: 50
+  execriseDescription:
+    type: string
+required:
+  - id
+  - name

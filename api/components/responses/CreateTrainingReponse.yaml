@@ -1,5 +1,5 @@
-description: New training was successfully created and summary about new training is returned
+description: New training was successfully created
 content:
   application/json:
     schema:
-      $ref: "../schemas/TrainingSummary.yaml"
+      $ref: "../schemas/Training.yaml"

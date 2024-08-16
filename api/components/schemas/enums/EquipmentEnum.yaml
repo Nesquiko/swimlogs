@@ -5,3 +5,5 @@ enum:
   - snorkel
   - board
   - paddles
+  - parachute
+  - pull_buoy

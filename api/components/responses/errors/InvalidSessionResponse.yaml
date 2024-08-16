@@ -1,5 +1,0 @@
-description: Submitted training session is invalid
-content:
-  application/problem+json:
-    schema:
-      $ref: "../../schemas/errors/InvalidTrainingError.yaml"

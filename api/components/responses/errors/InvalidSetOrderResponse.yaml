@@ -1,5 +1,0 @@
-description: Submitted new set order was invalid
-content:
-  application/problem+json:
-    schema:
-      $ref: "../../schemas/errors/InvalidSetOrderError.yaml"

@@ -8,8 +8,9 @@ get:
     - $ref: "../components/parameters/PageSizeParam.yaml"
     - $ref: "../components/parameters/FromParam.yaml"
     - $ref: "../components/parameters/UntilParam.yaml"
+    - $ref: "../components/parameters/WithMainSetsParam.yaml"
   responses:
     200:
       $ref: "../components/responses/TrainingSummariesResponse.yaml"
     400:
-      $ref: "../components/responses/errors/InvalidParamsResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"

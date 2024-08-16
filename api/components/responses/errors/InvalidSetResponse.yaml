@@ -1,5 +1,0 @@
-description: Submitted training set is invalid
-content:
-  application/problem+json:
-    schema:
-      $ref: "../../schemas/errors/InvalidSetError.yaml"

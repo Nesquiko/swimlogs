@@ -1,7 +1,0 @@
-description: Contains reason why training is invalid
-content:
-  application/problem+json:
-    schema:
-      oneOf:
-        - $ref: "../../schemas/errors/InvalidTrainingError.yaml"
-        - $ref: "../../schemas/errors/InvalidSetError.yaml"

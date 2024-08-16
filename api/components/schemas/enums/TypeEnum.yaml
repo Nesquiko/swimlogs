@@ -1,0 +1,6 @@
+type: string
+enum:
+  - normal
+  - compound
+  - pyramid
+  - super

@@ -10,7 +10,7 @@ get:
     200:
       $ref: "../components/responses/TrainingResponse.yaml"
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
 
 patch:
   summary: Edit training session
@@ -23,9 +23,9 @@ patch:
     200:
       $ref: "../components/responses/EditSessionResponse.yaml"
     400:
-      $ref: "../components/responses/errors/InvalidSessionResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
 
 delete:
   summary: Delete a training
@@ -36,4 +36,4 @@ delete:
     204:
       description: Training was deleted
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"

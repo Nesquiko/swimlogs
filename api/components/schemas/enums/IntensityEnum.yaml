@@ -1,0 +1,9 @@
+type: string
+enum:
+  - rec
+  - en1
+  - en2
+  - en3
+  - sp1
+  - sp2
+  - sp3

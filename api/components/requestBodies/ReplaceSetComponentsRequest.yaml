@@ -1,0 +1,13 @@
+description: Replaces existing set components with new ones
+required: true
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        components:
+          type: array
+          items:
+            $ref: "../schemas/NewSetComponent.yaml"
+      required:
+        - components

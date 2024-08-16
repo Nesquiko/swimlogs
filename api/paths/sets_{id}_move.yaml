@@ -2,7 +2,7 @@ parameters:
   - $ref: "../components/parameters/IdParam.yaml"
 
 patch:
-  summary: Move set
+  summary: Move set up or down in training
   tags:
     - Sets
   operationId: moveSet
@@ -12,6 +12,6 @@ patch:
     200:
       $ref: "../components/responses/TrainingResponse.yaml"
     400:
-      $ref: "../components/responses/errors/InvalidSetOrderResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"
     404:
-      $ref: "../components/responses/errors/NotFoundResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"

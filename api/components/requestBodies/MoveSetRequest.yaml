@@ -8,5 +8,7 @@ content:
         newSetOrder:
           type: integer
           description: New setOrder of the set
+          minimum: 0
+          maximum: 49
       required:
         - newSetOrder

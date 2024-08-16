@@ -1,0 +1,5 @@
+description: Describes error that occured during handling of a request
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/ErrorDetail.yaml"

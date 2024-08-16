@@ -1,0 +1,8 @@
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - last-finishes
+required:
+  - type

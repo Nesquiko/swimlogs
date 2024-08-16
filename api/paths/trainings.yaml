@@ -9,4 +9,4 @@ post:
     201:
       $ref: "../components/responses/CreateTrainingReponse.yaml"
     400:
-      $ref: "../components/responses/errors/InvalidTrainingResponse.yaml"
+      $ref: "../components/responses/ErrorResponse.yaml"

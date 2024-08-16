@@ -1,0 +1,11 @@
+allOf:
+  - $ref: "./BaseSetComponent.yaml"
+  - type: object
+    properties:
+      styleId:
+        type: string
+        format: uuid
+    required:
+      - repeat
+      - distanceMeters
+      - componentOrders

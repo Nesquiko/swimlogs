@@ -1,0 +1,31 @@
+type: object
+properties:
+  repeat:
+    type: integer
+    description: How many times to repeat this set
+    minimum: 1
+    maximum: 500
+  distanceMeters:
+    type: integer
+    minimum: 1
+    maximum: 30000
+  description:
+    type: string
+    description: Description of what to swim
+    example: Freestyle
+  equipment:
+    type: array
+    items:
+      $ref: "./enums/EquipmentEnum.yaml"
+  start:
+    $ref: "./start/Start.yaml"
+  group:
+    $ref: "./enums/GroupEnum.yaml"
+  isMain:
+    type: boolean
+  type:
+    $ref: "./enums/TypeEnum.yaml"
+  intensity:
+    $ref: "./enums/IntensityEnum.yaml"
+  progression:
+    $ref: "./enums/ProgressionEnum.yaml"

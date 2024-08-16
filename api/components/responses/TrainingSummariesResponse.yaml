@@ -8,12 +8,6 @@ content:
           type: array
           items:
             $ref: "../schemas/TrainingSummary.yaml"
-            required:
-              - id
-              - start
-              - durationMin
-              - totalDistance
-              - mainSets
         pagination:
           $ref: "../schemas/Pagination.yaml"
       required:

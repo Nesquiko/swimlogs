@@ -1,7 +1,0 @@
-type: string
-enum:
-  - sprint
-  - middle
-  - long
-  - mono
-  - bifi

@@ -1,0 +1,11 @@
+type: string
+enum:
+  - freestyle
+  - breaststroke
+  - backstroke
+  - butterfly
+  - mono
+  - bifi
+  - sprint
+  - middle
+  - long

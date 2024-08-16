@@ -1,0 +1,5 @@
+name: withMainSets
+in: query
+description: If training summaries should contain main sets
+schema:
+  type: boolean

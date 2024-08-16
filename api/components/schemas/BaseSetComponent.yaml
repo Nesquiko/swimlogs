@@ -1,0 +1,34 @@
+type: object
+properties:
+  repeat:
+    type: integer
+    minimum: 1
+    maximum: 500
+  distanceMeters:
+    type: integer
+    minimum: 1
+    maximum: 30000
+  description:
+    type: string
+  start:
+    $ref: "./start/Start.yaml"
+  equipment:
+    type: array
+    items:
+      $ref: "./enums/EquipmentEnum.yaml"
+  group:
+    $ref: "./enums/GroupEnum.yaml"
+  intensity:
+    $ref: "./enums/IntensityEnum.yaml"
+  progression:
+    $ref: "./enums/ProgressionEnum.yaml"
+  componentOrders:
+    type: array
+    items:
+      type: integer
+      minimum: 0
+      maximum: 49
+  iterationOrder:
+    type: integer
+    minimum: 0
+    maximum: 49

@@ -24,7 +24,7 @@ paths:
         '201':
           $ref: '#/components/responses/CreateTrainingReponse'
         '400':
-          $ref: '#/components/responses/InvalidTrainingResponse'
+          $ref: '#/components/responses/ErrorResponse'
   /trainings/{id}:
     parameters:
       - $ref: '#/components/parameters/IdParam'
@@ -37,7 +37,7 @@ paths:
         '200':
           $ref: '#/components/responses/TrainingResponse'
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
     patch:
       summary: Edit training session
       tags:
@@ -49,9 +49,9 @@ paths:
         '200':
           $ref: '#/components/responses/EditSessionResponse'
         '400':
-          $ref: '#/components/responses/InvalidSessionResponse'
+          $ref: '#/components/responses/ErrorResponse'
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       summary: Delete a training
       tags:
@@ -61,7 +61,7 @@ paths:
         '204':
           description: Training was deleted
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
   /sets/{id}:
     parameters:
       - $ref: '#/components/parameters/IdParam'
@@ -74,11 +74,25 @@ paths:
         $ref: '#/components/requestBodies/EditSetRequest'
       responses:
         '200':
-          $ref: '#/components/responses/EditSetResponse'
+          $ref: '#/components/responses/TrainingResponse'
         '400':
-          $ref: '#/components/responses/InvalidSetResponse'
+          $ref: '#/components/responses/ErrorResponse'
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
+    put:
+      summary: Replace set's components
+      tags:
+        - Sets
+      operationId: replaceSetComponents
+      requestBody:
+        $ref: '#/components/requestBodies/ReplaceSetComponentsRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TrainingResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       summary: Delete a set
       tags:
@@ -88,12 +102,12 @@ paths:
         '204':
           description: Set was deleted
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
   /sets/{id}/move:
     parameters:
       - $ref: '#/components/parameters/IdParam'
     patch:
-      summary: Move set
+      summary: Move set up or down in training
       tags:
         - Sets
       operationId: moveSet
@@ -103,9 +117,9 @@ paths:
         '200':
           $ref: '#/components/responses/TrainingResponse'
         '400':
-          $ref: '#/components/responses/InvalidSetOrderResponse'
+          $ref: '#/components/responses/ErrorResponse'
         '404':
-          $ref: '#/components/responses/NotFoundResponse'
+          $ref: '#/components/responses/ErrorResponse'
   /trainings/summaries:
     get:
       summary: Training summaries
@@ -117,13 +131,26 @@ paths:
         - $ref: '#/components/parameters/PageSizeParam'
         - $ref: '#/components/parameters/FromParam'
         - $ref: '#/components/parameters/UntilParam'
+        - $ref: '#/components/parameters/WithMainSetsParam'
       responses:
         '200':
           $ref: '#/components/responses/TrainingSummariesResponse'
         '400':
-          $ref: '#/components/responses/InvalidParamsResponse'
+          $ref: '#/components/responses/ErrorResponse'
 components:
   schemas:
+    BaseTraining:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: On what date and time does the training occur
+        durationMinutes:
+          type: integer
+          description: How long does the session last, in minutes
+          minimum: 1
+          maximum: 30000
     EquipmentEnum:
       type: string
       enum:
@@ -132,153 +159,275 @@ components:
         - snorkel
         - board
         - paddles
-    StartTypeEnum:
-      type: string
-      enum:
-        - interval
-        - pause
+        - parachute
+        - pull_buoy
+    StartWithSeconds:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - pause
+            - interval
+        seconds:
+          type: integer
+          minimum: 1
+          maximum: 30000
+      required:
+        - type
+        - seconds
+    StartWithoutSeconds:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - last-finishes
+      required:
+        - type
+    Start:
+      oneOf:
+        - $ref: '#/components/schemas/StartWithoutSeconds'
+        - $ref: '#/components/schemas/StartWithSeconds'
+      discriminator:
+        propertyName: type
+        mapping:
+          pause: '#/components/schemas/StartWithSeconds'
+          interval: '#/components/schemas/StartWithSeconds'
+          last-finishes: '#/components/schemas/StartWithoutSeconds'
     GroupEnum:
       type: string
       enum:
+        - freestyle
+        - breaststroke
+        - backstroke
+        - butterfly
+        - mono
+        - bifi
         - sprint
         - middle
         - long
-        - mono
-        - bifi
-    NewTrainingSet:
+    TypeEnum:
+      type: string
+      enum:
+        - normal
+        - compound
+        - pyramid
+        - super
+    IntensityEnum:
+      type: string
+      enum:
+        - rec
+        - en1
+        - en2
+        - en3
+        - sp1
+        - sp2
+        - sp3
+    ProgressionEnum:
+      type: string
+      enum:
+        - asc
+        - desc
+    BaseTrainingSet:
       type: object
       properties:
-        setOrder:
+        repeat:
           type: integer
-          description: Indicates on what place in training this set is
+          description: How many times to repeat this set
+          minimum: 1
+          maximum: 500
+        distanceMeters:
+          type: integer
+          minimum: 1
+          maximum: 30000
+        description:
+          type: string
+          description: Description of what to swim
+          example: Freestyle
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentEnum'
+        start:
+          $ref: '#/components/schemas/Start'
+        group:
+          $ref: '#/components/schemas/GroupEnum'
+        isMain:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        intensity:
+          $ref: '#/components/schemas/IntensityEnum'
+        progression:
+          $ref: '#/components/schemas/ProgressionEnum'
+    BaseSetComponent:
+      type: object
+      properties:
+        repeat:
+          type: integer
+          minimum: 1
+          maximum: 500
+        distanceMeters:
+          type: integer
+          minimum: 1
+          maximum: 30000
+        description:
+          type: string
+        start:
+          $ref: '#/components/schemas/Start'
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentEnum'
+        group:
+          $ref: '#/components/schemas/GroupEnum'
+        intensity:
+          $ref: '#/components/schemas/IntensityEnum'
+        progression:
+          $ref: '#/components/schemas/ProgressionEnum'
+        componentOrders:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 49
+        iterationOrder:
+          type: integer
           minimum: 0
-          maximum: 32767
-        repeat:
-          type: integer
-          description: How many times to repeat this set
-          minimum: 1
-          maximum: 32767
-        distanceMeters:
-          type: integer
-          example: 400
-          minimum: 1
-          maximum: 32767
-        description:
-          type: string
-          description: Description of what to swim
-          example: Freestyle
-        equipment:
-          type: array
-          items:
-            $ref: '#/components/schemas/EquipmentEnum'
-        startType:
-          $ref: '#/components/schemas/StartTypeEnum'
-        startSeconds:
-          type: integer
-          description: Used by starts which require a time parameter
-          example: 60
-          minimum: 1
-          maximum: 32767
-        group:
-          $ref: '#/components/schemas/GroupEnum'
-        isMain:
-          type: boolean
-      required:
-        - setOrder
-        - repeat
-        - distanceMeters
+          maximum: 49
+    NewSetComponent:
+      allOf:
+        - $ref: '#/components/schemas/BaseSetComponent'
+        - type: object
+          properties:
+            styleId:
+              type: string
+              format: uuid
+          required:
+            - repeat
+            - distanceMeters
+            - componentOrders
+    NewTrainingSet:
+      allOf:
+        - $ref: '#/components/schemas/BaseTrainingSet'
+        - type: object
+          properties:
+            setOrder:
+              type: integer
+              description: Indicates on what place in training this set is
+              minimum: 0
+              maximum: 49
+            styleId:
+              type: string
+              format: uuid
+            components:
+              type: array
+              minItems: 1
+              maxItems: 50
+              items:
+                $ref: '#/components/schemas/NewSetComponent'
+          required:
+            - setOrder
+            - repeat
+            - distanceMeters
+            - type
     NewTraining:
+      allOf:
+        - $ref: '#/components/schemas/BaseTraining'
+        - type: object
+          properties:
+            sets:
+              minItems: 1
+              maxItems: 50
+              type: array
+              items:
+                $ref: '#/components/schemas/NewTrainingSet'
+          required:
+            - start
+            - durationMinutes
+            - sets
+    Style:
       type: object
       properties:
-        start:
+        id:
           type: string
-          format: date-time
-          description: On what date and time does the training occur
-        durationMin:
-          type: integer
-          description: How long does the session last, in minutes
-          minimum: 1
-          maximum: 32767
-          example: 60
-        sets:
-          type: array
-          items:
-            $ref: '#/components/schemas/NewTrainingSet'
+          format: uuid
+        name:
+          type: string
+          maxLength: 50
+        execriseName:
+          type: string
+          maxLength: 50
+        execriseDescription:
+          type: string
       required:
-        - start
-        - durationMin
-        - sets
+        - id
+        - name
+    SetComponent:
+      allOf:
+        - $ref: '#/components/schemas/BaseSetComponent'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            style:
+              $ref: '#/components/schemas/Style'
+          required:
+            - id
+            - repeat
+            - distanceMeters
+            - componentOrders
     TrainingSet:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        setOrder:
-          type: integer
-          description: Indicates on what place in training this set is
-        repeat:
-          type: integer
-          description: How many times to repeat this set
-        distanceMeters:
-          type: integer
-          example: 400
-        description:
-          type: string
-          description: Description of what to swim
-          example: Freestyle
-        totalDistance:
-          type: integer
-          description: Total distance in this set
-          example: 800
-        equipment:
-          type: array
-          items:
-            $ref: '#/components/schemas/EquipmentEnum'
-        startType:
-          $ref: '#/components/schemas/StartTypeEnum'
-        startSeconds:
-          type: integer
-          description: Used by starts which require a time parameter, Interval and Pause
-          example: 60
-        group:
-          $ref: '#/components/schemas/GroupEnum'
-        isMain:
-          type: boolean
-      required:
-        - id
-        - setOrder
-        - repeat
-        - distanceMeters
-        - totalDistance
-        - isMain
-    TrainingSummary:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        start:
-          type: string
-          format: date-time
-          description: On what date and time does the training occur
-        durationMin:
-          type: integer
-          description: How long does the session last, in minutes
-          example: 60
-        totalDistance:
-          type: integer
-          description: Total distance in the training in meters
-          example: 2200
-        mainSets:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrainingSet'
-      required:
-        - id
-        - start
-        - durationMin
-        - totalDistance
+      allOf:
+        - $ref: '#/components/schemas/BaseTrainingSet'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            setOrder:
+              type: integer
+              description: Indicates on what place in training this set is
+            totalDistance:
+              type: integer
+              description: Total distance in this set
+              example: 800
+            style:
+              $ref: '#/components/schemas/Style'
+            components:
+              type: array
+              items:
+                $ref: '#/components/schemas/SetComponent'
+          required:
+            - id
+            - setOrder
+            - type
+            - repeat
+            - distanceMeters
+            - totalDistance
+            - isMain
+    Training:
+      allOf:
+        - $ref: '#/components/schemas/BaseTraining'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            totalDistance:
+              type: integer
+            sets:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrainingSet'
+          required:
+            - id
+            - start
+            - durationMinutes
+            - sets
+            - totalDistance
     ErrorDetail:
       type: object
       properties:
@@ -300,24 +449,7 @@ components:
         - status
         - code
         - detail
-    InvalidTrainingError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Invalid training session
-        status: 400
-        code: training.session.invalid
-        detail: Submitted training is invalid...
-    InvalidSetError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Set is not valid
-        status: 400
-        code: invalid.set
-        detail: Set "1" is not valid
-        setOrder: 1
-    Training:
+    TrainingSummary:
       type: object
       properties:
         id:
@@ -327,40 +459,23 @@ components:
           type: string
           format: date-time
           description: On what date and time does the training occur
-        durationMin:
+        durationMinutes:
           type: integer
           description: How long does the session last, in minutes
           example: 60
         totalDistance:
           type: integer
-          description: Sum of all distances in blocks in meters
-          example: 2100
-        sets:
+          description: Total distance in the training in meters
+          example: 2200
+        mainSets:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSet'
       required:
         - id
         - start
-        - durationMin
+        - durationMinutes
         - totalDistance
-        - sets
-    NotFoundError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Resource was not found
-        status: 404
-        code: not.found
-        detail: Resource with id 'aa1ed13a-6455-4d93-b788-bab98b08b40c' was not found
-    InvalidSetOrderError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: New set order is invalid
-        status: 400
-        code: invalid.setorder
-        detail: Set order must be between X and y
     Pagination:
       description: Pagination metadata about paginated response
       type: object
@@ -381,14 +496,6 @@ components:
         - total
         - page
         - pageSize
-    InvalidParamsError:
-      allOf:
-        - $ref: '#/components/schemas/ErrorDetail'
-      example:
-        title: Invalid query parameter
-        status: 400
-        code: invalid.query.param
-        detail: 'Invalid query param ''from'': ''2024-13-32T25:60:60'
   requestBodies:
     CreateTrainingRequest:
       description: Request for creating a training
@@ -403,49 +510,34 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            title: EditSessionRequest
-            properties:
-              start:
-                type: string
-                format: date-time
-                description: On what date and time does the training occur
-              durationMin:
-                type: integer
-                description: How long does the session last, in minutes
-                example: 60
-    EditSetRequest:
-      description: Request for editing a set
+            $ref: '#/components/schemas/BaseTraining'
+    ReplaceSetComponentsRequest:
+      description: Replaces existing set components with new ones
       required: true
       content:
         application/json:
           schema:
             type: object
             properties:
-              repeat:
-                type: integer
-                description: How many times to repeat this set
-              distanceMeters:
-                type: integer
-                example: 400
-              description:
-                type: string
-                description: Description of what to swim
-                example: Freestyle
-              equipment:
+              components:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EquipmentEnum'
-              startType:
-                $ref: '#/components/schemas/StartTypeEnum'
-              startSeconds:
-                type: integer
-                description: Used by starts which require a time parameter, Interval and Pause
-                example: 60
-              group:
-                $ref: '#/components/schemas/GroupEnum'
-              isMain:
-                type: boolean
+                  $ref: '#/components/schemas/NewSetComponent'
+            required:
+              - components
+    EditSetRequest:
+      description: Request for editing a set. For editing components of the set use `PUT /sets/{id}`
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/BaseTrainingSet'
+              - type: object
+                properties:
+                  styleId:
+                    type: string
+                    format: uuid
     MoveSetRequest:
       description: Request for moving set in order of training sets
       required: true
@@ -457,77 +549,35 @@ components:
               newSetOrder:
                 type: integer
                 description: New setOrder of the set
+                minimum: 0
+                maximum: 49
             required:
               - newSetOrder
   responses:
     CreateTrainingReponse:
-      description: New training was successfully created and summary about new training is returned
+      description: New training was successfully created
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TrainingSummary'
-    InvalidTrainingResponse:
-      description: Contains reason why training is invalid
+            $ref: '#/components/schemas/Training'
+    ErrorResponse:
+      description: Describes error that occured during handling of a request
       content:
-        application/problem+json:
+        application/json:
           schema:
-            oneOf:
-              - $ref: '#/components/schemas/InvalidTrainingError'
-              - $ref: '#/components/schemas/InvalidSetError'
+            $ref: '#/components/schemas/ErrorDetail'
     TrainingResponse:
       description: Response with a training
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Training'
-    NotFoundResponse:
-      description: Resource was not found
-      content:
-        application/problem+json:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/NotFoundError'
     EditSessionResponse:
       description: Training successfully edited
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TrainingSummary'
-    InvalidSessionResponse:
-      description: Submitted training session is invalid
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/InvalidTrainingError'
-    EditSetResponse:
-      description: Set successfully edited
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              totalDistance:
-                type: integer
-                description: New recalculated total distance of the training
-                example: 2100
-              set:
-                description: updated set
-                $ref: '#/components/schemas/TrainingSet'
-            required:
-              - totalDistance
-              - set
-    InvalidSetResponse:
-      description: Submitted training set is invalid
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/InvalidSetError'
-    InvalidSetOrderResponse:
-      description: Submitted new set order was invalid
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/InvalidSetOrderError'
     TrainingSummariesResponse:
       description: Paginated list of training summaries
       content:
@@ -539,23 +589,11 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/TrainingSummary'
-                  required:
-                    - id
-                    - start
-                    - durationMin
-                    - totalDistance
-                    - mainSets
               pagination:
                 $ref: '#/components/schemas/Pagination'
             required:
               - summaries
               - pagination
-    InvalidParamsResponse:
-      description: Submitted query params were invalid
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/InvalidParamsError'
   parameters:
     IdParam:
       name: id
@@ -583,6 +621,7 @@ components:
         type: integer
         example: 10
         minimum: 1
+        maximum: 50
     FromParam:
       name: from
       in: query
@@ -597,3 +636,9 @@ components:
       schema:
         type: string
         format: date-time
+    WithMainSetsParam:
+      name: withMainSets
+      in: query
+      description: If training summaries should contain main sets
+      schema:
+        type: boolean
