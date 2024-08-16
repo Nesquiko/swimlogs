@@ -28,6 +28,3 @@ alter table sets
 drop type start_type;
 
 alter type new_start_type rename to start_type;
-
-alter table sets
-    add constraint sets_rule_check check (start_type is null or (start_seconds is not null and start_seconds > 0));
