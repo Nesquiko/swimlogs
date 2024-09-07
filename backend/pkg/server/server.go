@@ -1,19 +1,18 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
-	"time"
+	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/google/uuid"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/app"
 )
 
@@ -32,303 +31,152 @@ type SwimLogsServer struct {
 }
 
 type ApiError struct {
-	apidef.ErrorDetail
+	api.ErrorDetail
 }
 
 func (e *ApiError) Error() string {
 	return fmt.Sprintf("error %q, status %d", e.Title, e.Status)
 }
 
-func fromValidationError(e *app.ValidationError) *ApiError {
-	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
-			Code:                 e.Code,
-			Title:                e.Title,
-			Detail:               e.Detail,
-			Status:               e.Status,
-			AdditionalProperties: e.AdditionalProperties,
-		},
-	}
-}
-
 func NewServer(
 	app app.SwimLogsApp,
+	spec *openapi3.T,
 	middlewareLogger *httplog.Logger,
 	feOrigin string,
 ) http.Handler {
-	r := chi.NewRouter()
+	r := chi.NewMux()
+	r.Use(heartbeat())
+	srv := SwimLogsServer{app: app}
 
-	srv := SwimLogsServer{
-		app: app,
+	// When this PR https://github.com/oapi-codegen/oapi-codegen/pull/1608 is
+	// merged, I will reconsider strict
+	// strictHandler := api.NewStrictHandlerWithOptions(srv, nil, api.StrictHTTPServerOptions{
+	// 	RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+	// 		// RequestErrorHandlerFunc should not needed, there is validation done with OpenApi spec
+	// 		slog.Error(
+	// 			"unexpected error handling in RequestErrorHandlerFunc",
+	// 			slog.String("error", err.Error()),
+	// 		)
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	},
+	// 	ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+	// 		var apiErr *ApiError
+	// 		if errors.As(err, &apiErr) {
+	// 			encodeError(w, apiErr)
+	// 			return
+	// 		}
+	// 		slog.Error(
+	// 			UnexpectedError,
+	// 			slog.String("error", err.Error()),
+	// 			slog.String("where", "handler"),
+	// 		)
+	// 		http.Error(w, "internal server error", http.StatusInternalServerError)
+	// 	},
+	// })
+
+	validationOpts := OapiValidationOptions{
+		spec:         spec,
+		errorHandler: validationErrorHandler,
 	}
 
-	r.Use(topLevelMiddleware(feOrigin)...)
-	r.Options("/*", nil)
+	return api.HandlerWithOptions(srv, api.ChiServerOptions{
+		BaseURL:     "",
+		BaseRouter:  r,
+		Middlewares: middleware(middlewareLogger, feOrigin, validationOpts),
+		ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			var invalidParamErr *api.InvalidParamFormatError
+			var requiredParamError *api.RequiredParamError
 
-	r.Group(func(r chi.Router) {
-		r.Use(publicMiddleware(middlewareLogger)...)
-
-		r.Post("/trainings", handleInOut(srv.CreateTraining))
-		r.Get("/trainings/summaries", handleQueryOut(pageParamsExtractor, srv.SummariesPage))
-		r.Delete("/trainings/{id}", handlePathStatus(pathIdExtractor, srv.DeleteTraining))
-		r.Get("/trainings/{id}", handlePathOut(pathIdExtractor, srv.TrainingById))
-		r.Patch("/trainings/{id}", handlePathInOut(pathIdExtractor, srv.EditTrainingSession))
-		r.Delete("/sets/{id}", handlePathStatus(pathIdExtractor, srv.DeleteSet))
-		r.Patch("/sets/{id}", handlePathInOut(pathIdExtractor, srv.EditSet))
-		r.Patch("/sets/{id}/move", handlePathInOut(pathIdExtractor, srv.MoveSet))
-	})
-
-	return r
-}
-
-type (
-	EmptyType struct{}
-
-	PathParamsConv[PP any]  func(r *http.Request) (PP, error)
-	QueryParamsConv[QP any] func(r *http.Request) (QP, error)
-
-	OutFunc[Out any]          func(context.Context) (Out, int, error)
-	InOutFunc[In, Out any]    func(context.Context, In) (Out, int, error)
-	QueryOutFunc[QP, Out any] func(context.Context, QP) (Out, int, error)
-
-	PathStatusFunc[PP any]         func(context.Context, PP) (int, error)
-	PathOutFunc[PP, Out any]       func(context.Context, PP) (Out, int, error)
-	PathInOutFunc[PP, In, Out any] func(context.Context, PP, In) (Out, int, error)
-
-	TargetFunc[PP, QP, In, Out any] func(context.Context, PP, QP, In) (Out, int, error)
-)
-
-var EmptyFunc = func(r *http.Request) (EmptyType, error) { return EmptyType{}, nil }
-
-func handleOut[Out any](f OutFunc[Out]) http.HandlerFunc {
-	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in EmptyType) (Out, int, error) {
-		return f(ctx)
-	}
-	return handle(tf, EmptyFunc, EmptyFunc)
-}
-
-func handleInOut[In, Out any](f InOutFunc[In, Out]) http.HandlerFunc {
-	tf := func(ctx context.Context, pp EmptyType, qp EmptyType, in In) (Out, int, error) {
-		return f(ctx, in)
-	}
-	return handle(tf, EmptyFunc, EmptyFunc)
-}
-
-func handleQueryOut[QP, Out any](
-	qpConv QueryParamsConv[QP],
-	f InOutFunc[QP, Out],
-) http.HandlerFunc {
-	tf := func(ctx context.Context, pp EmptyType, qp QP, in EmptyType) (Out, int, error) {
-		return f(ctx, qp)
-	}
-	return handle(tf, EmptyFunc, qpConv)
-}
-
-func handlePathStatus[PP any](
-	ppConv PathParamsConv[PP],
-	f PathStatusFunc[PP],
-) http.HandlerFunc {
-	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (EmptyType, int, error) {
-		status, err := f(ctx, pp)
-		return EmptyType{}, status, err
-	}
-	return handle(tf, ppConv, EmptyFunc)
-}
-
-func handlePathOut[PP, Out any](
-	ppConv PathParamsConv[PP],
-	f PathOutFunc[PP, Out],
-) http.HandlerFunc {
-	tf := func(ctx context.Context, pp PP, qp EmptyType, in EmptyType) (Out, int, error) {
-		return f(ctx, pp)
-	}
-	return handle(tf, ppConv, EmptyFunc)
-}
-
-func handlePathInOut[PP, In, Out any](
-	ppConv PathParamsConv[PP],
-	f PathInOutFunc[PP, In, Out],
-) http.HandlerFunc {
-	tf := func(ctx context.Context, pp PP, qp EmptyType, in In) (Out, int, error) {
-		return f(ctx, pp, in)
-	}
-	return handle(tf, ppConv, EmptyFunc)
-}
-
-func handle[PP, QP, In, Out any](
-	f TargetFunc[PP, QP, In, Out],
-	ppFunc PathParamsConv[PP],
-	qpFunc QueryParamsConv[QP],
-) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var in In
-		if _, ok := any(in).(EmptyType); !ok {
-			decodedIn, err := decode[In](w, r)
-			if err != nil {
-				apiErr := badRequest(err)
-				encodeError(w, apiErr)
-				return
+			switch {
+			case errors.As(err, &invalidParamErr):
+				slog.Warn(
+					"invalid path param",
+					slog.String("error", err.Error()),
+					slog.String("where", "ErrorHandlerFunc"),
+				)
+				encodeError(w, fromInvalidParamErr(invalidParamErr, chi.URLParam(r, "id")))
+			case errors.As(err, &requiredParamError):
+				slog.Warn(
+					"missing required path param",
+					slog.String("error", err.Error()),
+					slog.String("where", "ErrorHandlerFunc"),
+				)
+				encodeError(w, fromRequiredParamErr(requiredParamError))
+			default:
+				slog.Error(
+					"unexpected error handling in ErrorHandlerFunc",
+					slog.String("error", err.Error()),
+				)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			in = decodedIn
-		}
-
-		var apiErr *ApiError
-		ppParams, err := ppFunc(r)
-		if err != nil {
-			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr)
-				return
-			}
-			slog.Error(
-				UnexpectedError,
-				slog.String("error", err.Error()),
-				slog.String("where", "path-params"),
-			)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-		}
-		qpParams, err := qpFunc(r)
-		if err != nil {
-			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr)
-				return
-			}
-			slog.Error(
-				UnexpectedError,
-				slog.String("error", err.Error()),
-				slog.String("where", "query-params"),
-			)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-		}
-
-		out, status, err := f(r.Context(), ppParams, qpParams, in)
-		if err != nil {
-			if errors.As(err, &apiErr) {
-				encodeError(w, apiErr)
-				return
-			}
-			slog.Error(
-				UnexpectedError,
-				slog.String("error", err.Error()),
-				slog.String("where", "handler"),
-			)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-		}
-
-		if _, ok := any(out).(EmptyType); ok {
-			w.WriteHeader(status)
-			return
-		}
-		encode(w, status, out)
+		},
 	})
 }
 
-func pageParamsExtractor(r *http.Request) (apidef.SummariesPageParams, error) {
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
-	if err != nil {
-		return apidef.SummariesPageParams{}, invalidQueryParam(
-			"page",
-			r.URL.Query().Get("page"),
-		)
+func validationErrorHandler(w http.ResponseWriter, message string, statusCode int) {
+	slog.Warn("validationErrorHandler", "message", message)
+	split := strings.Split(message, ": ")
+	hashIndex := strings.Index(split[1], "#")
+
+	var schema *string = nil
+	if hashIndex != -1 {
+		s := split[1][hashIndex:]
+		schema = &s
 	}
 
-	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
-	if err != nil {
-		return apidef.SummariesPageParams{}, invalidQueryParam(
-			"pageSize",
-			r.URL.Query().Get("pageSize"),
-		)
-	}
+	path := extractSchemaPath(split[2 : len(split)-1])
+	reason := split[len(split)-1]
 
-	fromStr := r.URL.Query().Get("from")
-	var from *time.Time
-	if fromStr != "" {
-		parsed, err := time.Parse(time.RFC3339, fromStr)
-		if err != nil {
-			return apidef.SummariesPageParams{}, invalidQueryParam("from", fromStr)
-		}
-		from = &parsed
-	}
-
-	untilStr := r.URL.Query().Get("until")
-	var until *time.Time
-	if untilStr != "" {
-		parsed, err := time.Parse(time.RFC3339, untilStr)
-		if err != nil {
-			return apidef.SummariesPageParams{}, invalidQueryParam("until", untilStr)
-		}
-		until = &parsed
-	}
-
-	return apidef.SummariesPageParams{
-		Page:     page,
-		PageSize: pageSize,
-		From:     from,
-		Until:    until,
-	}, nil
+	encodeError(w, validationError(path, reason, statusCode, schema))
 }
 
-func pathIdExtractor(r *http.Request) (uuid.UUID, error) {
-	id := chi.URLParam(r, "id")
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.UUID{}, invalidPathParam("id", id)
+func extractSchemaPath(subPaths []string) string {
+	path := ""
+	for _, subPath := range subPaths {
+		subPath = strings.TrimPrefix(subPath, "Error at")
+		subPath = strings.TrimSpace(subPath)
+		subPath = strings.Trim(subPath, "\"")
+		path += subPath
 	}
-	return uid, nil
-}
-
-type IdSetId struct {
-	id    uuid.UUID
-	setId uuid.UUID
+	return path
 }
 
 const (
-	InvalidQueryParamCode         = "invalid.query.param"
-	InvalidQueryParamTitleFormat  = "Invalid %q: %q"
-	InvalidQueryParamDetailFormat = "Invalid query param %q: %q"
+	SchemaValidationErrorCode = "invalid.request.schema"
+	ValidationErrorCode       = "invalid.request"
+	ValidationErrorTitle      = "Request doesn't comply with schema"
+	ValidationErrorDetail     = "Validation failed, %s"
 )
 
-func invalidQueryParam(param, value string) *ApiError {
-	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
-			Code:   InvalidQueryParamCode,
-			Title:  fmt.Sprintf(InvalidQueryParamTitleFormat, param, value),
-			Status: http.StatusBadRequest,
-			Detail: fmt.Sprintf(InvalidQueryParamDetailFormat, param, value),
-		},
+func validationError(path string, reason string, statusCode int, schema *string) *ApiError {
+	additionalProperties := make(map[string]any)
+	if path != "" {
+		additionalProperties["path"] = path
 	}
-}
-
-const (
-	InvalidPathParamCode         = "invalid.path.param"
-	InvalidPathParamTitleFormat  = "Invalid %q: %q"
-	InvalidPathParamDetailFormat = "Invalid path param %q: %q"
-)
-
-func invalidPathParam(param, value string) *ApiError {
-	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
-			Code:   InvalidPathParamCode,
-			Title:  fmt.Sprintf(InvalidPathParamTitleFormat, param, value),
-			Status: http.StatusBadRequest,
-			Detail: fmt.Sprintf(InvalidPathParamDetailFormat, param, value),
-		},
+	if reason != "" {
+		additionalProperties["reason"] = reason
 	}
-}
+	if schema != nil {
+		additionalProperties["schema"] = schema
+	}
+	if len(additionalProperties) == 0 {
+		additionalProperties = nil
+	}
 
-func badRequest(err error) *ApiError {
 	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
-			Code:   "invalid.request",
-			Title:  "Bad request",
-			Detail: fmt.Sprintf("Request was invalid due to %q", err.Error()),
-			Status: http.StatusBadRequest,
+		ErrorDetail: api.ErrorDetail{
+			Code:                 SchemaValidationErrorCode,
+			Detail:               fmt.Sprintf(ValidationErrorDetail, reason),
+			Status:               statusCode,
+			Title:                ValidationErrorTitle,
+			AdditionalProperties: additionalProperties,
 		},
 	}
 }
 
 func internalServerError() *ApiError {
 	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Code:   "internal.server.error",
 			Title:  "Internal Server Error",
 			Detail: "Unexpected error on server",
@@ -353,11 +201,57 @@ func notFound(resoure, id string) *ApiError {
 	}
 
 	return &ApiError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Code:   NotFoundCode,
 			Title:  fmt.Sprintf(NotFoundTitleFormat, resoure),
 			Detail: fmt.Sprintf(NotFoundDetailFormat, resoure, id),
 			Status: http.StatusNotFound,
+		},
+	}
+}
+
+func fromValidationError(e *app.ValidationError) *ApiError {
+	return &ApiError{
+		ErrorDetail: api.ErrorDetail{
+			Code:                 e.Code,
+			Title:                e.Title,
+			Detail:               e.Detail,
+			Status:               e.Status,
+			AdditionalProperties: e.AdditionalProperties,
+		},
+	}
+}
+
+const (
+	InvalidParamErrorCode   = "invalid.path.param"
+	InvalidParamErrorTitle  = "Invalid path param"
+	InvalidParamErrorDetail = "Invalid path param %q: %q"
+)
+
+func fromInvalidParamErr(e *api.InvalidParamFormatError, invalidParam string) *ApiError {
+	return &ApiError{
+		ErrorDetail: api.ErrorDetail{
+			Code:   InvalidParamErrorCode,
+			Title:  InvalidParamErrorTitle,
+			Detail: fmt.Sprintf(InvalidParamErrorDetail, e.ParamName, invalidParam),
+			Status: http.StatusBadRequest,
+		},
+	}
+}
+
+const (
+	RequiredParamErrorCode   = "required.path.param"
+	RequiredParamErrorTitle  = "Required path param"
+	RequiredParamErrorDetail = "Required path param %q is missing"
+)
+
+func fromRequiredParamErr(e *api.RequiredParamError) *ApiError {
+	return &ApiError{
+		ErrorDetail: api.ErrorDetail{
+			Code:   RequiredParamErrorCode,
+			Title:  RequiredParamErrorTitle,
+			Detail: fmt.Sprintf(RequiredParamErrorDetail, e.ParamName),
+			Status: http.StatusBadRequest,
 		},
 	}
 }

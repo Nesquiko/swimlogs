@@ -11,39 +11,36 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type Training struct {
-	Id          uuid.UUID
-	Start       time.Time
-	DurationMin int
-	Sets        []TrainingSet
+const styleIdsExists = `
+with ids as (select unnest($1::uuid[]) as id)
+select ids.id as id, s.id is not null as exists
+from ids left join styles s on ids.id = s.id;
+`
 
-	TotalDistance int
-	CreatedAt     time.Time
-	ModifiedAt    time.Time
+type IdCheck struct {
+	Id     uuid.UUID
+	Exists bool
 }
 
-type TrainingSet struct {
-	Id             uuid.UUID
-	TrainingId     uuid.UUID
-	SetOrder       int
-	Repeat         int
-	DistanceMeters int
-	Description    *string
-	Equipment      *[]string
-	StartType      *string
-	StartSeconds   *int
-	Group          *string
-	IsMain         bool
-}
+func (psg *PostgresDbPool) StyleIdsExist(ctx context.Context, ids []uuid.UUID) ([]IdCheck, error) {
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("StyleIdsExist empty ids")
+	}
 
-func (pool *PostgresDbPool) PersistTraining(ctx context.Context, t Training) (Training, error) {
-	return TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (Training, error) {
-		t, err := pool.persistTraining(ctx, t, tx)
+	rows, err := psg.pool.Query(ctx, styleIdsExists, ids)
+	if err != nil {
+		return nil, fmt.Errorf("StyleIdsExist query error: %w", err)
+	}
+	checks := make([]IdCheck, 0, len(ids))
+	for rows.Next() {
+		var check IdCheck
+		err = rows.Scan(&check.Id, &check.Exists)
 		if err != nil {
-			return t, fmt.Errorf("PersistTraining tx: %w", err)
+			return nil, fmt.Errorf("StyleIdsExist scan error: %w", err)
 		}
-		return t, nil
-	})
+		checks = append(checks, check)
+	}
+	return checks, nil
 }
 
 func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) error {
@@ -66,7 +63,7 @@ func (pool *PostgresDbPool) deleteTraining(ctx context.Context, id uuid.UUID, tx
 	return nil
 }
 
-var selectTrainingSummariesPage = `
+const selectTrainingSummariesPage = `
 with filtered as (
     select t.id, t.start, t.duration_min, t.created_at, t.modified_at, sum(s.repeat * s.distance_meters)
     from trainings t join sets s on t.id = s.training_id
@@ -121,7 +118,7 @@ func (s EmptyTrainingSet) intoTrainingSet() TrainingSet {
 }
 
 // TODO from and until filters
-func (pool *PostgresDbPool) TrainingSummaries(
+func (psg *PostgresDbPool) TrainingSummaries(
 	ctx context.Context,
 	page, pageSize int,
 	from, until *time.Time,
@@ -138,7 +135,7 @@ func (pool *PostgresDbPool) TrainingSummaries(
 		untilStr = until.Format(time.RFC3339)
 	}
 
-	rows, err := pool.Query(
+	rows, err := psg.pool.Query(
 		ctx,
 		selectTrainingSummariesPage,
 		pageSize,
@@ -196,57 +193,6 @@ func (pool *PostgresDbPool) TrainingSummaries(
 	return ts, count, nil
 }
 
-var selectTraining = `
-select
-    t.id, t.start, t.duration_min, t.created_at, t.modified_at,
-    s.id, s.training_id, s.set_order, s.repeat, s.distance_meters, s.description,
-    s.start_type, s.start_seconds, s.equipment, s.group, s.is_main
-from trainings t join sets s on t.id = s.training_id
-where t.id = $1
-order by s.set_order
-`
-
-func (pool *PostgresDbPool) Training(ctx context.Context, id uuid.UUID) (Training, error) {
-	t := Training{}
-	rows, err := pool.Query(ctx, selectTraining, id)
-	if err != nil {
-		return Training{}, fmt.Errorf("Training query error: %w", err)
-	}
-
-	for rows.Next() {
-		s := TrainingSet{}
-		err := rows.Scan(
-			&t.Id,
-			&t.Start,
-			&t.DurationMin,
-			&t.CreatedAt,
-			&t.ModifiedAt,
-			&s.Id,
-			&s.TrainingId,
-			&s.SetOrder,
-			&s.Repeat,
-			&s.DistanceMeters,
-			&s.Description,
-			&s.StartType,
-			&s.StartSeconds,
-			&s.Equipment,
-			&s.Group,
-			&s.IsMain,
-		)
-		if err != nil {
-			return Training{}, fmt.Errorf("Training scanning error: %w", err)
-		}
-		t.Sets = append(t.Sets, s)
-	}
-	rows.Close()
-
-	if rows.CommandTag().RowsAffected() == 0 {
-		return Training{}, fmt.Errorf("Training id doesnt exist: %w", ErrRowsNotFound)
-	}
-
-	return t, nil
-}
-
 func (pool *PostgresDbPool) EditTrainingSession(
 	ctx context.Context,
 	id uuid.UUID,
@@ -264,82 +210,7 @@ func (pool *PostgresDbPool) EditTrainingSession(
 	})
 }
 
-var insertTraining = `
-insert into trainings (id, start, duration_min, created_at, modified_at)
-values ($1, $2, $3, now(), now())
-returning id, start, duration_min, created_at, modified_at
-`
-
-func (pool *PostgresDbPool) persistTraining(
-	ctx context.Context,
-	t Training,
-	tx pgx.Tx,
-) (Training, error) {
-	err := tx.QueryRow(ctx, insertTraining, t.Id, t.Start, t.DurationMin).
-		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt)
-	if err != nil {
-		return Training{}, fmt.Errorf("persistTraining persisting training: %w", err)
-	}
-
-	for i, s := range t.Sets {
-		ts, err := pool.persistSet(ctx, tx, s)
-		if err != nil {
-			return Training{}, fmt.Errorf("persistTraining set %d: %w", i, err)
-		}
-		t.Sets[i] = ts
-	}
-
-	return t, nil
-}
-
-var insertSet = `
-insert into sets (id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, equipment, "group", is_main)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-returning id, training_id, set_order, repeat, distance_meters,
-    description, start_type, start_seconds, equipment, "group", is_main
-`
-
-func (pool *PostgresDbPool) persistSet(
-	ctx context.Context,
-	tx pgx.Tx,
-	s TrainingSet,
-) (TrainingSet, error) {
-	err := tx.QueryRow(
-		ctx,
-		insertSet,
-		s.Id,
-		s.TrainingId,
-		s.SetOrder,
-		s.Repeat,
-		s.DistanceMeters,
-		s.Description,
-		s.StartType,
-		s.StartSeconds,
-		s.Equipment,
-		s.Group,
-		s.IsMain,
-	).Scan(
-		&s.Id,
-		&s.TrainingId,
-		&s.SetOrder,
-		&s.Repeat,
-		&s.DistanceMeters,
-		&s.Description,
-		&s.StartType,
-		&s.StartSeconds,
-		&s.Equipment,
-		&s.Group,
-		&s.IsMain,
-	)
-	if err != nil {
-		return TrainingSet{}, fmt.Errorf("persistSet: %w", err)
-	}
-
-	return s, nil
-}
-
-var updateTrainingSession = `
+const updateTrainingSession = `
 with updated as (
     update trainings
         set start = coalesce($2, start),
@@ -386,7 +257,7 @@ func (pool *PostgresDbPool) DeleteSet(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-var reorderRemainingSets = `
+const reorderRemainingSets = `
 with to_be_deleted as (select * from sets s where s.id = $1)
 update sets
 set set_order = sets.set_order - 1
@@ -429,7 +300,7 @@ func (pool *PostgresDbPool) deleteSet(ctx context.Context, id uuid.UUID, tx pgx.
 	return nil
 }
 
-var setCountInTraining = `
+const setCountInTraining = `
 select count(*)
     from trainings t
     join sets s on t.id = s.training_id
@@ -485,7 +356,7 @@ func (pool *PostgresDbPool) EditSet(
 	return result.set, result.trainingTotalDist, nil
 }
 
-var updateSet = `
+const updateSet = `
 update sets
    set repeat = coalesce($2, repeat),
        distance_meters = coalesce($3, distance_meters),
@@ -499,7 +370,7 @@ where id = $1
 returning id, training_id, set_order, repeat, distance_meters, description, start_type, start_seconds, equipment, "group", is_main
 `
 
-var totalDistanceInTraining = `
+const totalDistanceInTraining = `
 select sum(s.repeat * s.distance_meters)
 from trainings t join sets s on t.id = s.training_id
 where t.id = $1;
@@ -566,7 +437,7 @@ func (pool *PostgresDbPool) editSet(
 	return s, trainingTotalDist, nil
 }
 
-var moveSets = `
+const moveSets = `
 with to_be_moved as (select * from sets s where s.id = $1)
 update sets
 set set_order = case when to_be_moved.set_order > $2 then sets.set_order + 1 else greatest(sets.set_order - 1, 0) end
@@ -579,7 +450,7 @@ where case
   and sets.training_id = to_be_moved.training_id;
 `
 
-var updateSetOrder = `
+const updateSetOrder = `
 update sets
 set set_order = $2
 where id = $1

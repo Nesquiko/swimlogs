@@ -7,77 +7,59 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
-func TestCreateTraining_ValidTrainingSummary(t *testing.T) {
+func TestCreateTraining_ValidTraining(t *testing.T) {
 	t.Parallel()
-	request := apidef.CreateTrainingRequest{
-		DurationMin: 60,
-		Sets: []apidef.NewTrainingSet{
-			{
-				DistanceMeters: 400,
-				Repeat:         1,
-				SetOrder:       0,
-				Group:          asPtr(apidef.Mono),
-			},
-			{
-				Description:    asPtr("some Description"),
-				DistanceMeters: 50,
-				Equipment:      &[]apidef.EquipmentEnum{apidef.Fins},
-				Repeat:         8,
-				SetOrder:       1,
-				StartSeconds:   asPtr(90),
-				StartType:      asPtr(apidef.Interval),
-				IsMain:         asPtr(true),
-			},
-		},
-		Start: time.Now(),
-	}
-	ts := mustCreateNewTraining(t, &request)
+
+	request := defaultRequest(t)
+	training := mustCreateNewTraining(t, request)
 
 	assert := assert.New(t)
-	assert.Equal(request.DurationMin, ts.DurationMin)
-	assert.Equal(800, ts.TotalDistance)
-	assert.True(compareTimes(request.Start, ts.Start))
-	assert.Len(*ts.MainSets, 1)
-	assert.Equal(request.Sets[1].DistanceMeters, (*ts.MainSets)[0].DistanceMeters)
+	assert.Equal(request.DurationMinutes, training.DurationMinutes)
+	assert.Equal(4600, training.TotalDistance)
+	assert.True(compareTimes(request.Start, training.Start))
+	assert.Len(training.Sets, 10)
 }
 
 func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
 	t.Parallel()
 	nonUniqueSetOrder := 0
-	request := apidef.CreateTrainingRequest{
-		DurationMin: 60,
-		Sets: []apidef.NewTrainingSet{
+	request := api.CreateTrainingRequest{
+		DurationMinutes: 60,
+		Sets: []api.NewTrainingSet{
 			{
 				SetOrder:       nonUniqueSetOrder,
 				Repeat:         1,
 				DistanceMeters: 400,
+				Type:           api.Normal,
 			},
 			{
 				SetOrder:       nonUniqueSetOrder,
 				Repeat:         8,
 				DistanceMeters: 50,
+				Type:           api.Normal,
 			},
 		},
 		Start: time.Now(),
 	}
 
-	res, err := createNewTraining(&request)
+	res, err := createNewTraining(t, &request)
 	defer res.Body.Close()
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	var apiError apidef.InvalidTrainingError
+	var apiError api.ErrorDetail
 	err = json.NewDecoder(res.Body).Decode(&apiError)
 	require.NoError(t, err)
 
@@ -91,60 +73,62 @@ func TestCreateTraining_NonUniqueSetOrder(t *testing.T) {
 
 func TestCreateTraining_InvalidSet(t *testing.T) {
 	t.Parallel()
-	invalidStartType := apidef.StartTypeEnum("invalid")
-	request := apidef.CreateTrainingRequest{
-		DurationMin: 60,
-		Sets: []apidef.NewTrainingSet{
+	invalidSetOrder := -1
+	request := api.CreateTrainingRequest{
+		DurationMinutes: 60,
+		Sets: []api.NewTrainingSet{
 			{
 				SetOrder:       0,
 				Repeat:         1,
 				DistanceMeters: 400,
+				Type:           api.Normal,
 			},
 			{
-				SetOrder:       1,
+				SetOrder:       invalidSetOrder,
 				Repeat:         1,
-				DistanceMeters: 50,
-				StartType:      &invalidStartType,
+				DistanceMeters: 400,
+				Type:           api.Normal,
 			},
 		},
 		Start: time.Now(),
 	}
 
-	res, err := createNewTraining(&request)
+	res, err := createNewTraining(t, &request)
 	defer res.Body.Close()
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	var apiError apidef.InvalidSetResponse
+	var apiError api.ErrorDetail
 	err = json.NewDecoder(res.Body).Decode(&apiError)
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(app.InvalidSetErrorTitle, apiError.Title)
-	assert.Equal(app.InvalidSetErrorCode, apiError.Code)
-	assert.Equal(http.StatusBadRequest, apiError.Status)
+	assert.Equal(server.SchemaValidationErrorCode, apiError.Code)
+	assert.Equal(server.ValidationErrorTitle, apiError.Title)
 	assert.Equal(
-		fmt.Sprintf(
-			app.StartTypeUnknownErrorDetail,
-			apidef.Interval,
-			apidef.Pause,
-			invalidStartType,
-		),
+		fmt.Sprintf(server.ValidationErrorDetail, "number must be at least 0"),
 		apiError.Detail,
 	)
+	assert.Equal(http.StatusBadRequest, apiError.Status)
+
 	assert.NotNil(apiError.AdditionalProperties)
-	assert.Equal(request.Sets[1].SetOrder, int(apiError.AdditionalProperties["setOrder"].(float64)))
+	path := apiError.AdditionalProperties["path"]
+	reason := apiError.AdditionalProperties["reason"]
+	schema := apiError.AdditionalProperties["schema"]
+	assert.Equal("/sets/1/setOrder", path)
+	assert.Equal("number must be at least 0", reason)
+	assert.Equal("#/components/schemas/NewTraining", schema)
 }
 
 func mustCreateNewTraining(
 	t *testing.T,
-	request *apidef.CreateTrainingRequest,
-) apidef.TrainingSummary {
-	res, err := createNewTraining(request)
+	request *api.CreateTrainingRequest,
+) api.Training {
+	res, err := createNewTraining(t, request)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, res.StatusCode, "response: %+v", res)
 
-	var ts apidef.TrainingSummary
+	var ts api.Training
 	err = json.NewDecoder(res.Body).Decode(&ts)
 	res.Body.Close()
 	require.NoError(t, err, "response: %+v", res)
@@ -152,11 +136,9 @@ func mustCreateNewTraining(
 	return ts
 }
 
-func createNewTraining(
-	request *apidef.CreateTrainingRequest,
-) (*http.Response, error) {
+func createNewTraining(t *testing.T, request *api.CreateTrainingRequest) (*http.Response, error) {
 	if request == nil {
-		request = defaultNewTraining()
+		request = defaultRequest(t)
 	}
 	req, err := json.Marshal(request)
 	if err != nil {
@@ -171,20 +153,13 @@ func createNewTraining(
 	return res, nil
 }
 
-func defaultNewTraining() *apidef.CreateTrainingRequest {
-	return &apidef.CreateTrainingRequest{
-		DurationMin: 60,
-		Sets: []apidef.NewTrainingSet{{
-			SetOrder:       0,
-			Repeat:         4,
-			DistanceMeters: 100,
-			Description:    asPtr("Some description"),
-			Equipment:      &[]apidef.EquipmentEnum{apidef.Board, apidef.Fins},
-			Group:          asPtr(apidef.Long),
-			StartSeconds:   asPtr(60),
-			StartType:      asPtr(apidef.Interval),
-			IsMain:         asPtr(true),
-		}},
-		Start: time.Date(2022, 6, 24, 18, 0, 0, 0, time.UTC),
-	}
+func defaultRequest(t *testing.T) *api.CreateTrainingRequest {
+	jsonContents, err := os.ReadFile("../data/default_new_training.json")
+	require.NoError(t, err)
+
+	var request api.CreateTrainingRequest
+	err = json.Unmarshal(jsonContents, &request)
+	require.NoError(t, err)
+
+	return &request
 }

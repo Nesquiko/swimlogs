@@ -5,50 +5,29 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
 func TestTrainingById_MatchingResponse(t *testing.T) {
 	t.Parallel()
-	request := apidef.CreateTrainingRequest{
-		DurationMin: 60,
-		Sets: []apidef.NewTrainingSet{
-			{
-				DistanceMeters: 400,
-				Repeat:         1,
-				SetOrder:       0,
-				Group:          asPtr(apidef.Mono),
-			},
-			{
-				Description:    asPtr("some Description"),
-				DistanceMeters: 50,
-				Equipment:      &[]apidef.EquipmentEnum{apidef.Fins},
-				Repeat:         8,
-				SetOrder:       1,
-				StartSeconds:   asPtr(90),
-				StartType:      asPtr(apidef.Interval),
-				IsMain:         asPtr(true),
-			},
-		},
-		Start: time.Now(),
-	}
-	id := mustCreateNewTraining(t, &request).Id
+	request := defaultRequest(t)
+	id := mustCreateNewTraining(t, request).Id
 	training := mustReadTraining(t, id)
 
 	assert := assert.New(t)
-	assert.Equal(request.DurationMin, training.DurationMin)
-	assert.Equal(800, training.TotalDistance)
+	require := require.New(t)
+	assert.Equal(request.DurationMinutes, training.DurationMinutes)
+	assert.Equal(4600, training.TotalDistance)
 	assert.True(compareTimes(request.Start, training.Start))
-	assert.Len(training.Sets, 2)
+	assert.Len(training.Sets, 10)
 
-	setTotalDists := []int{400, 400}
+	setTotalDists := []int{400, 12 * 50, 8 * 50, 16 * 50, 100, 5 * 100, 100, 5 * 100, 100, 1100}
 	for i := range training.Sets {
 		expectedSet := request.Sets[i]
 		set := training.Sets[i]
@@ -60,10 +39,33 @@ func TestTrainingById_MatchingResponse(t *testing.T) {
 		assert.Equal(expectedSet.Description, set.Description)
 		assert.Equal(expectedSet.Equipment, set.Equipment)
 		assert.Equal(expectedSet.Group, set.Group)
-		assert.Equal(expectedSet.StartSeconds, set.StartSeconds)
-		assert.Equal(expectedSet.StartType, set.StartType)
+
+		if expectedSet.Start != nil {
+			require.NotNilf(
+				set.Start,
+				"required set %d to have start",
+				expectedSet.SetOrder,
+				expectedSet.Start,
+			)
+			expectedDisc, _ := expectedSet.Start.Discriminator()
+			disc, _ := set.Start.Discriminator()
+			assert.Equal(expectedDisc, disc)
+
+			switch disc {
+			case string(api.LastFinishes):
+			case string(api.Interval), string(api.Pause):
+			default:
+				assert.Failf("unknown start type: %q", disc)
+			}
+		}
+
 		if expectedSet.IsMain != nil {
 			assert.Equal(*expectedSet.IsMain, set.IsMain)
+		}
+
+		if expectedSet.Components != nil {
+			require.NotNil(set.Components)
+			assert.Equal(len(*expectedSet.Components), len(*set.Components))
 		}
 	}
 }
@@ -76,7 +78,7 @@ func TestTrainingById_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, res.StatusCode)
 
-	var apiError apidef.NotFoundError
+	var apiError api.ErrorDetail
 	err = json.NewDecoder(res.Body).Decode(&apiError)
 	require.NoError(t, err)
 
@@ -96,26 +98,26 @@ func TestTrainingById_InvalidUUID(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, res.StatusCode)
 
-	var apiError apidef.NotFoundError
+	var apiError api.ErrorDetail
 	err = json.NewDecoder(res.Body).Decode(&apiError)
 	require.NoError(t, err)
 
 	assert := assert.New(t)
-	assert.Equal(fmt.Sprintf(server.InvalidPathParamTitleFormat, "id", invalidId), apiError.Title)
-	assert.Equal(server.InvalidPathParamCode, apiError.Code)
+	assert.Equal(server.InvalidParamErrorTitle, apiError.Title)
+	assert.Equal(server.InvalidParamErrorCode, apiError.Code)
 	assert.Equal(http.StatusBadRequest, apiError.Status)
-	assert.Equal(fmt.Sprintf(server.InvalidPathParamDetailFormat, "id", invalidId), apiError.Detail)
+	assert.Equal(fmt.Sprintf(server.InvalidParamErrorDetail, "id", invalidId), apiError.Detail)
 	assert.Nil(apiError.AdditionalProperties)
 }
 
-func mustReadTraining(t *testing.T, id uuid.UUID) apidef.Training {
+func mustReadTraining(t *testing.T, id uuid.UUID) api.Training {
 	res, err := readTraining(id)
 	defer res.Body.Close()
 	require.NoError(t, err)
 
 	if !assert.Equal(t, http.StatusOK, res.StatusCode) {
 		if res.Header.Get(server.ContentType) == server.ApplicationProblemJSON {
-			var apiErr apidef.ErrorDetail
+			var apiErr api.ErrorDetail
 			err := json.NewDecoder(res.Body).Decode(&apiErr)
 			require.NoError(t, err)
 			require.Fail(t, server.ApplicationProblemJSON, "error: %+v", apiErr)
@@ -123,7 +125,7 @@ func mustReadTraining(t *testing.T, id uuid.UUID) apidef.Training {
 		require.Failf(t, "error", "res: %+v", res)
 	}
 
-	var tr apidef.Training
+	var tr api.Training
 	err = json.NewDecoder(res.Body).Decode(&tr)
 	require.NoError(t, err, "response: %+v", res)
 

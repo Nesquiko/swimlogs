@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/httplog/v2"
 
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/app"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
@@ -80,12 +81,19 @@ func Run(ctx context.Context, args []string) error {
 	defer pool.Close()
 
 	if err := pool.MigrateUp(); err != nil {
-		httpLogger.Error("failed to migrate up", slog.String("error", err.Error()))
+		slog.Error("failed to migrate up", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
+	spec, err := api.GetSwagger()
+	if err != nil {
+		slog.Error("failed to load OpenApi spec", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	spec.Servers = nil // running behind proxy
+
 	app := app.New(pool)
-	srv := NewServer(app, httpLogger, *feOrigin)
+	srv := NewServer(app, spec, httpLogger, *feOrigin)
 
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort(*host, *port),

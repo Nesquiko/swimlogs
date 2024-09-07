@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
 const (
 	InvalidTrainingErrorTitle = "Invalid training"
-	InvalidTrainingErrorCode  = "training.invalid"
+	InvalidTrainingErrorCode  = "invalid.training"
 	DurationErrorDetail       = "Duration must be between 1 and %d, was %d"
 	StartErrorDetail          = "Invalid value of start, %q"
 	SetsErrorDetail           = "No sets provided"
@@ -24,33 +24,61 @@ const (
 	StartTypeUnknownErrorDetail     = "Start type must be either %s or %s, was %s"
 	StartSecondsRequiredErrorDetail = "Start seconds must be provided"
 	StartSecondsErrorDetail         = "Start seconds must be between 1 and %d, was %d"
-	EquipmentErrorDetail            = "Unknown Equipment %s"
-	GroupErrorDetail                = "Unknown Group %s"
+	UnknownEnumErrorDetail          = "Unknown %s %q"
+	NoComponentOrdersErrorDetail    = "No order in set's component"
+	StyleIdDoesntExistErrorDetail   = "Style id %q does not exist"
+
+	InvalidSetComponentErrorTitle = "Set component is not valid"
+	InvalidSetComponentErrorCode  = "invalid.set.component"
+	NoComponentsErrorDetail       = "Set type %q must have components"
 
 	NonUniqueSetOrderCode   = "invalid.set.nonunique.setorder"
 	NonUniqueSetOrderDetail = "Multiple sets had same set order %d"
+
+	Equipment   = "Equipment"
+	Group       = "Group"
+	Type        = "Type"
+	Intensity   = "Intensity"
+	Progression = "Progression"
 )
 
 var (
-	StartTypesSet = map[apidef.StartTypeEnum]bool{apidef.Interval: true, apidef.Pause: true}
-	EquipmentSet  = map[apidef.EquipmentEnum]bool{
-		apidef.Board:   true,
-		apidef.Fins:    true,
-		apidef.Monofin: true,
-		apidef.Paddles: true,
-		apidef.Snorkel: true,
+	EquipmentSet = map[api.EquipmentEnum]bool{
+		api.Board:   true,
+		api.Fins:    true,
+		api.Monofin: true,
+		api.Paddles: true,
+		api.Snorkel: true,
 	}
-	GroupSet = map[apidef.GroupEnum]bool{
-		apidef.Bifi:   true,
-		apidef.Long:   true,
-		apidef.Middle: true,
-		apidef.Mono:   true,
-		apidef.Sprint: true,
+	GroupSet = map[api.GroupEnum]bool{
+		api.Bifi:   true,
+		api.Long:   true,
+		api.Middle: true,
+		api.Mono:   true,
+		api.Sprint: true,
+	}
+	TypeSet = map[api.TypeEnum]bool{
+		api.Normal:   true,
+		api.Compound: true,
+		api.Pyramid:  true,
+	}
+	ProgressionSet = map[api.ProgressionEnum]bool{
+		api.Asc:  true,
+		api.Desc: true,
+	}
+	IntensitySet = map[api.IntensityEnum]bool{
+		api.Rec: true,
+		api.En1: true,
+		api.En2: true,
+		api.En3: true,
+		api.Sp1: true,
+		api.Sp2: true,
+		api.Sp3: true,
 	}
 )
 
 type ValidationError struct {
-	apidef.ErrorDetail
+	api.ErrorDetail
 }
 
 func (e *ValidationError) Error() string {
@@ -66,7 +94,7 @@ const (
 func validateNewSetOrder(newSetOrder int) *ValidationError {
 	if newSetOrder < 0 || newSetOrder > data.SmallIntMax {
 		return &ValidationError{
-			ErrorDetail: apidef.ErrorDetail{
+			ErrorDetail: api.ErrorDetail{
 				Title:  InvalidNewOrderSetTitle,
 				Code:   InvalidNewOrderSetCode,
 				Detail: fmt.Sprintf(InvalidNewOrderSetDetail, data.SmallIntMax, newSetOrder),
@@ -83,13 +111,16 @@ const (
 	NoSessionChangesDetail         = "Request contained no changes start nor duration changes."
 )
 
-func validateEditSessionRequest(req apidef.EditSessionRequest) *ValidationError {
+func validateEditSessionRequest(req api.EditSessionRequest) *ValidationError {
 	if allNilFields(req) {
 		return invalidSession(NoSessionChangesDetail)
 	}
 
-	if req.DurationMin != nil && (*req.DurationMin <= 0 || *req.DurationMin > data.SmallIntMax) {
-		return invalidSession(fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, *req.DurationMin))
+	if req.DurationMinutes != nil &&
+		(*req.DurationMinutes <= 0 || *req.DurationMinutes > data.SmallIntMax) {
+		return invalidSession(
+			fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, *req.DurationMinutes),
+		)
 	}
 
 	if req.Start != nil && req.Start.IsZero() {
@@ -99,13 +130,9 @@ func validateEditSessionRequest(req apidef.EditSessionRequest) *ValidationError 
 	return nil
 }
 
-func validateNewTraining(nt apidef.NewTraining) *ValidationError {
-	if nt.DurationMin <= 0 || nt.DurationMin > data.SmallIntMax {
-		return invalidTraining(fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, nt.DurationMin))
-	} else if nt.Start.IsZero() {
+func validateNewTraining(nt api.NewTraining) *ValidationError {
+	if nt.Start.IsZero() {
 		return invalidTraining(fmt.Sprintf(StartErrorDetail, nt.Start))
-	} else if len(nt.Sets) == 0 {
-		return invalidTraining(SetsErrorDetail)
 	}
 
 	uniqueSetOrders := make(map[int]bool)
@@ -114,87 +141,57 @@ func validateNewTraining(nt apidef.NewTraining) *ValidationError {
 			return nonUniqueSetOrder(s.SetOrder)
 		}
 		uniqueSetOrders[s.SetOrder] = true
-
-		err := validateNewSet(s)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
 }
 
-func validateNewSet(set apidef.NewTrainingSet) *ValidationError {
-	if set.SetOrder < 0 || set.SetOrder > data.SmallIntMax {
-		return invalidSet(
-			set.SetOrder,
-			fmt.Sprintf(SetOrderErrorDetail, data.SmallIntMax, set.SetOrder),
-		)
-	} else if set.Repeat <= 0 || set.Repeat > data.SmallIntMax {
-		return invalidSet(
-			set.SetOrder,
-			fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, set.Repeat),
-		)
-	} else if set.DistanceMeters <= 0 || set.DistanceMeters > data.SmallIntMax {
-		return invalidSet(
-			set.SetOrder,
-			fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, set.DistanceMeters),
-		)
-	} else if set.StartType != nil && !StartTypesSet[*set.StartType] {
-		return invalidSet(
-			set.SetOrder,
-			fmt.Sprintf(StartTypeUnknownErrorDetail, apidef.Interval, apidef.Pause, *set.StartType),
-		)
-	} else if set.StartType != nil && set.StartSeconds == nil {
-		return invalidSet(set.SetOrder, StartSecondsRequiredErrorDetail)
-	} else if set.StartType != nil && set.StartSeconds != nil && (*set.StartSeconds <= 0 || *set.StartSeconds > data.SmallIntMax) {
-		return invalidSet(set.SetOrder, fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, *set.StartSeconds))
-	} else if set.Equipment != nil && len(*set.Equipment) != 0 {
-		for _, eq := range *set.Equipment {
-			if !EquipmentSet[eq] {
-				return invalidSet(set.SetOrder, fmt.Sprintf(EquipmentErrorDetail, eq))
-			}
+func checkStyleIdsExist(idChecks []data.IdCheck) *ValidationError {
+	for _, check := range idChecks {
+		if check.Exists {
+			continue
 		}
-	} else if set.Group != nil && !GroupSet[*set.Group] {
-		return invalidSet(set.SetOrder, fmt.Sprintf(GroupErrorDetail, *set.Group))
-	}
 
+		err := nonExistendStyleId(check.Id.String())
+		err.AdditionalProperties = map[string]interface{}{"styleId": check.Id.String()}
+		return err
+	}
 	return nil
 }
 
 const NoSetChangesDetail = "Request contained no changes to set."
 
-func validateEditSetRequest(set apidef.EditSetRequest) *ValidationError {
-	if allNilFields(set) {
-		return invalidEditSet(NoSetChangesDetail)
-	}
-
-	if set.Repeat != nil && (*set.Repeat < 1 || *set.Repeat > data.SmallIntMax) {
-		return invalidEditSet(fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, *set.Repeat))
-	} else if set.DistanceMeters != nil && (*set.DistanceMeters <= 0 || *set.DistanceMeters > data.SmallIntMax) {
-		return invalidEditSet(fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, *set.DistanceMeters))
-	} else if set.StartType != nil && !StartTypesSet[*set.StartType] {
-		return invalidEditSet(fmt.Sprintf(StartTypeUnknownErrorDetail, apidef.Interval, apidef.Pause, *set.StartType))
-	} else if set.StartType != nil && set.StartSeconds == nil {
-		return invalidEditSet(StartSecondsRequiredErrorDetail)
-	} else if set.StartType != nil && set.StartSeconds != nil && (*set.StartSeconds <= 0 || *set.StartSeconds > data.SmallIntMax) {
-		return invalidEditSet(fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, *set.StartSeconds))
-	} else if set.Equipment != nil && len(*set.Equipment) != 0 {
-		for _, eq := range *set.Equipment {
-			if !EquipmentSet[eq] {
-				return invalidEditSet(fmt.Sprintf(EquipmentErrorDetail, eq))
-			}
-		}
-	} else if set.Group != nil && !GroupSet[*set.Group] {
-		return invalidEditSet(fmt.Sprintf(GroupErrorDetail, *set.Group))
-	}
-
-	return nil
-}
+// func validateEditSetRequest(set api.EditSetRequest) *ValidationError {
+// 	if allNilFields(set) {
+// 		return invalidEditSet(NoSetChangesDetail)
+// 	}
+//
+// 	if set.Repeat != nil && (*set.Repeat < 1 || *set.Repeat > data.SmallIntMax) {
+// 		return invalidEditSet(fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, *set.Repeat))
+// 	} else if set.DistanceMeters != nil && (*set.DistanceMeters <= 0 || *set.DistanceMeters > data.SmallIntMax) {
+// 		return invalidEditSet(fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, *set.DistanceMeters))
+// 	} else if set.StartType != nil && !StartTypesSet[*set.StartType] {
+// 		return invalidEditSet(fmt.Sprintf(StartTypeUnknownErrorDetail, api.Interval, api.Pause, *set.StartType))
+// 	} else if set.StartType != nil && set.StartSeconds == nil {
+// 		return invalidEditSet(StartSecondsRequiredErrorDetail)
+// 	} else if set.StartType != nil && set.StartSeconds != nil && (*set.StartSeconds <= 0 || *set.StartSeconds > data.SmallIntMax) {
+// 		return invalidEditSet(fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, *set.StartSeconds))
+// 	} else if set.Equipment != nil && len(*set.Equipment) != 0 {
+// 		for _, eq := range *set.Equipment {
+// 			if !EquipmentSet[eq] {
+// 				return invalidEditSet(fmt.Sprintf(UnknownEnumErrorDetail, Equipment, eq))
+// 			}
+// 		}
+// 	} else if set.Group != nil && !GroupSet[*set.Group] {
+// 		return invalidEditSet(fmt.Sprintf(UnknownEnumErrorDetail, Group, *set.Group))
+// 	}
+//
+// 	return nil
+// }
 
 func invalidSession(detail string) *ValidationError {
 	return &ValidationError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Title:  InvalidEditSessionRequestTitle,
 			Code:   InvalidEditSessionRequestCode,
 			Detail: detail,
@@ -205,7 +202,7 @@ func invalidSession(detail string) *ValidationError {
 
 func invalidTraining(detail string) *ValidationError {
 	return &ValidationError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Title:  InvalidTrainingErrorTitle,
 			Code:   InvalidTrainingErrorCode,
 			Detail: detail,
@@ -222,7 +219,7 @@ func invalidEditSet(detail string) *ValidationError {
 
 func invalidSet(setOrder int, detail string) *ValidationError {
 	return &ValidationError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Title:                InvalidSetErrorTitle,
 			Code:                 InvalidSetErrorCode,
 			Detail:               detail,
@@ -232,9 +229,37 @@ func invalidSet(setOrder int, detail string) *ValidationError {
 	}
 }
 
+func invalidSetComponent(detail string) *ValidationError {
+	return &ValidationError{
+		ErrorDetail: api.ErrorDetail{
+			Title:  InvalidSetComponentErrorTitle,
+			Code:   InvalidSetComponentErrorCode,
+			Detail: detail,
+			Status: http.StatusBadRequest,
+		},
+	}
+}
+
+const (
+	NonExistentStyleIdCode   = "non.existent.styleid"
+	NonExistentStyleIdTitle  = "Style with provided id doesn't exits"
+	NonExistentStyleIdDetail = "Style with id %q doesn't exits"
+)
+
+func nonExistendStyleId(styleId string) *ValidationError {
+	return &ValidationError{
+		ErrorDetail: api.ErrorDetail{
+			Title:  NonExistentStyleIdTitle,
+			Code:   NonExistentStyleIdCode,
+			Detail: fmt.Sprintf(NonExistentStyleIdDetail, styleId),
+			Status: http.StatusBadRequest,
+		},
+	}
+}
+
 func nonUniqueSetOrder(setOrder int) *ValidationError {
 	return &ValidationError{
-		ErrorDetail: apidef.ErrorDetail{
+		ErrorDetail: api.ErrorDetail{
 			Title:  InvalidSetErrorTitle,
 			Code:   NonUniqueSetOrderCode,
 			Detail: fmt.Sprintf(NonUniqueSetOrderDetail, setOrder),

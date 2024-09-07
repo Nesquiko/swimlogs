@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/Nesquiko/swimlogs/pkg/api"
 )
 
 func encode[T any](w http.ResponseWriter, status int, response T) {
@@ -35,6 +37,27 @@ func encodeWithContentType[T any](
 		)
 		http.Error(w, EncodingError, http.StatusInternalServerError)
 	}
+}
+
+func Decode[T any](w http.ResponseWriter, r *http.Request) (T, *ApiError) {
+	dst, err := decode[T](w, r)
+	var decErr *decodeErr
+	if errors.As(err, &decErr) {
+		return dst, decodeErrToApiErrorWithCode(decErr, decErr.code)
+	}
+	if err != nil {
+		return dst, decodeErrToApiError(err)
+	}
+	return dst, nil
+}
+
+type decodeErr struct {
+	err  error
+	code string
+}
+
+func (e *decodeErr) Error() string {
+	return e.err.Error()
 }
 
 func decode[T any](w http.ResponseWriter, r *http.Request) (T, error) {
@@ -80,7 +103,10 @@ func decode[T any](w http.ResponseWriter, r *http.Request) (T, error) {
 
 		case strings.HasPrefix(err.Error(), invalidFieldPrefix):
 			fieldName := strings.TrimPrefix(err.Error(), invalidFieldPrefix)
-			return dst, fmt.Errorf("body contains unknown key %s", fieldName)
+			return dst, &decodeErr{
+				fmt.Errorf("body contains unknown key %s", fieldName),
+				ValidationErrorCode,
+			}
 
 		case err.Error() == largeBodyErrorStr:
 			return dst, fmt.Errorf("body must not be larger than %d bytes", MaxBytes)
@@ -99,4 +125,24 @@ func decode[T any](w http.ResponseWriter, r *http.Request) (T, error) {
 	}
 
 	return dst, nil
+}
+
+const (
+	DecodingErrorCode  = "undecodable.request"
+	DecodingErrorTitle = "Request couldn't be decoded"
+)
+
+func decodeErrToApiError(err error) *ApiError {
+	return decodeErrToApiErrorWithCode(err, DecodingErrorCode)
+}
+
+func decodeErrToApiErrorWithCode(err error, code string) *ApiError {
+	return &ApiError{
+		ErrorDetail: api.ErrorDetail{
+			Code:   code,
+			Detail: err.Error(),
+			Status: http.StatusBadRequest,
+			Title:  DecodingErrorTitle,
+		},
+	}
 }

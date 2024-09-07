@@ -19,7 +19,7 @@ const (
 type PostgresDbPool struct {
 	conStr        string
 	migrationsDir string
-	*pgxpool.Pool
+	pool          *pgxpool.Pool
 }
 
 func NewPostgresPool(conStr, migrationsDir string) (*PostgresDbPool, error) {
@@ -55,24 +55,24 @@ func (p *PostgresDbPool) Reconnect(ctx context.Context) error {
 		return fmt.Errorf("Reconnect new: %w", err)
 	}
 
-	p.Pool = dbPool
+	p.pool = dbPool
 	return nil
 }
 
-func (psql *PostgresDbPool) Close() {
-	psql.Pool.Close()
+func (psg *PostgresDbPool) Close() {
+	psg.pool.Close()
 }
 
-func Sql(pool *PostgresDbPool, sql string, args ...any) error {
-	_, err := pool.Exec(context.Background(), sql, args...)
+func Sql(psg *PostgresDbPool, sql string, args ...any) error {
+	_, err := psg.pool.Exec(context.Background(), sql, args...)
 	if err != nil {
 		return fmt.Errorf("Sql: %w", err)
 	}
 	return nil
 }
 
-func SqlWithResult(pool *PostgresDbPool, sql string, args, dest []any) error {
-	err := pool.QueryRow(context.Background(), sql, args...).Scan(dest...)
+func SqlWithResult(psg *PostgresDbPool, sql string, args, dest []any) error {
+	err := psg.pool.QueryRow(context.Background(), sql, args...).Scan(dest...)
 	if err != nil {
 		return fmt.Errorf("SqlWithResult: %w", err)
 	}
@@ -84,18 +84,18 @@ func Tx(ctx context.Context, pool *PostgresDbPool, f func(context.Context, pgx.T
 		return struct{}{}, f(ctx, tx)
 	})
 	if err != nil {
-		return fmt.Errorf("Tx: %w", err)
+		return fmt.Errorf("Tx: %w", errors.Unwrap(err))
 	}
 	return nil
 }
 
 func TxWithResult[R any](
 	ctx context.Context,
-	pool *PostgresDbPool,
+	psg *PostgresDbPool,
 	f func(context.Context, pgx.Tx) (R, error),
 ) (R, error) {
 	var res R
-	tx, err := pool.Begin(ctx)
+	tx, err := psg.pool.Begin(ctx)
 	if err != nil {
 		return res, fmt.Errorf("TxWithResult init: %w", err)
 	}

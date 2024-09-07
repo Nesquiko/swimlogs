@@ -1,181 +1,260 @@
 package app
 
 import (
+	"log/slog"
+	"time"
+
 	"github.com/google/uuid"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/data"
 )
 
-func newTrainingToDataTraining(nt apidef.NewTraining) data.Training {
-	id := uuid.New()
-	return data.Training{
-		Id:          id,
-		Start:       nt.Start,
-		DurationMin: nt.DurationMin,
-		Sets:        newSetsToDataSets(nt.Sets, id),
+func newTrainingToDataTraining(nt api.NewTraining) data.Training {
+	t := data.Training{
+		Id:          uuid.New(),
+		Start:       nt.Start.Truncate(time.Minute),
+		DurationMin: nt.DurationMinutes,
 	}
+
+	sets := make([]data.TrainingSet, len(nt.Sets))
+	for i, s := range nt.Sets {
+		sets[i] = newSetToDataSet(s, t.Id)
+	}
+
+	t.Sets = sets
+
+	return t
 }
 
-func newSetsToDataSets(sets []apidef.NewTrainingSet, tId uuid.UUID) []data.TrainingSet {
-	dataSets := make([]data.TrainingSet, 0, len(sets))
-	for _, set := range sets {
-		s := newSetToDataSet(set, tId)
-		dataSets = append(dataSets, s)
-	}
-	return dataSets
-}
-
-func newSetToDataSet(set apidef.NewTrainingSet, tId uuid.UUID) data.TrainingSet {
-	var equipment []string = nil
-	if set.Equipment != nil {
-		for _, e := range *set.Equipment {
-			equipment = append(equipment, string(e))
-		}
-	}
-
-	isMain := false
-	if set.IsMain != nil && *set.IsMain {
-		isMain = true
-	}
-	ts := data.TrainingSet{
+func newSetToDataSet(s api.NewTrainingSet, tId uuid.UUID) data.TrainingSet {
+	set := data.TrainingSet{
 		Id:             uuid.New(),
 		TrainingId:     tId,
-		SetOrder:       set.SetOrder,
-		Repeat:         set.Repeat,
-		DistanceMeters: set.DistanceMeters,
-		Description:    set.Description,
-		StartType:      (*string)(set.StartType),
-		StartSeconds:   set.StartSeconds,
-		Equipment:      &equipment,
-		Group:          (*string)(set.Group),
-		IsMain:         isMain,
-	}
-
-	if set.StartType == nil {
-		ts.StartSeconds = nil
-	}
-
-	return ts
-}
-
-func trainingToSummary(t data.Training) apidef.TrainingSummary {
-	totalDistance := 0
-
-	mainSets := make([]apidef.TrainingSet, 0)
-	if len(t.Sets) == 0 {
-		totalDistance = t.TotalDistance
-	} else {
-		for _, s := range t.Sets {
-			if s.IsMain {
-				mainSets = append(mainSets, dataSetToApiSet(s))
-			}
-			totalDistance += s.Repeat * s.DistanceMeters
-		}
-	}
-
-	return apidef.TrainingSummary{
-		Id:            t.Id,
-		Start:         t.Start,
-		DurationMin:   t.DurationMin,
-		TotalDistance: totalDistance,
-		MainSets:      &mainSets,
-	}
-}
-
-func dataTrainingToApiTraining(t data.Training) apidef.Training {
-	sets := dataSetsToApiSets(t.Sets)
-	totalDistance := 0
-	for _, s := range sets {
-		totalDistance += (s.Repeat * s.DistanceMeters)
-	}
-
-	return apidef.Training{
-		Id:            t.Id,
-		DurationMin:   t.DurationMin,
-		Start:         t.Start,
-		TotalDistance: totalDistance,
-		Sets:          sets,
-	}
-}
-
-func dataSetsToApiSets(sets []data.TrainingSet) []apidef.TrainingSet {
-	apiSets := make([]apidef.TrainingSet, 0, len(sets))
-	for _, set := range sets {
-		apiSets = append(apiSets, dataSetToApiSet(set))
-	}
-	return apiSets
-}
-
-func dataSetToApiSet(s data.TrainingSet) apidef.TrainingSet {
-	set := apidef.TrainingSet{
-		Id:             s.Id,
-		SetOrder:       s.SetOrder,
 		Repeat:         s.Repeat,
-		Description:    s.Description,
 		DistanceMeters: s.DistanceMeters,
-		StartType:      (*apidef.StartTypeEnum)(s.StartType),
-		StartSeconds:   s.StartSeconds,
-		TotalDistance:  s.Repeat * s.DistanceMeters,
-		Group:          (*apidef.GroupEnum)(s.Group),
-		IsMain:         s.IsMain,
+		Description:    s.Description,
+		Group:          (*string)(s.Group),
+		SetType:        string(s.Type),
+		Intensity:      (*string)(s.Intensity),
+		Progression:    (*string)(s.Progression),
+		SetOrder:       s.SetOrder,
+		StyleId:        s.StyleId,
 	}
 
-	if s.Equipment == nil {
-		return set
+	if s.Equipment != nil && len(*s.Equipment) != 0 {
+		equipment := make([]string, len(*s.Equipment))
+		for i, e := range *s.Equipment {
+			equipment[i] = string(e)
+		}
+		set.Equipment = &equipment
 	}
 
-	var equipment []apidef.EquipmentEnum
-	for _, e := range *s.Equipment {
-		equipment = append(equipment, apidef.EquipmentEnum(e))
+	if s.Start != nil {
+		mapApiStart(&set.StartType, &set.StartSeconds, *s.Start)
 	}
-	set.Equipment = &equipment
+
+	if s.IsMain != nil {
+		set.IsMain = *s.IsMain
+	} else {
+		set.IsMain = false
+	}
+
+	if s.Components != nil {
+		comps := make([]data.SetComponent, len(*s.Components))
+		for i, comp := range *s.Components {
+			comps[i] = newCompToDataComp(comp, set.Id)
+		}
+		set.Components = &comps
+	}
+
 	return set
 }
 
-func trainingToDataTraining(t apidef.Training) data.Training {
-	return data.Training{
-		Id:            t.Id,
-		Start:         t.Start,
-		DurationMin:   t.DurationMin,
-		TotalDistance: t.TotalDistance,
-		Sets:          setsToDataSets(t.Sets, t.Id),
+func mapApiStart(typ **string, seconds **int, start api.Start) {
+	startType, err := start.Discriminator()
+	if err != nil {
+		slog.Error(
+			"received error from start.Discriminator, not setting any start values",
+			slog.String("error", err.Error()),
+		)
+		return
 	}
+
+	if *typ == nil {
+		*typ = new(string)
+	}
+	**typ = startType
+
+	if startType == string(api.LastFinishes) {
+		return
+	}
+
+	secs, err := start.AsStartWithSeconds()
+	if err != nil {
+		slog.Error(
+			"received error from start.AsStartWithSeconds, not setting seconds value",
+			slog.String("error", err.Error()),
+		)
+		return
+	}
+
+	if *seconds == nil {
+		*seconds = new(int)
+	}
+	**seconds = secs.Seconds
 }
 
-func setsToDataSets(sets []apidef.TrainingSet, tId uuid.UUID) []data.TrainingSet {
-	dataSets := make([]data.TrainingSet, 0, len(sets))
-	for _, set := range sets {
-		dataSets = append(dataSets, setToDataSet(set, tId))
+func mapDataStart(typ string, seconds *int) *api.Start {
+	start := api.Start{}
+
+	if typ == string(api.LastFinishes) {
+		start.FromStartWithoutSeconds(api.StartWithoutSeconds{Type: api.LastFinishes})
+		return &start
 	}
-	return dataSets
+
+	withSeconds := api.StartWithSeconds{
+		Type: api.StartWithSecondsType(typ),
+	}
+	if seconds == nil {
+		slog.Error("mapDataStart seconds should not be nil", slog.String("type", typ))
+	} else {
+		withSeconds.Seconds = *seconds
+	}
+
+	start.FromStartWithSeconds(withSeconds)
+	return &start
 }
 
-func setToDataSet(set apidef.TrainingSet, tId uuid.UUID) data.TrainingSet {
-	var equipment []string = nil
-	if set.Equipment != nil {
-		for _, e := range *set.Equipment {
-			equipment = append(equipment, string(e))
+func newCompToDataComp(c api.NewSetComponent, setId uuid.UUID) data.SetComponent {
+	id := uuid.NullUUID{UUID: uuid.New(), Valid: true}
+	comp := data.SetComponent{
+		Id:             id,
+		SetId:          setId,
+		Orders:         c.ComponentOrders,
+		Repeat:         c.Repeat,
+		DistanceMeters: c.DistanceMeters,
+		Intensity:      (*string)(c.Intensity),
+		Progression:    (*string)(c.Progression),
+		Description:    c.Description,
+		IterationOrder: c.IterationOrder,
+		StyleId:        c.StyleId,
+	}
+
+	if c.Start != nil {
+		mapApiStart(&comp.StartType, &comp.StartSeconds, *c.Start)
+	}
+
+	if c.Equipment != nil && len(*c.Equipment) != 0 {
+		equipment := make([]string, len(*c.Equipment))
+		for i, e := range *c.Equipment {
+			equipment[i] = string(e)
 		}
+		comp.Equipment = &equipment
 	}
 
-	ts := data.TrainingSet{
-		Id:             set.Id,
-		TrainingId:     tId,
-		SetOrder:       set.SetOrder,
-		Repeat:         set.Repeat,
-		DistanceMeters: set.DistanceMeters,
-		Description:    set.Description,
-		StartType:      (*string)(set.StartType),
-		StartSeconds:   set.StartSeconds,
-		Equipment:      &equipment,
-		Group:          (*string)(set.Group),
-		IsMain:         set.IsMain,
+	return comp
+}
+
+func dataTrainingToApiTraining(t data.Training) api.Training {
+	training := api.Training{
+		Id:              t.Id,
+		DurationMinutes: t.DurationMin,
+		Start:           t.Start,
 	}
 
-	if set.StartType == nil || *set.StartType == "" {
-		ts.StartSeconds = nil
+	sets := make([]api.TrainingSet, len(t.Sets))
+	totalDistance := 0
+	for i, s := range t.Sets {
+		set := dataSetToApiSet(s)
+		sets[i] = set
+		totalDistance += (s.Repeat * s.DistanceMeters)
+	}
+	training.Sets = sets
+	training.TotalDistance = totalDistance
+
+	return training
+}
+
+func dataSetToApiSet(s data.TrainingSet) api.TrainingSet {
+	set := api.TrainingSet{
+		Id:             s.Id,
+		SetOrder:       s.SetOrder,
+		Repeat:         s.Repeat,
+		DistanceMeters: s.DistanceMeters,
+		Description:    s.Description,
+		Group:          (*api.GroupEnum)(s.Group),
+		IsMain:         s.IsMain,
+		Type:           api.TypeEnum(s.SetType),
+		Intensity:      (*api.IntensityEnum)(s.Intensity),
+		Progression:    (*api.ProgressionEnum)(s.Progression),
+		TotalDistance:  s.Repeat * s.DistanceMeters,
 	}
 
-	return ts
+	if s.StartType != nil {
+		set.Start = mapDataStart(*s.StartType, s.StartSeconds)
+	}
+
+	if s.Equipment != nil && len(*s.Equipment) != 0 {
+		equipment := make([]api.EquipmentEnum, len(*s.Equipment))
+		for i, e := range *s.Equipment {
+			equipment[i] = api.EquipmentEnum(e)
+		}
+		set.Equipment = &equipment
+	}
+
+	if s.Components != nil && len(*s.Components) != 0 {
+		comps := make([]api.SetComponent, len(*s.Components))
+		for i, c := range *s.Components {
+			comps[i] = dataCompToApiComp(c)
+		}
+		set.Components = &comps
+	}
+
+	if s.Style != nil {
+		set.Style = dataStyleToApiStyle(*s.Style)
+	}
+
+	return set
+}
+
+func dataCompToApiComp(c data.SetComponent) api.SetComponent {
+	comp := api.SetComponent{
+		Id:              c.Id.UUID,
+		ComponentOrders: c.Orders,
+		IterationOrder:  c.IterationOrder,
+		Repeat:          c.Repeat,
+		DistanceMeters:  c.DistanceMeters,
+		Description:     c.Description,
+		Group:           (*api.GroupEnum)(c.Group),
+		Intensity:       (*api.IntensityEnum)(c.Intensity),
+		Progression:     (*api.ProgressionEnum)(c.Progression),
+	}
+
+	if c.StartType != nil {
+		comp.Start = mapDataStart(*c.StartType, c.StartSeconds)
+	}
+
+	if c.Equipment != nil && len(*c.Equipment) != 0 {
+		equipment := make([]api.EquipmentEnum, len(*c.Equipment))
+		for i, e := range *c.Equipment {
+			equipment[i] = api.EquipmentEnum(e)
+		}
+		comp.Equipment = &equipment
+	}
+
+	if c.Style != nil {
+		comp.Style = dataStyleToApiStyle(*c.Style)
+	}
+
+	return comp
+}
+
+func dataStyleToApiStyle(s data.Style) *api.Style {
+	return &api.Style{
+		Id:                  s.Id,
+		Name:                s.Name,
+		ExecriseName:        s.ExeciseName,
+		ExecriseDescription: s.ExeciseDescription,
+	}
 }

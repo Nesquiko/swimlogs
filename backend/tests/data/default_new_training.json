@@ -1,0 +1,244 @@
+{
+  "durationMinutes": 120,
+  "sets": [
+    {
+      "components": [
+        {
+          "componentOrders": [0, 2, 4, 6],
+          "distanceMeters": 50,
+          "intensity": "en1",
+          "repeat": 1,
+          "styleId": "d4876e51-6206-4409-8315-3fd776c3b3d0"
+        },
+        {
+          "componentOrders": [1, 3, 5, 7],
+          "distanceMeters": 50,
+          "intensity": "en1",
+          "repeat": 1,
+          "styleId": "0511b862-d596-40e2-adc4-f7d003949499"
+        }
+      ],
+      "distanceMeters": 400,
+      "isMain": false,
+      "repeat": 1,
+      "setOrder": 0,
+      "type": "compound"
+    },
+    {
+      "distanceMeters": 50,
+      "equipment": ["board"],
+      "isMain": false,
+      "repeat": 12,
+      "setOrder": 1,
+      "start": {
+        "seconds": 75,
+        "type": "interval"
+      },
+      "type": "normal"
+    },
+    {
+      "components": [
+        {
+          "componentOrders": [1, 3, 5, 7],
+          "distanceMeters": 50,
+          "intensity": "en1",
+          "repeat": 1,
+          "styleId": "d67298e2-60e0-4613-8bae-fae48f09e753"
+        },
+        {
+          "componentOrders": [0, 2, 4, 6],
+          "distanceMeters": 50,
+          "intensity": "en1",
+          "repeat": 1,
+          "styleId": "e5d01df7-194e-45aa-925e-e55786942fbb"
+        }
+      ],
+      "distanceMeters": 50,
+      "equipment": ["board"],
+      "isMain": false,
+      "repeat": 8,
+      "setOrder": 2,
+      "start": {
+        "seconds": 75,
+        "type": "interval"
+      },
+      "type": "normal"
+    },
+    {
+      "components": [
+        {
+          "componentOrders": [1],
+          "distanceMeters": 25,
+          "intensity": "en1",
+          "iterationOrder": 1,
+          "repeat": 1,
+          "styleId": "d4876e51-6206-4409-8315-3fd776c3b3d0"
+        },
+        {
+          "componentOrders": [0],
+          "distanceMeters": 25,
+          "intensity": "en1",
+          "iterationOrder": 1,
+          "repeat": 1,
+          "styleId": "dc1e667e-719c-4e06-89e4-783a94a269ab"
+        },
+        {
+          "componentOrders": [1],
+          "distanceMeters": 25,
+          "intensity": "en1",
+          "iterationOrder": 0,
+          "repeat": 1,
+          "styleId": "acfc0afa-50b0-4c86-bd12-55fa11eca7d6"
+        },
+        {
+          "componentOrders": [0],
+          "distanceMeters": 25,
+          "intensity": "en1",
+          "iterationOrder": 0,
+          "repeat": 1,
+          "styleId": "95779412-f1b0-49a2-b775-874f090ea704"
+        }
+      ],
+      "distanceMeters": 50,
+      "equipment": ["fins"],
+      "isMain": false,
+      "repeat": 16,
+      "setOrder": 3,
+      "start": {
+        "type": "last-finishes"
+      },
+      "type": "normal"
+    },
+    {
+      "distanceMeters": 100,
+      "intensity": "rec",
+      "isMain": false,
+      "repeat": 1,
+      "setOrder": 4,
+      "styleId": "5be726ee-d7f4-407b-b317-c622b197d662",
+      "type": "normal"
+    },
+    {
+      "components": [
+        {
+          "componentOrders": [0],
+          "distanceMeters": 100,
+          "group": "mono",
+          "repeat": 1,
+          "styleId": "8cc9d3bc-7a0a-42df-b493-11004004e3d0"
+        },
+        {
+          "componentOrders": [0],
+          "distanceMeters": 100,
+          "group": "bifi",
+          "repeat": 1,
+          "styleId": "6528f34f-ce4b-45f5-b6bc-54f4c558ff6e"
+        }
+      ],
+      "distanceMeters": 100,
+      "equipment": ["fins", "snorkel"],
+      "intensity": "en3",
+      "isMain": true,
+      "repeat": 5,
+      "setOrder": 5,
+      "start": {
+        "seconds": 150,
+        "type": "interval"
+      },
+      "type": "compound"
+    },
+    {
+      "distanceMeters": 100,
+      "intensity": "rec",
+      "isMain": false,
+      "repeat": 1,
+      "setOrder": 6,
+      "styleId": "2f9fd38b-9a56-4117-8e50-fe10feb31ae6",
+      "type": "normal"
+    },
+    {
+      "components": [
+        {
+          "componentOrders": [0],
+          "distanceMeters": 100,
+          "group": "bifi",
+          "repeat": 1,
+          "styleId": "6528f34f-ce4b-45f5-b6bc-54f4c558ff6e"
+        },
+        {
+          "componentOrders": [0],
+          "distanceMeters": 100,
+          "group": "mono",
+          "repeat": 1,
+          "styleId": "8cc9d3bc-7a0a-42df-b493-11004004e3d0"
+        }
+      ],
+      "distanceMeters": 100,
+      "equipment": ["fins", "snorkel"],
+      "intensity": "en3",
+      "isMain": true,
+      "progression": "asc",
+      "repeat": 5,
+      "setOrder": 7,
+      "start": {
+        "seconds": 150,
+        "type": "interval"
+      },
+      "type": "compound"
+    },
+    {
+      "distanceMeters": 100,
+      "intensity": "rec",
+      "isMain": false,
+      "repeat": 1,
+      "setOrder": 8,
+      "styleId": "2f9fd38b-9a56-4117-8e50-fe10feb31ae6",
+      "type": "normal"
+    },
+    {
+      "components": [
+        {
+          "componentOrders": [4, 12],
+          "distanceMeters": 150,
+          "intensity": "en2",
+          "repeat": 1,
+          "styleId": "d770dcc3-ba7d-4da2-9f7b-92d69fb445cd"
+        },
+        {
+          "componentOrders": [6, 14],
+          "distanceMeters": 200,
+          "intensity": "en2",
+          "repeat": 1,
+          "styleId": "d770dcc3-ba7d-4da2-9f7b-92d69fb445cd"
+        },
+        {
+          "componentOrders": [2, 10],
+          "distanceMeters": 100,
+          "intensity": "en2",
+          "repeat": 1,
+          "styleId": "d770dcc3-ba7d-4da2-9f7b-92d69fb445cd"
+        },
+        {
+          "componentOrders": [0, 8],
+          "distanceMeters": 50,
+          "intensity": "en2",
+          "repeat": 1,
+          "styleId": "d770dcc3-ba7d-4da2-9f7b-92d69fb445cd"
+        },
+        {
+          "componentOrders": [1, 3, 5, 7, 9, 11, 13],
+          "distanceMeters": 50,
+          "intensity": "rec",
+          "repeat": 1,
+          "styleId": "0511b862-d596-40e2-adc4-f7d003949499"
+        }
+      ],
+      "distanceMeters": 1100,
+      "isMain": false,
+      "repeat": 1,
+      "setOrder": 9,
+      "type": "pyramid"
+    }
+  ],
+  "start": "2024-08-25T13:00:00+02:00"
+}
