@@ -63,15 +63,16 @@ func (app SwimLogsApp) TrainingById(ctx context.Context, id uuid.UUID) (api.Trai
 	return dataTrainingToApiTraining(t), nil
 }
 
-//	func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
-//		err := app.pool.DeleteTraining(ctx, id)
-//		if errors.Is(err, data.ErrRowsNotFound) {
-//			return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
-//		} else if err != nil {
-//			return fmt.Errorf("DeleteTraining: %w", err)
-//		}
-//		return nil
-//	}
+func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
+	err := app.pool.DeleteTraining(ctx, id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
+	} else if err != nil {
+		return fmt.Errorf("DeleteTraining: %w", err)
+	}
+	return nil
+}
+
 //
 // func (app SwimLogsApp) TrainingSummariesPage(
 //

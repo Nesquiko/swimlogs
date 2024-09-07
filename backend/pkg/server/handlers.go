@@ -62,7 +62,27 @@ func (s SwimLogsServer) TrainingById(w http.ResponseWriter, r *http.Request, id 
 }
 
 func (s SwimLogsServer) DeleteTraining(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
-	panic("unimplemented")
+	err := s.app.DeleteTraining(r.Context(), id)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"training not found",
+			slog.String("error", err.Error()),
+			slog.String("id", id.String()),
+		)
+		encodeError(w, notFoundId("training", id))
+		return
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "DeleteTraining"),
+		)
+		encodeError(w, internalServerError())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s SwimLogsServer) DeleteSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
