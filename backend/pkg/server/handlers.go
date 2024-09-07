@@ -61,12 +61,32 @@ func (s SwimLogsServer) TrainingById(w http.ResponseWriter, r *http.Request, id 
 	encode(w, http.StatusOK, t)
 }
 
-func (s SwimLogsServer) DeleteSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+func (s SwimLogsServer) DeleteTraining(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
 	panic("unimplemented")
 }
 
-func (s SwimLogsServer) DeleteTraining(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
-	panic("unimplemented")
+func (s SwimLogsServer) DeleteSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	err := s.app.DeleteSet(r.Context(), id)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"set not found",
+			slog.String("error", err.Error()),
+			slog.String("id", id.String()),
+		)
+		encodeError(w, notFoundId("set", id))
+		return
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "DeleteSet"),
+		)
+		encodeError(w, internalServerError())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s SwimLogsServer) EditSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {

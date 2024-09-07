@@ -63,74 +63,78 @@ func (app SwimLogsApp) TrainingById(ctx context.Context, id uuid.UUID) (api.Trai
 	return dataTrainingToApiTraining(t), nil
 }
 
-// func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
-// 	err := app.pool.DeleteTraining(ctx, id)
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return fmt.Errorf("DeleteTraining: %w", err)
-// 	}
-// 	return nil
-// }
+//	func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
+//		err := app.pool.DeleteTraining(ctx, id)
+//		if errors.Is(err, data.ErrRowsNotFound) {
+//			return fmt.Errorf("DeleteTraining not found: %w", ErrNotFound)
+//		} else if err != nil {
+//			return fmt.Errorf("DeleteTraining: %w", err)
+//		}
+//		return nil
+//	}
 //
 // func (app SwimLogsApp) TrainingSummariesPage(
-// 	ctx context.Context,
-// 	params api.SummariesPageParams,
-// ) ([]api.TrainingSummary, int, error) {
-// 	summariesPage, total, err := app.pool.TrainingSummaries(
-// 		ctx,
-// 		params.Page,
-// 		params.PageSize,
-// 		params.From,
-// 		params.Until,
-// 	)
-// 	if err != nil {
-// 		return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
-// 	}
-// 	summaries := make([]api.TrainingSummary, len(summariesPage))
-// 	for i, d := range summariesPage {
-// 		summaries[i] = trainingToSummary(d)
-// 	}
 //
-// 	return summaries, total, nil
-// }
+//	ctx context.Context,
+//	params api.SummariesPageParams,
 //
+//	) ([]api.TrainingSummary, int, error) {
+//		summariesPage, total, err := app.pool.TrainingSummaries(
+//			ctx,
+//			params.Page,
+//			params.PageSize,
+//			params.From,
+//			params.Until,
+//		)
+//		if err != nil {
+//			return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
+//		}
+//		summaries := make([]api.TrainingSummary, len(summariesPage))
+//		for i, d := range summariesPage {
+//			summaries[i] = trainingToSummary(d)
+//		}
+//
+//		return summaries, total, nil
+//	}
 //
 // func (app SwimLogsApp) EditTrainingSession(
-// 	ctx context.Context,
-// 	id uuid.UUID,
-// 	session api.EditSessionRequest,
-// ) (api.TrainingSummary, error) {
-// 	validationErr := validateEditSessionRequest(session)
-// 	if validationErr != nil {
-// 		return api.TrainingSummary{}, validationErr
-// 	}
 //
-// 	edited, err := app.pool.EditTrainingSession(ctx, id, struct {
-// 		DurationMin *int
-// 		Start       *time.Time
-// 	}(session))
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return api.TrainingSummary{}, fmt.Errorf(
-// 			"EditTrainingSession not found: %w",
-// 			ErrNotFound,
-// 		)
-// 	} else if err != nil {
-// 		return api.TrainingSummary{}, fmt.Errorf("EditTrainingSession: %w", err)
-// 	}
+//	ctx context.Context,
+//	id uuid.UUID,
+//	session api.EditSessionRequest,
 //
-// 	return trainingToSummary(edited), nil
-// }
+//	) (api.TrainingSummary, error) {
+//		validationErr := validateEditSessionRequest(session)
+//		if validationErr != nil {
+//			return api.TrainingSummary{}, validationErr
+//		}
 //
-// func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {
-// 	err := app.pool.DeleteSet(ctx, id)
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return fmt.Errorf("DeleteSet not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return fmt.Errorf("DeleteSet: %w", err)
-// 	}
-// 	return nil
-// }
+//		edited, err := app.pool.EditTrainingSession(ctx, id, struct {
+//			DurationMin *int
+//			Start       *time.Time
+//		}(session))
+//		if errors.Is(err, data.ErrRowsNotFound) {
+//			return api.TrainingSummary{}, fmt.Errorf(
+//				"EditTrainingSession not found: %w",
+//				ErrNotFound,
+//			)
+//		} else if err != nil {
+//			return api.TrainingSummary{}, fmt.Errorf("EditTrainingSession: %w", err)
+//		}
+//
+//		return trainingToSummary(edited), nil
+//	}
+
+func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {
+	err := app.pool.DeleteSet(ctx, id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return fmt.Errorf("DeleteSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return fmt.Errorf("DeleteSet unknown error: %w", err)
+	}
+	return nil
+}
+
 //
 // func (app SwimLogsApp) EditSet(
 // 	ctx context.Context,

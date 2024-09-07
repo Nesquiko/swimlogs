@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,41 +12,69 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const styleIdsExists = `
-with ids as (select unnest($1::uuid[]) as id)
-select ids.id as id, s.id is not null as exists
-from ids left join styles s on ids.id = s.id;
-`
-
-type IdCheck struct {
-	Id     uuid.UUID
-	Exists bool
+func (pool *PostgresDbPool) PersistTraining(ctx context.Context, t Training) error {
+	return Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
+		err := persistTraining(ctx, t, tx)
+		if err != nil {
+			return fmt.Errorf("PersistTraining tx: %w", err)
+		}
+		return nil
+	})
 }
 
-func (psg *PostgresDbPool) StyleIdsExist(ctx context.Context, ids []uuid.UUID) ([]IdCheck, error) {
-	if len(ids) == 0 {
-		return nil, fmt.Errorf("StyleIdsExist empty ids")
+const selectTraining = `
+select
+    t.id, t.start, t.duration_min, t.created_at, t.modified_at,
+
+    s.id, s.set_order, s.repeat, s.distance_meters,  s.description,
+    s.start_type, s.start_seconds, s.equipment, s."group", s.is_main,
+    s.type, s.intensity, s.progression,
+    
+    set_style.id, set_style.name, set_style.exercise_name, set_style.exercise_description,
+
+    c.id, c.component_orders, c.iteration_order, c.repeat,
+    c.distance_meters, c.start_type, c.start_seconds, c.intensity,
+    c.progression, c.description, c.equipment, c."group",
+    
+    comp_style.id,  comp_style.name,  comp_style.exercise_name,  comp_style.exercise_description
+from trainings t
+         join sets s on t.id = s.training_id
+         left join styles set_style on s.style_id = set_style.id
+         left join set_components c on s.id = c.set_id
+         left join styles comp_style on c.style_id = comp_style.id
+where t.id = $1
+order by s.set_order
+`
+
+func (pgs *PostgresDbPool) TrainingById(ctx context.Context, id uuid.UUID) (Training, error) {
+	rows, err := pgs.pool.Query(ctx, selectTraining, id)
+	if err != nil {
+		return Training{}, fmt.Errorf("TrainingById query error: %w", err)
 	}
 
-	rows, err := psg.pool.Query(ctx, styleIdsExists, ids)
-	if err != nil {
-		return nil, fmt.Errorf("StyleIdsExist query error: %w", err)
-	}
-	checks := make([]IdCheck, 0, len(ids))
+	var t Training
 	for rows.Next() {
-		var check IdCheck
-		err = rows.Scan(&check.Id, &check.Exists)
+		err := scan(&t, rows)
 		if err != nil {
-			return nil, fmt.Errorf("StyleIdsExist scan error: %w", err)
+			return Training{}, fmt.Errorf("Training scanning error: %w", err)
 		}
-		checks = append(checks, check)
 	}
-	return checks, nil
+
+	if rows.Err() != nil {
+		return Training{}, fmt.Errorf("TrainingById rows error: %w", rows.Err())
+	}
+	rows.Close()
+
+	if rows.CommandTag().RowsAffected() == 0 {
+		return Training{}, fmt.Errorf("TrainingById id not found: %w", ErrRowsNotFound)
+	}
+
+	return t, nil
 }
 
 func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) error {
 	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
-		return pool.deleteTraining(ctx, id, tx)
+		return deleteTraining(ctx, id, tx)
 	})
 	if err != nil {
 		return fmt.Errorf("DeleteTraining: %w", err)
@@ -53,7 +82,216 @@ func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) er
 	return nil
 }
 
-func (pool *PostgresDbPool) deleteTraining(ctx context.Context, id uuid.UUID, tx pgx.Tx) error {
+func scan(training *Training, rows pgx.Rows) error {
+	t, s, c, err := scanAll(rows)
+
+	defer func() { *training = t }()
+
+	if err != nil {
+		return fmt.Errorf("scan scan all: %w", err)
+	}
+	t.Sets = training.Sets
+
+	if len(t.Sets) == 0 {
+		t.Sets = make([]TrainingSet, 1)
+		t.Sets[0] = s
+	}
+
+	if s.Id != t.Sets[len(t.Sets)-1].Id {
+		t.Sets = append(t.Sets, s)
+	}
+
+	if !c.Id.Valid {
+		return nil
+	}
+
+	lastSet := &t.Sets[len(t.Sets)-1]
+	if lastSet.Components == nil {
+		lastSet.Components = &[]SetComponent{}
+	}
+	comps := *lastSet.Components
+	comps = append(*lastSet.Components, c)
+	lastSet.Components = &comps
+
+	return nil
+}
+
+func scanAll(rows pgx.Rows) (Training, TrainingSet, SetComponent, error) {
+	var row joinedRow
+	dests := []any{
+		&row.TrainingId, &row.TrainingStart, &row.TrainingDurationMin,
+		&row.TrainingCreatedAt, &row.TrainingModifiedAt, &row.SetId,
+		&row.SetSetOrder, &row.SetRepeat, &row.SetDistanceMeters,
+		&row.SetDescription, &row.SetStartType, &row.SetStartSeconds,
+		&row.SetEquipment, &row.SetGroup, &row.SetIsMain, &row.SetSetType,
+		&row.SetIntensity, &row.SetProgression, &row.SetStyleId,
+		&row.SetStyleName, &row.SetStyleExeciseName, &row.SetStyleExeciseDescription,
+		&row.CompId, &row.CompOrders, &row.CompIterationOrder, &row.CompRepeat,
+		&row.CompDistanceMeters, &row.CompStartType, &row.CompStartSeconds,
+		&row.CompIntensity, &row.CompProgression, &row.CompDescription,
+		&row.CompEquipment, &row.CompGroup, &row.CompStyleId, &row.CompStyleName,
+		&row.CompStyleExeciseName, &row.CompStyleExeciseDescription,
+	}
+
+	err := rows.Scan(dests...)
+	if err != nil {
+		return Training{}, TrainingSet{}, SetComponent{}, fmt.Errorf("scanAll: %w", err)
+	}
+
+	return row.ToTraining(), row.ToTrainingSet(), row.ToSetComponent(), nil
+}
+
+type joinedRow struct {
+	TrainingId          uuid.UUID
+	TrainingStart       time.Time
+	TrainingDurationMin int
+	TrainingCreatedAt   time.Time
+	TrainingModifiedAt  time.Time
+
+	SetId             uuid.UUID
+	SetSetOrder       int
+	SetRepeat         int
+	SetDistanceMeters int
+	SetDescription    *string
+	SetStartType      *string
+	SetStartSeconds   *int
+	SetEquipment      *[]string
+	SetGroup          *string
+	SetIsMain         bool
+	SetSetType        string
+	SetIntensity      *string
+	SetProgression    *string
+
+	SetStyleId                 uuid.UUID
+	SetStyleName               sql.NullString
+	SetStyleExeciseName        *string
+	SetStyleExeciseDescription *string
+
+	CompId             uuid.NullUUID
+	CompOrders         []int
+	CompIterationOrder *int
+	CompRepeat         sql.NullInt64
+	CompDistanceMeters sql.NullInt64
+	CompStartType      *string
+	CompStartSeconds   *int
+	CompIntensity      *string
+	CompProgression    *string
+	CompDescription    *string
+	CompEquipment      *[]string
+	CompGroup          *string
+
+	CompStyleId                 uuid.UUID
+	CompStyleName               sql.NullString
+	CompStyleExeciseName        *string
+	CompStyleExeciseDescription *string
+}
+
+func (r joinedRow) ToTraining() Training {
+	return Training{
+		Id:          r.TrainingId,
+		Start:       r.TrainingStart,
+		DurationMin: r.TrainingDurationMin,
+		CreatedAt:   r.TrainingCreatedAt,
+		ModifiedAt:  r.TrainingModifiedAt,
+	}
+}
+
+func (r joinedRow) ToTrainingSet() TrainingSet {
+	s := TrainingSet{
+		Id:             r.SetId,
+		TrainingId:     r.TrainingId,
+		SetOrder:       r.SetSetOrder,
+		Repeat:         r.SetRepeat,
+		DistanceMeters: r.SetDistanceMeters,
+		Description:    r.SetDescription,
+		Equipment:      r.SetEquipment,
+		StartType:      r.SetStartType,
+		StartSeconds:   r.SetStartSeconds,
+		Group:          r.SetGroup,
+		IsMain:         r.SetIsMain,
+		SetType:        r.SetSetType,
+		Intensity:      r.SetIntensity,
+		Progression:    r.SetProgression,
+	}
+
+	if r.SetStyleId != uuid.Nil {
+		s.Style = &Style{
+			Id:                 r.SetStyleId,
+			Name:               r.SetStyleName.String,
+			ExeciseName:        r.SetStyleExeciseName,
+			ExeciseDescription: r.SetStyleExeciseDescription,
+		}
+		s.StyleId = &s.Style.Id
+	}
+
+	return s
+}
+
+func (r joinedRow) ToSetComponent() SetComponent {
+	c := SetComponent{
+		Id:             r.CompId,
+		SetId:          r.SetId,
+		Orders:         r.CompOrders,
+		IterationOrder: r.CompIterationOrder,
+		Repeat:         int(r.CompRepeat.Int64),
+		DistanceMeters: int(r.CompDistanceMeters.Int64),
+		Equipment:      r.CompEquipment,
+		StartType:      r.CompStartType,
+		StartSeconds:   r.CompStartSeconds,
+		Group:          r.CompGroup,
+		Intensity:      r.CompIntensity,
+		Progression:    r.CompProgression,
+		Description:    r.CompDescription,
+	}
+
+	if r.CompStyleId != uuid.Nil {
+		c.Style = &Style{
+			Id:                 r.CompStyleId,
+			Name:               r.CompStyleName.String,
+			ExeciseName:        r.CompStyleExeciseName,
+			ExeciseDescription: r.CompStyleExeciseDescription,
+		}
+		c.StyleId = &c.Style.Id
+	}
+
+	return c
+}
+
+const insertTraining = `
+insert into trainings (id, start, duration_min, created_at, modified_at)
+values ($1, $2, $3, now(), now())
+`
+
+func persistTraining(ctx context.Context, t Training, tx pgx.Tx) error {
+	_, err := tx.Exec(ctx, insertTraining, t.Id, t.Start, t.DurationMin)
+	if err != nil {
+		return fmt.Errorf("persistTraining persisting training: %w", err)
+	}
+
+	for i, s := range t.Sets {
+		err := persistSet(ctx, tx, s)
+		if err != nil {
+			return fmt.Errorf("persistTraining set %d: %w", i, err)
+		}
+	}
+
+	return nil
+}
+
+func trainingIdBySetId(ctx context.Context, setId uuid.UUID, tx pgx.Tx) (uuid.UUID, error) {
+	var trainingId uuid.UUID
+	err := tx.QueryRow(ctx, "select training_id from sets where id = $1", setId).Scan(&trainingId)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.UUID{}, fmt.Errorf("trainingIdBySetId not found: %w", ErrRowsNotFound)
+	} else if err != nil {
+		return uuid.UUID{}, fmt.Errorf("trainingIdBySetId: %w", err)
+	}
+
+	return trainingId, nil
+}
+
+func deleteTraining(ctx context.Context, id uuid.UUID, tx pgx.Tx) error {
 	ct, err := tx.Exec(ctx, "delete from trainings where id = $1", id)
 	if err != nil {
 		return fmt.Errorf("deleteTraining: %w", err)
@@ -247,79 +485,6 @@ func (pool *PostgresDbPool) editTrainingSession(
 	return t, nil
 }
 
-func (pool *PostgresDbPool) DeleteSet(ctx context.Context, id uuid.UUID) error {
-	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
-		return pool.deleteSet(ctx, id, tx)
-	})
-	if err != nil {
-		return fmt.Errorf("DeleteSet: %w", err)
-	}
-	return nil
-}
-
-const reorderRemainingSets = `
-with to_be_deleted as (select * from sets s where s.id = $1)
-update sets
-set set_order = sets.set_order - 1
-from to_be_deleted
-where sets.set_order > to_be_deleted.set_order and sets.training_id = to_be_deleted.training_id
-`
-
-func (pool *PostgresDbPool) deleteSet(ctx context.Context, id uuid.UUID, tx pgx.Tx) error {
-	trainingId, err := pool.trainingIdBySetId(ctx, id, tx)
-	if err != nil {
-		return fmt.Errorf("deleteSet retrieve training id query: %w", err)
-	}
-
-	ct, err := tx.Exec(ctx, reorderRemainingSets, id)
-	if err != nil {
-		return fmt.Errorf("deleteSet reorder query: %w", err)
-	}
-
-	ct, err = tx.Exec(ctx, "delete from sets where id = $1", id)
-	if err != nil {
-		return fmt.Errorf("deleteSet delete query: %w", err)
-	} else if ct.RowsAffected() == 0 {
-		return fmt.Errorf("deleteSet delete query set not found: %w", ErrRowsNotFound)
-	}
-
-	setsCount, err := pool.countTrainingSets(ctx, trainingId, tx)
-	if err != nil {
-		return fmt.Errorf("deleteSet set count: %w", err)
-	}
-
-	if setsCount != 0 {
-		return nil
-	}
-
-	err = pool.deleteTraining(ctx, trainingId, tx)
-	if err != nil {
-		return fmt.Errorf("deleteSet delete training: %w", err)
-	}
-
-	return nil
-}
-
-const setCountInTraining = `
-select count(*)
-    from trainings t
-    join sets s on t.id = s.training_id
-where t.id = $1
-`
-
-func (pool *PostgresDbPool) countTrainingSets(
-	ctx context.Context,
-	trainingId uuid.UUID,
-	tx pgx.Tx,
-) (int, error) {
-	count := -1
-	err := tx.QueryRow(ctx, setCountInTraining, trainingId).Scan(&count)
-	if err != nil {
-		return -1, fmt.Errorf("countTrainingSets query: %w", err)
-	}
-	return count, nil
-}
-
 func (pool *PostgresDbPool) EditSet(
 	ctx context.Context,
 	id uuid.UUID,
@@ -423,7 +588,7 @@ func (pool *PostgresDbPool) editSet(
 		return TrainingSet{}, 0, fmt.Errorf("editSet update query error: %w, id: %s", err, s.Id)
 	}
 
-	trainingId, err := pool.trainingIdBySetId(ctx, id, tx)
+	trainingId, err := trainingIdBySetId(ctx, id, tx)
 	if err != nil {
 		return TrainingSet{}, 0, fmt.Errorf("editSet retrieve training id query: %w", err)
 	}
@@ -495,27 +660,10 @@ func (pool *PostgresDbPool) TrainingIdBySetId(
 	setId uuid.UUID,
 ) (uuid.UUID, error) {
 	id, err := TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (uuid.UUID, error) {
-		return pool.trainingIdBySetId(ctx, setId, tx)
+		return trainingIdBySetId(ctx, setId, tx)
 	})
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("TrainingIdBySetId: %w", err)
 	}
 	return id, nil
-}
-
-func (pool *PostgresDbPool) trainingIdBySetId(
-	ctx context.Context,
-	setId uuid.UUID,
-	tx pgx.Tx,
-) (uuid.UUID, error) {
-	var trainingId uuid.UUID
-	err := tx.QueryRow(ctx, "select training_id from sets where id = $1", setId).Scan(&trainingId)
-
-	if errors.Is(err, pgx.ErrNoRows) {
-		return uuid.UUID{}, fmt.Errorf("trainingIdBySetId not found: %w", ErrRowsNotFound)
-	} else if err != nil {
-		return uuid.UUID{}, fmt.Errorf("trainingIdBySetId: %w", err)
-	}
-
-	return trainingId, nil
 }
