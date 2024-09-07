@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -73,7 +74,28 @@ func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-//
+func (app SwimLogsApp) EditTrainingSession(
+	ctx context.Context,
+	id uuid.UUID,
+	session api.EditSessionRequest,
+) (api.TrainingSummary, error) {
+	edited, err := app.pool.EditTrainingSession(ctx, id, struct {
+		DurationMinutes *int
+		Start           *time.Time
+	}(session))
+
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.TrainingSummary{}, fmt.Errorf(
+			"EditTrainingSession not found: %w",
+			ErrNotFound,
+		)
+	} else if err != nil {
+		return api.TrainingSummary{}, fmt.Errorf("EditTrainingSession: %w", err)
+	}
+
+	return trainingToSummary(edited, false), nil
+}
+
 // func (app SwimLogsApp) TrainingSummariesPage(
 //
 //	ctx context.Context,
@@ -96,34 +118,6 @@ func (app SwimLogsApp) DeleteTraining(ctx context.Context, id uuid.UUID) error {
 //		}
 //
 //		return summaries, total, nil
-//	}
-//
-// func (app SwimLogsApp) EditTrainingSession(
-//
-//	ctx context.Context,
-//	id uuid.UUID,
-//	session api.EditSessionRequest,
-//
-//	) (api.TrainingSummary, error) {
-//		validationErr := validateEditSessionRequest(session)
-//		if validationErr != nil {
-//			return api.TrainingSummary{}, validationErr
-//		}
-//
-//		edited, err := app.pool.EditTrainingSession(ctx, id, struct {
-//			DurationMin *int
-//			Start       *time.Time
-//		}(session))
-//		if errors.Is(err, data.ErrRowsNotFound) {
-//			return api.TrainingSummary{}, fmt.Errorf(
-//				"EditTrainingSession not found: %w",
-//				ErrNotFound,
-//			)
-//		} else if err != nil {
-//			return api.TrainingSummary{}, fmt.Errorf("EditTrainingSession: %w", err)
-//		}
-//
-//		return trainingToSummary(edited), nil
 //	}
 
 func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {

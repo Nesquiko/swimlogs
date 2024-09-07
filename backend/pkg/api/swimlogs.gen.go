@@ -297,10 +297,10 @@ type TrainingSet struct {
 
 // TrainingSummary defines model for TrainingSummary.
 type TrainingSummary struct {
-	// DurationMin How long does the session last, in minutes
-	DurationMin int                `json:"durationMin"`
-	Id          openapi_types.UUID `json:"id"`
-	MainSets    *[]TrainingSet     `json:"mainSets,omitempty"`
+	// DurationMinutes How long does the session last, in minutes
+	DurationMinutes int                `json:"durationMinutes"`
+	Id              openapi_types.UUID `json:"id"`
+	MainSets        *[]TrainingSet     `json:"mainSets,omitempty"`
 
 	// Start On what date and time does the training occur
 	Start time.Time `json:"start"`
@@ -1178,17 +1178,17 @@ var swaggerSpec = []string{
 	"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",
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

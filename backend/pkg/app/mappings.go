@@ -258,3 +258,32 @@ func dataStyleToApiStyle(s data.Style) *api.Style {
 		ExecriseDescription: s.ExeciseDescription,
 	}
 }
+
+func trainingToSummary(t data.Training, withMainSets bool) api.TrainingSummary {
+	totalDistance := 0
+
+	ts := api.TrainingSummary{
+		Id:              t.Id,
+		Start:           t.Start,
+		DurationMinutes: t.DurationMin,
+	}
+
+	if len(t.Sets) == 0 {
+		totalDistance = t.TotalDistance
+	} else {
+		mainSets := make([]api.TrainingSet, 0)
+		for _, s := range t.Sets {
+			totalDistance += s.Repeat * s.DistanceMeters
+			if s.IsMain && withMainSets {
+				mainSets = append(mainSets, dataSetToApiSet(s))
+			}
+		}
+
+		if withMainSets {
+			ts.MainSets = &mainSets
+		}
+	}
+	ts.TotalDistance = totalDistance
+
+	return ts
+}

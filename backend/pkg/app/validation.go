@@ -42,41 +42,6 @@ const (
 	Progression = "Progression"
 )
 
-var (
-	EquipmentSet = map[api.EquipmentEnum]bool{
-		api.Board:   true,
-		api.Fins:    true,
-		api.Monofin: true,
-		api.Paddles: true,
-		api.Snorkel: true,
-	}
-	GroupSet = map[api.GroupEnum]bool{
-		api.Bifi:   true,
-		api.Long:   true,
-		api.Middle: true,
-		api.Mono:   true,
-		api.Sprint: true,
-	}
-	TypeSet = map[api.TypeEnum]bool{
-		api.Normal:   true,
-		api.Compound: true,
-		api.Pyramid:  true,
-	}
-	ProgressionSet = map[api.ProgressionEnum]bool{
-		api.Asc:  true,
-		api.Desc: true,
-	}
-	IntensitySet = map[api.IntensityEnum]bool{
-		api.Rec: true,
-		api.En1: true,
-		api.En2: true,
-		api.En3: true,
-		api.Sp1: true,
-		api.Sp2: true,
-		api.Sp3: true,
-	}
-)
-
 type ValidationError struct {
 	api.ErrorDetail
 }
@@ -85,56 +50,7 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("error %q, status %d, detail %q", e.Title, e.Status, e.Detail)
 }
 
-const (
-	InvalidNewOrderSetCode   = "invalid.setorder"
-	InvalidNewOrderSetTitle  = "New set order is invalid"
-	InvalidNewOrderSetDetail = "Set order must be between 0 and %d, was %d"
-)
-
-func validateNewSetOrder(newSetOrder int) *ValidationError {
-	if newSetOrder < 0 || newSetOrder > data.SmallIntMax {
-		return &ValidationError{
-			ErrorDetail: api.ErrorDetail{
-				Title:  InvalidNewOrderSetTitle,
-				Code:   InvalidNewOrderSetCode,
-				Detail: fmt.Sprintf(InvalidNewOrderSetDetail, data.SmallIntMax, newSetOrder),
-				Status: http.StatusBadRequest,
-			},
-		}
-	}
-	return nil
-}
-
-const (
-	InvalidEditSessionRequestCode  = "invalid.session"
-	InvalidEditSessionRequestTitle = "Invalid edit session"
-	NoSessionChangesDetail         = "Request contained no changes start nor duration changes."
-)
-
-func validateEditSessionRequest(req api.EditSessionRequest) *ValidationError {
-	if allNilFields(req) {
-		return invalidSession(NoSessionChangesDetail)
-	}
-
-	if req.DurationMinutes != nil &&
-		(*req.DurationMinutes <= 0 || *req.DurationMinutes > data.SmallIntMax) {
-		return invalidSession(
-			fmt.Sprintf(DurationErrorDetail, data.SmallIntMax, *req.DurationMinutes),
-		)
-	}
-
-	if req.Start != nil && req.Start.IsZero() {
-		return invalidSession(fmt.Sprintf(StartErrorDetail, req.Start))
-	}
-
-	return nil
-}
-
 func validateNewTraining(nt api.NewTraining) *ValidationError {
-	if nt.Start.IsZero() {
-		return invalidTraining(fmt.Sprintf(StartErrorDetail, nt.Start))
-	}
-
 	uniqueSetOrders := make(map[int]bool)
 	for _, s := range nt.Sets {
 		if uniqueSetOrders[s.SetOrder] {
@@ -188,17 +104,6 @@ const NoSetChangesDetail = "Request contained no changes to set."
 //
 // 	return nil
 // }
-
-func invalidSession(detail string) *ValidationError {
-	return &ValidationError{
-		ErrorDetail: api.ErrorDetail{
-			Title:  InvalidEditSessionRequestTitle,
-			Code:   InvalidEditSessionRequestCode,
-			Detail: detail,
-			Status: http.StatusBadRequest,
-		},
-	}
-}
 
 func invalidTraining(detail string) *ValidationError {
 	return &ValidationError{
@@ -268,7 +173,7 @@ func nonUniqueSetOrder(setOrder int) *ValidationError {
 	}
 }
 
-func allNilFields(s any) bool {
+func AllNilFields(s any) bool {
 	structType := reflect.TypeOf(s)
 	if structType.Kind() != reflect.Struct {
 		return false

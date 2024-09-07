@@ -109,11 +109,56 @@ func (s SwimLogsServer) DeleteSet(w http.ResponseWriter, r *http.Request, id uui
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s SwimLogsServer) EditSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+func (s SwimLogsServer) EditTrainingSession(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+	request, decodeErr := Decode[api.EditSessionRequest](w, r)
+	if decodeErr != nil {
+		encodeError(w, decodeErr)
+		return
+	}
+
+	if app.AllNilFields(request) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	t, err := s.app.EditTrainingSession(r.Context(), id, request)
+	if err != nil {
+		if validationErr, ok := err.(*app.ValidationError); ok {
+			apiErr := fromValidationError(validationErr)
+			slog.Warn("invalid training session", slog.String("error", validationErr.Error()))
+			encodeError(w, apiErr)
+			return
+		}
+
+		if errors.Is(err, app.ErrNotFound) {
+			slog.Warn("training not found",
+				slog.String("error", NotFoundCode),
+				slog.String("id", id.String()))
+			encodeError(w, notFoundId("training", id))
+			return
+		}
+
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "EditTrainingSession"),
+		)
+		encodeError(w, internalServerError())
+		return
+	}
+
+	encode(w, http.StatusOK, t)
+}
+
+func (s SwimLogsServer) SummariesPage(
+	w http.ResponseWriter,
+	r *http.Request,
+	params api.SummariesPageParams,
+) {
 	panic("unimplemented")
 }
 
-func (s SwimLogsServer) EditTrainingSession(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+func (s SwimLogsServer) EditSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
 	panic("unimplemented")
 }
 
@@ -122,14 +167,6 @@ func (s SwimLogsServer) MoveSet(w http.ResponseWriter, r *http.Request, id uuid.
 }
 
 func (s SwimLogsServer) ReplaceSetComponents(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
-	panic("unimplemented")
-}
-
-func (s SwimLogsServer) SummariesPage(
-	w http.ResponseWriter,
-	r *http.Request,
-	params api.SummariesPageParams,
-) {
 	panic("unimplemented")
 }
 

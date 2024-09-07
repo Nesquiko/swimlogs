@@ -435,8 +435,8 @@ func (pool *PostgresDbPool) EditTrainingSession(
 	ctx context.Context,
 	id uuid.UUID,
 	session struct {
-		DurationMin *int
-		Start       *time.Time
+		DurationMinutes *int
+		Start           *time.Time
 	},
 ) (Training, error) {
 	return TxWithResult(ctx, pool, func(ctx context.Context, tx pgx.Tx) (Training, error) {
@@ -467,13 +467,13 @@ func (pool *PostgresDbPool) editTrainingSession(
 	ctx context.Context,
 	id uuid.UUID,
 	session struct {
-		DurationMin *int
-		Start       *time.Time
+		DurationMinutes *int
+		Start           *time.Time
 	},
 	tx pgx.Tx,
 ) (Training, error) {
 	t := Training{}
-	err := tx.QueryRow(ctx, updateTrainingSession, id, session.Start, session.DurationMin).
+	err := tx.QueryRow(ctx, updateTrainingSession, id, session.Start, session.DurationMinutes).
 		Scan(&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt, &t.TotalDistance)
 
 	if errors.Is(err, pgx.ErrNoRows) {
