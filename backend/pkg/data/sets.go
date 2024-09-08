@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -15,6 +16,19 @@ func (pool *PostgresDbPool) DeleteSet(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("DeleteSet: %w", err)
 	}
+	return nil
+}
+
+func (pool *PostgresDbPool) EditSet(ctx context.Context, id uuid.UUID, s EmptyTrainingSet) error {
+	err := Tx(
+		ctx,
+		pool,
+		func(ctx context.Context, tx pgx.Tx) error { return editSet(ctx, id, s, tx) },
+	)
+	if err != nil {
+		return fmt.Errorf("EditSet: %w", err)
+	}
+
 	return nil
 }
 
@@ -108,4 +122,62 @@ func persistSet(ctx context.Context, tx pgx.Tx, s TrainingSet) error {
 	}
 
 	return nil
+}
+
+const updateSet = `
+update sets
+   set
+    -- not nullable
+       repeat = coalesce($5, repeat),
+       distance_meters = coalesce($6, distance_meters),
+       is_main = coalesce($7, is_main),
+       type = coalesce($8, type),
+       equipment = coalesce($9, equipment),
+
+    -- nullable
+       description = case when $10 = $2 then null else coalesce($10::text, description) end,
+       start_type = case when $11 = $2 then null else coalesce($11::start_type, start_type) end,
+       start_seconds = case when $12::smallint = $4::smallint then null else coalesce($12::smallint, start_seconds) end,
+       "group" = case when $13 = $2 then null else coalesce($13::set_group, "group") end,
+       intensity = case when $14 = $2 then null else coalesce($14::set_intensity, intensity) end,
+       progression = case when $15 = $2 then null else coalesce($15::set_progression, progression) end,
+       style_id = case when $16 = $3 then null else coalesce($16::uuid, style_id) end
+where id = $1
+`
+
+func editSet(ctx context.Context, id uuid.UUID, s EmptyTrainingSet, tx pgx.Tx) error {
+	exists, err := setExists(ctx, id, tx)
+	if err != nil {
+		return fmt.Errorf("editSet set exists check: %w", err)
+	} else if !exists {
+		return fmt.Errorf("editSet not found: %w", ErrRowsNotFound)
+	}
+
+	args := []any{
+		id, NullStringValue, uuid.Nil, NullIntValue,
+		s.Repeat, s.DistanceMeters, s.IsMain, s.SetType, s.Equipment,
+
+		s.Description, s.StartType, s.StartSeconds, s.Group, s.Intensity,
+		s.Progression, s.StyleId,
+	}
+
+	ct, err := tx.Exec(ctx, updateSet, args...)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("editSet not found: %w", ErrRowsNotFound)
+	} else if err != nil {
+		return fmt.Errorf("editSet update query error: %w, id: %s", err, s.Id)
+	} else if ct.RowsAffected() == 0 {
+		return fmt.Errorf("editSet not found: %w", ErrRowsNotFound)
+	}
+
+	return nil
+}
+
+func setExists(ctx context.Context, id uuid.UUID, tx pgx.Tx) (bool, error) {
+	var exists bool
+	err := tx.QueryRow(ctx, "select exists(select 1 from sets where id = $1)", id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("setExists: %w", err)
+	}
+	return exists, nil
 }

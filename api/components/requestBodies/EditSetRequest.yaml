@@ -10,3 +10,15 @@ content:
             styleId:
               type: string
               format: uuid
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            equipment:
+              type: array
+              items:
+                $ref: "../schemas/enums/EquipmentEnum.yaml"
+            start:
+              nullable: true
+              allOf:
+                - $ref: "../schemas/start/Start.yaml"

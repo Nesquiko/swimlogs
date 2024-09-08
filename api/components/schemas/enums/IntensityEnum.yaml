@@ -7,3 +7,4 @@ enum:
   - sp1
   - sp2
   - sp3
+nullable: true

@@ -181,7 +181,7 @@ func (psg *PostgresDbPool) TrainingSummaries(
 	lastTrainingId := uuid.UUID{}
 	for rows.Next() {
 		t := Training{}
-		s := emptyTrainingSet{}
+		s := EmptyTrainingSet{}
 
 		scanArgs := []any{
 			&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt, &t.TotalDistance,
@@ -267,123 +267,6 @@ func (pool *PostgresDbPool) editTrainingSession(
 	}
 
 	return t, nil
-}
-
-func (pool *PostgresDbPool) EditSet(
-	ctx context.Context,
-	id uuid.UUID,
-	s struct {
-		Repeat         *int
-		DistanceMeters *int
-		Description    *string
-		Equipment      *[]string
-		StartType      *string
-		StartSeconds   *int
-		Group          *string
-		IsMain         *bool
-	},
-) (TrainingSet, int, error) {
-	result, err := TxWithResult(
-		ctx,
-		pool,
-		func(ctx context.Context, tx pgx.Tx) (struct {
-			set               TrainingSet
-			trainingTotalDist int
-		}, error,
-		) {
-			set, trainingTotalDist, err := pool.editSet(ctx, id, s, tx)
-			return struct {
-				set               TrainingSet
-				trainingTotalDist int
-			}{set, trainingTotalDist}, err
-		},
-	)
-	if err != nil {
-		return TrainingSet{}, 0, fmt.Errorf("EditSet: %w", err)
-	}
-
-	return result.set, result.trainingTotalDist, nil
-}
-
-const updateSet = `
-update sets
-   set repeat = coalesce($2, repeat),
-       distance_meters = coalesce($3, distance_meters),
-       description = coalesce($4, description),
-       start_type = coalesce($5, start_type),
-       start_seconds = coalesce($6, start_seconds),
-       equipment = coalesce($7, equipment),
-       "group" = coalesce($8, "group"),
-       is_main = coalesce($9, is_main)
-where id = $1
-returning id, training_id, set_order, repeat, distance_meters, description, start_type, start_seconds, equipment, "group", is_main
-`
-
-const totalDistanceInTraining = `
-select sum(s.repeat * s.distance_meters)
-from trainings t join sets s on t.id = s.training_id
-where t.id = $1;
-`
-
-func (pool *PostgresDbPool) editSet(
-	ctx context.Context,
-	id uuid.UUID,
-	edited struct {
-		Repeat         *int
-		DistanceMeters *int
-		Description    *string
-		Equipment      *[]string
-		StartType      *string
-		StartSeconds   *int
-		Group          *string
-		IsMain         *bool
-	},
-	tx pgx.Tx,
-) (TrainingSet, int, error) {
-	s := TrainingSet{}
-	err := tx.QueryRow(
-		ctx,
-		updateSet,
-		id,
-		edited.Repeat,
-		edited.DistanceMeters,
-		edited.Description,
-		edited.StartType,
-		edited.StartSeconds,
-		edited.Equipment,
-		edited.Group,
-		edited.IsMain,
-	).Scan(
-		&s.Id,
-		&s.TrainingId,
-		&s.SetOrder,
-		&s.Repeat,
-		&s.DistanceMeters,
-		&s.Description,
-		&s.StartType,
-		&s.StartSeconds,
-		&s.Equipment,
-		&s.Group,
-		&s.IsMain,
-	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return TrainingSet{}, 0, fmt.Errorf("editSet not found: %w", ErrRowsNotFound)
-	} else if err != nil {
-		return TrainingSet{}, 0, fmt.Errorf("editSet update query error: %w, id: %s", err, s.Id)
-	}
-
-	trainingId, err := trainingIdBySetId(ctx, id, tx)
-	if err != nil {
-		return TrainingSet{}, 0, fmt.Errorf("editSet retrieve training id query: %w", err)
-	}
-
-	trainingTotalDist := 0
-	err = tx.QueryRow(ctx, totalDistanceInTraining, trainingId).Scan(&trainingTotalDist)
-	if err != nil {
-		return TrainingSet{}, 0, fmt.Errorf("editSet sum query error: %w", err)
-	}
-
-	return s, trainingTotalDist, nil
 }
 
 const moveSets = `

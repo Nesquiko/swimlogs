@@ -6,3 +6,5 @@ generate:
 compatibility:
   apply-chi-middleware-first-to-last: true
 output: swimlogs.gen.go
+output-options:
+  nullable-type: true

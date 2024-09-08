@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/nullable"
 
 	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/data"
@@ -34,12 +35,24 @@ func newSetToDataSet(s api.NewTrainingSet, tId uuid.UUID) data.TrainingSet {
 		Repeat:         s.Repeat,
 		DistanceMeters: s.DistanceMeters,
 		Description:    s.Description,
-		Group:          (*string)(s.Group),
 		SetType:        string(s.Type),
-		Intensity:      (*string)(s.Intensity),
-		Progression:    (*string)(s.Progression),
 		SetOrder:       s.SetOrder,
 		StyleId:        s.StyleId,
+	}
+
+	if s.Group.IsSpecified() {
+		group := s.Group.MustGet()
+		set.Group = (*string)(&group)
+	}
+
+	if s.Intensity.IsSpecified() {
+		intensity := s.Intensity.MustGet()
+		set.Intensity = (*string)(&intensity)
+	}
+
+	if s.Progression.IsSpecified() {
+		progression := s.Progression.MustGet()
+		set.Progression = (*string)(&progression)
 	}
 
 	if s.Equipment != nil && len(*s.Equipment) != 0 {
@@ -86,14 +99,16 @@ func mapApiStart(typ **string, seconds **int, start api.Start) {
 	}
 	**typ = startType
 
-	if startType == string(api.LastFinishes) {
+	if startType == string(api.LastFinishesTypeLastFinishes) {
 		return
 	}
 
-	secs, err := start.AsStartWithSeconds()
+	// this is AsInterval, because both pause and interval have seconds,
+	// and if this was pause, then the pause type is set from discriminator
+	secs, err := start.AsInterval()
 	if err != nil {
 		slog.Error(
-			"received error from start.AsStartWithSeconds, not setting seconds value",
+			"received error from start.AsInterval, not setting seconds value",
 			slog.String("error", err.Error()),
 		)
 		return
@@ -108,21 +123,24 @@ func mapApiStart(typ **string, seconds **int, start api.Start) {
 func mapDataStart(typ string, seconds *int) *api.Start {
 	start := api.Start{}
 
-	if typ == string(api.LastFinishes) {
-		start.FromStartWithoutSeconds(api.StartWithoutSeconds{Type: api.LastFinishes})
+	if typ == string(api.LastFinishesTypeLastFinishes) {
+		start.FromLastFinishes(api.LastFinishes{Type: api.LastFinishesTypeLastFinishes})
 		return &start
-	}
-
-	withSeconds := api.StartWithSeconds{
-		Type: api.StartWithSecondsType(typ),
 	}
 	if seconds == nil {
 		slog.Error("mapDataStart seconds should not be nil", slog.String("type", typ))
-	} else {
-		withSeconds.Seconds = *seconds
+		return nil
 	}
 
-	start.FromStartWithSeconds(withSeconds)
+	if typ == string(api.PauseTypePause) {
+		start.FromPause(api.Pause{Type: api.PauseTypePause, Seconds: *seconds})
+	} else if typ == string(api.IntervalTypeInterval) {
+		start.FromInterval(api.Interval{Type: api.IntervalTypeInterval, Seconds: *seconds})
+	} else {
+		slog.Error("mapDataStart unknown type", "type", typ)
+		return nil
+	}
+
 	return &start
 }
 
@@ -133,11 +151,24 @@ func newCompToDataComp(c api.NewSetComponent, setId uuid.UUID) data.SetComponent
 		Orders:         c.ComponentOrders,
 		Repeat:         c.Repeat,
 		DistanceMeters: c.DistanceMeters,
-		Intensity:      (*string)(c.Intensity),
-		Progression:    (*string)(c.Progression),
 		Description:    c.Description,
 		IterationOrder: c.IterationOrder,
 		StyleId:        c.StyleId,
+	}
+
+	if c.Group.IsSpecified() {
+		group := c.Group.MustGet()
+		comp.Group = (*string)(&group)
+	}
+
+	if c.Intensity.IsSpecified() {
+		intensity := c.Intensity.MustGet()
+		comp.Intensity = (*string)(&intensity)
+	}
+
+	if c.Progression.IsSpecified() {
+		progression := c.Progression.MustGet()
+		comp.Progression = (*string)(&progression)
 	}
 
 	if c.Start != nil {
@@ -182,12 +213,21 @@ func dataSetToApiSet(s data.TrainingSet) api.TrainingSet {
 		Repeat:         s.Repeat,
 		DistanceMeters: s.DistanceMeters,
 		Description:    s.Description,
-		Group:          (*api.GroupEnum)(s.Group),
 		IsMain:         s.IsMain,
 		Type:           api.TypeEnum(s.SetType),
-		Intensity:      (*api.IntensityEnum)(s.Intensity),
-		Progression:    (*api.ProgressionEnum)(s.Progression),
 		TotalDistance:  s.Repeat * s.DistanceMeters,
+	}
+
+	if s.Group != nil {
+		set.Group = nullable.NewNullableWithValue(api.GroupEnum(*s.Group))
+	}
+
+	if s.Intensity != nil {
+		set.Intensity = nullable.NewNullableWithValue(api.IntensityEnum(*s.Intensity))
+	}
+
+	if s.Progression != nil {
+		set.Progression = nullable.NewNullableWithValue(api.ProgressionEnum(*s.Progression))
 	}
 
 	if s.StartType != nil {
@@ -225,9 +265,18 @@ func dataCompToApiComp(c data.SetComponent) api.SetComponent {
 		Repeat:          c.Repeat,
 		DistanceMeters:  c.DistanceMeters,
 		Description:     c.Description,
-		Group:           (*api.GroupEnum)(c.Group),
-		Intensity:       (*api.IntensityEnum)(c.Intensity),
-		Progression:     (*api.ProgressionEnum)(c.Progression),
+	}
+
+	if c.Group != nil {
+		comp.Group = nullable.NewNullableWithValue(api.GroupEnum(*c.Group))
+	}
+
+	if c.Intensity != nil {
+		comp.Intensity = nullable.NewNullableWithValue(api.IntensityEnum(*c.Intensity))
+	}
+
+	if c.Progression != nil {
+		comp.Progression = nullable.NewNullableWithValue(api.ProgressionEnum(*c.Progression))
 	}
 
 	if c.StartType != nil {
@@ -285,4 +334,66 @@ func trainingToSummary(t data.Training, withMainSets bool) api.TrainingSummary {
 	ts.TotalDistance = totalDistance
 
 	return ts
+}
+
+func editSetToEmptySet(edited api.EditSetRequest) data.EmptyTrainingSet {
+	changes := data.EmptyTrainingSet{
+		Repeat:         edited.Repeat,
+		DistanceMeters: edited.DistanceMeters,
+		IsMain:         edited.IsMain,
+		SetType:        (*string)(edited.Type),
+	}
+
+	if edited.Description.IsNull() {
+		changes.Description = &data.NullStringValue
+	} else if edited.Description.IsSpecified() {
+		desc := edited.Description.MustGet()
+		changes.Description = &desc
+	}
+
+	if edited.Group.IsNull() {
+		changes.Group = &data.NullStringValue
+	} else if edited.Group.IsSpecified() {
+		g := edited.Group.MustGet()
+		changes.Group = (*string)(&g)
+	}
+
+	if edited.Equipment != nil && len(*edited.Equipment) != 0 {
+		var equipment []string = nil
+		for _, e := range *edited.Equipment {
+			equipment = append(equipment, string(e))
+		}
+		changes.Equipment = &equipment
+	}
+
+	if edited.Start.IsNull() {
+		changes.StartType = &data.NullStringValue
+		changes.StartSeconds = &data.NullIntValue
+	} else if edited.Start.IsSpecified() {
+		start := edited.Start.MustGet()
+		mapApiStart(&changes.StartType, &changes.StartSeconds, start)
+	}
+
+	if edited.Intensity.IsNull() {
+		changes.Intensity = &data.NullStringValue
+	} else if edited.Intensity.IsSpecified() {
+		intensity := edited.Intensity.MustGet()
+		changes.Intensity = (*string)(&intensity)
+	}
+
+	if edited.Progression.IsNull() {
+		changes.Progression = &data.NullStringValue
+	} else if edited.Progression.IsSpecified() {
+		progression := edited.Progression.MustGet()
+		changes.Progression = (*string)(&progression)
+	}
+
+	if edited.StyleId.IsNull() {
+		changes.StyleId = &uuid.Nil
+	} else if edited.StyleId.IsSpecified() {
+		styleId := edited.StyleId.MustGet()
+		changes.StyleId = &styleId
+	}
+
+	return changes
 }

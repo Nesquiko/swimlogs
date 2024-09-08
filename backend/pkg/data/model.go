@@ -42,7 +42,12 @@ type TrainingSet struct {
 	Components *[]SetComponent
 }
 
-type emptyTrainingSet struct {
+var (
+	NullStringValue = "NullStringValue"
+	NullIntValue    = -32767
+)
+
+type EmptyTrainingSet struct {
 	Id             *uuid.UUID
 	TrainingId     *uuid.UUID
 	SetOrder       *int
@@ -62,7 +67,7 @@ type emptyTrainingSet struct {
 	Style emptyStyle
 }
 
-func (s emptyTrainingSet) intoTrainingSet() TrainingSet {
+func (s EmptyTrainingSet) intoTrainingSet() TrainingSet {
 	if s.Id == nil {
 		slog.Error("emptyTrainingSet.intoTrainingSet: called without checking if Id is nil")
 		return TrainingSet{}

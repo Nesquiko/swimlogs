@@ -77,34 +77,6 @@ func checkStyleIdsExist(idChecks []data.IdCheck) *ValidationError {
 
 const NoSetChangesDetail = "Request contained no changes to set."
 
-// func validateEditSetRequest(set api.EditSetRequest) *ValidationError {
-// 	if allNilFields(set) {
-// 		return invalidEditSet(NoSetChangesDetail)
-// 	}
-//
-// 	if set.Repeat != nil && (*set.Repeat < 1 || *set.Repeat > data.SmallIntMax) {
-// 		return invalidEditSet(fmt.Sprintf(RepeatErrorDetail, data.SmallIntMax, *set.Repeat))
-// 	} else if set.DistanceMeters != nil && (*set.DistanceMeters <= 0 || *set.DistanceMeters > data.SmallIntMax) {
-// 		return invalidEditSet(fmt.Sprintf(DistanceErrorDetail, data.SmallIntMax, *set.DistanceMeters))
-// 	} else if set.StartType != nil && !StartTypesSet[*set.StartType] {
-// 		return invalidEditSet(fmt.Sprintf(StartTypeUnknownErrorDetail, api.Interval, api.Pause, *set.StartType))
-// 	} else if set.StartType != nil && set.StartSeconds == nil {
-// 		return invalidEditSet(StartSecondsRequiredErrorDetail)
-// 	} else if set.StartType != nil && set.StartSeconds != nil && (*set.StartSeconds <= 0 || *set.StartSeconds > data.SmallIntMax) {
-// 		return invalidEditSet(fmt.Sprintf(StartSecondsErrorDetail, data.SmallIntMax, *set.StartSeconds))
-// 	} else if set.Equipment != nil && len(*set.Equipment) != 0 {
-// 		for _, eq := range *set.Equipment {
-// 			if !EquipmentSet[eq] {
-// 				return invalidEditSet(fmt.Sprintf(UnknownEnumErrorDetail, Equipment, eq))
-// 			}
-// 		}
-// 	} else if set.Group != nil && !GroupSet[*set.Group] {
-// 		return invalidEditSet(fmt.Sprintf(UnknownEnumErrorDetail, Group, *set.Group))
-// 	}
-//
-// 	return nil
-// }
-
 func invalidTraining(detail string) *ValidationError {
 	return &ValidationError{
 		ErrorDetail: api.ErrorDetail{

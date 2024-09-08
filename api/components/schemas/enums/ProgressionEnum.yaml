@@ -2,3 +2,4 @@ type: string
 enum:
   - asc
   - desc
+nullable: true

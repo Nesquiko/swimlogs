@@ -1,9 +1,10 @@
 oneOf:
-  - $ref: "./StartWithoutSeconds.yaml"
-  - $ref: "./StartWithSeconds.yaml"
+  - $ref: "./LastFinishes.yaml"
+  - $ref: "./Pause.yaml"
+  - $ref: "./Interval.yaml"
 discriminator:
   propertyName: type
   mapping:
-    pause: "./StartWithSeconds.yaml"
-    interval: "./StartWithSeconds.yaml"
-    last-finishes: "./StartWithoutSeconds.yaml"
+    pause: "./Pause.yaml"
+    interval: "./Interval.yaml"
+    last-finishes: "./LastFinishes.yaml"

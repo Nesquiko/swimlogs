@@ -18,6 +18,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -57,21 +58,25 @@ const (
 	Sp3 IntensityEnum = "sp3"
 )
 
+// Defines values for IntervalType.
+const (
+	IntervalTypeInterval IntervalType = "interval"
+)
+
+// Defines values for LastFinishesType.
+const (
+	LastFinishesTypeLastFinishes LastFinishesType = "last-finishes"
+)
+
+// Defines values for PauseType.
+const (
+	PauseTypePause PauseType = "pause"
+)
+
 // Defines values for ProgressionEnum.
 const (
 	Asc  ProgressionEnum = "asc"
 	Desc ProgressionEnum = "desc"
-)
-
-// Defines values for StartWithSecondsType.
-const (
-	Interval StartWithSecondsType = "interval"
-	Pause    StartWithSecondsType = "pause"
-)
-
-// Defines values for StartWithoutSecondsType.
-const (
-	LastFinishes StartWithoutSecondsType = "last-finishes"
 )
 
 // Defines values for TypeEnum.
@@ -84,16 +89,16 @@ const (
 
 // BaseSetComponent defines model for BaseSetComponent.
 type BaseSetComponent struct {
-	ComponentOrders *[]int           `json:"componentOrders,omitempty"`
-	Description     *string          `json:"description,omitempty"`
-	DistanceMeters  *int             `json:"distanceMeters,omitempty"`
-	Equipment       *[]EquipmentEnum `json:"equipment,omitempty"`
-	Group           *GroupEnum       `json:"group,omitempty"`
-	Intensity       *IntensityEnum   `json:"intensity,omitempty"`
-	IterationOrder  *int             `json:"iterationOrder,omitempty"`
-	Progression     *ProgressionEnum `json:"progression,omitempty"`
-	Repeat          *int             `json:"repeat,omitempty"`
-	Start           *Start           `json:"start,omitempty"`
+	ComponentOrders *[]int                             `json:"componentOrders,omitempty"`
+	Description     *string                            `json:"description,omitempty"`
+	DistanceMeters  *int                               `json:"distanceMeters,omitempty"`
+	Equipment       *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group           nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity       nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IterationOrder  *int                               `json:"iterationOrder,omitempty"`
+	Progression     nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
+	Repeat          *int                               `json:"repeat,omitempty"`
+	Start           *Start                             `json:"start,omitempty"`
 }
 
 // BaseTraining defines model for BaseTraining.
@@ -108,13 +113,13 @@ type BaseTraining struct {
 // BaseTrainingSet defines model for BaseTrainingSet.
 type BaseTrainingSet struct {
 	// Description Description of what to swim
-	Description    *string          `json:"description,omitempty"`
-	DistanceMeters *int             `json:"distanceMeters,omitempty"`
-	Equipment      *[]EquipmentEnum `json:"equipment,omitempty"`
-	Group          *GroupEnum       `json:"group,omitempty"`
-	Intensity      *IntensityEnum   `json:"intensity,omitempty"`
-	IsMain         *bool            `json:"isMain,omitempty"`
-	Progression    *ProgressionEnum `json:"progression,omitempty"`
+	Description    *string                            `json:"description,omitempty"`
+	DistanceMeters *int                               `json:"distanceMeters,omitempty"`
+	Equipment      *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group          nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity      nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IsMain         *bool                              `json:"isMain,omitempty"`
+	Progression    nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
 
 	// Repeat How many times to repeat this set
 	Repeat *int      `json:"repeat,omitempty"`
@@ -147,19 +152,36 @@ type GroupEnum string
 // IntensityEnum defines model for IntensityEnum.
 type IntensityEnum string
 
+// Interval defines model for Interval.
+type Interval struct {
+	Seconds int          `json:"seconds"`
+	Type    IntervalType `json:"type"`
+}
+
+// IntervalType defines model for Interval.Type.
+type IntervalType string
+
+// LastFinishes defines model for LastFinishes.
+type LastFinishes struct {
+	Type LastFinishesType `json:"type"`
+}
+
+// LastFinishesType defines model for LastFinishes.Type.
+type LastFinishesType string
+
 // NewSetComponent defines model for NewSetComponent.
 type NewSetComponent struct {
-	ComponentOrders []int               `json:"componentOrders"`
-	Description     *string             `json:"description,omitempty"`
-	DistanceMeters  int                 `json:"distanceMeters"`
-	Equipment       *[]EquipmentEnum    `json:"equipment,omitempty"`
-	Group           *GroupEnum          `json:"group,omitempty"`
-	Intensity       *IntensityEnum      `json:"intensity,omitempty"`
-	IterationOrder  *int                `json:"iterationOrder,omitempty"`
-	Progression     *ProgressionEnum    `json:"progression,omitempty"`
-	Repeat          int                 `json:"repeat"`
-	Start           *Start              `json:"start,omitempty"`
-	StyleId         *openapi_types.UUID `json:"styleId,omitempty"`
+	ComponentOrders []int                              `json:"componentOrders"`
+	Description     *string                            `json:"description,omitempty"`
+	DistanceMeters  int                                `json:"distanceMeters"`
+	Equipment       *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group           nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity       nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IterationOrder  *int                               `json:"iterationOrder,omitempty"`
+	Progression     nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
+	Repeat          int                                `json:"repeat"`
+	Start           *Start                             `json:"start,omitempty"`
+	StyleId         *openapi_types.UUID                `json:"styleId,omitempty"`
 }
 
 // NewTraining defines model for NewTraining.
@@ -177,13 +199,13 @@ type NewTrainingSet struct {
 	Components *[]NewSetComponent `json:"components,omitempty"`
 
 	// Description Description of what to swim
-	Description    *string          `json:"description,omitempty"`
-	DistanceMeters int              `json:"distanceMeters"`
-	Equipment      *[]EquipmentEnum `json:"equipment,omitempty"`
-	Group          *GroupEnum       `json:"group,omitempty"`
-	Intensity      *IntensityEnum   `json:"intensity,omitempty"`
-	IsMain         *bool            `json:"isMain,omitempty"`
-	Progression    *ProgressionEnum `json:"progression,omitempty"`
+	Description    *string                            `json:"description,omitempty"`
+	DistanceMeters int                                `json:"distanceMeters"`
+	Equipment      *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group          nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity      nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IsMain         *bool                              `json:"isMain,omitempty"`
+	Progression    nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
 
 	// Repeat How many times to repeat this set
 	Repeat int `json:"repeat"`
@@ -207,46 +229,38 @@ type Pagination struct {
 	Total int `json:"total"`
 }
 
+// Pause defines model for Pause.
+type Pause struct {
+	Seconds int       `json:"seconds"`
+	Type    PauseType `json:"type"`
+}
+
+// PauseType defines model for Pause.Type.
+type PauseType string
+
 // ProgressionEnum defines model for ProgressionEnum.
 type ProgressionEnum string
 
 // SetComponent defines model for SetComponent.
 type SetComponent struct {
-	ComponentOrders []int              `json:"componentOrders"`
-	Description     *string            `json:"description,omitempty"`
-	DistanceMeters  int                `json:"distanceMeters"`
-	Equipment       *[]EquipmentEnum   `json:"equipment,omitempty"`
-	Group           *GroupEnum         `json:"group,omitempty"`
-	Id              openapi_types.UUID `json:"id"`
-	Intensity       *IntensityEnum     `json:"intensity,omitempty"`
-	IterationOrder  *int               `json:"iterationOrder,omitempty"`
-	Progression     *ProgressionEnum   `json:"progression,omitempty"`
-	Repeat          int                `json:"repeat"`
-	Start           *Start             `json:"start,omitempty"`
-	Style           *Style             `json:"style,omitempty"`
+	ComponentOrders []int                              `json:"componentOrders"`
+	Description     *string                            `json:"description,omitempty"`
+	DistanceMeters  int                                `json:"distanceMeters"`
+	Equipment       *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group           nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Id              openapi_types.UUID                 `json:"id"`
+	Intensity       nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IterationOrder  *int                               `json:"iterationOrder,omitempty"`
+	Progression     nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
+	Repeat          int                                `json:"repeat"`
+	Start           *Start                             `json:"start,omitempty"`
+	Style           *Style                             `json:"style,omitempty"`
 }
 
 // Start defines model for Start.
 type Start struct {
 	union json.RawMessage
 }
-
-// StartWithSeconds defines model for StartWithSeconds.
-type StartWithSeconds struct {
-	Seconds int                  `json:"seconds"`
-	Type    StartWithSecondsType `json:"type"`
-}
-
-// StartWithSecondsType defines model for StartWithSeconds.Type.
-type StartWithSecondsType string
-
-// StartWithoutSeconds defines model for StartWithoutSeconds.
-type StartWithoutSeconds struct {
-	Type StartWithoutSecondsType `json:"type"`
-}
-
-// StartWithoutSecondsType defines model for StartWithoutSeconds.Type.
-type StartWithoutSecondsType string
 
 // Style defines model for Style.
 type Style struct {
@@ -273,14 +287,14 @@ type TrainingSet struct {
 	Components *[]SetComponent `json:"components,omitempty"`
 
 	// Description Description of what to swim
-	Description    *string            `json:"description,omitempty"`
-	DistanceMeters int                `json:"distanceMeters"`
-	Equipment      *[]EquipmentEnum   `json:"equipment,omitempty"`
-	Group          *GroupEnum         `json:"group,omitempty"`
-	Id             openapi_types.UUID `json:"id"`
-	Intensity      *IntensityEnum     `json:"intensity,omitempty"`
-	IsMain         bool               `json:"isMain"`
-	Progression    *ProgressionEnum   `json:"progression,omitempty"`
+	Description    *string                            `json:"description,omitempty"`
+	DistanceMeters int                                `json:"distanceMeters"`
+	Equipment      *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group          nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Id             openapi_types.UUID                 `json:"id"`
+	Intensity      nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IsMain         bool                               `json:"isMain"`
+	Progression    nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
 
 	// Repeat How many times to repeat this set
 	Repeat int `json:"repeat"`
@@ -357,20 +371,19 @@ type EditSessionRequest = BaseTraining
 
 // EditSetRequest defines model for EditSetRequest.
 type EditSetRequest struct {
-	// Description Description of what to swim
-	Description    *string          `json:"description,omitempty"`
-	DistanceMeters *int             `json:"distanceMeters,omitempty"`
-	Equipment      *[]EquipmentEnum `json:"equipment,omitempty"`
-	Group          *GroupEnum       `json:"group,omitempty"`
-	Intensity      *IntensityEnum   `json:"intensity,omitempty"`
-	IsMain         *bool            `json:"isMain,omitempty"`
-	Progression    *ProgressionEnum `json:"progression,omitempty"`
+	Description    nullable.Nullable[string]          `json:"description,omitempty"`
+	DistanceMeters *int                               `json:"distanceMeters,omitempty"`
+	Equipment      *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group          nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity      nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IsMain         *bool                              `json:"isMain,omitempty"`
+	Progression    nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
 
 	// Repeat How many times to repeat this set
-	Repeat  *int                `json:"repeat,omitempty"`
-	Start   *Start              `json:"start,omitempty"`
-	StyleId *openapi_types.UUID `json:"styleId,omitempty"`
-	Type    *TypeEnum           `json:"type,omitempty"`
+	Repeat  *int                                  `json:"repeat,omitempty"`
+	Start   nullable.Nullable[Start]              `json:"start,omitempty"`
+	StyleId nullable.Nullable[openapi_types.UUID] `json:"styleId,omitempty"`
+	Type    *TypeEnum                             `json:"type,omitempty"`
 }
 
 // MoveSetRequest defines model for MoveSetRequest.
@@ -386,20 +399,19 @@ type ReplaceSetComponentsRequest struct {
 
 // EditSetJSONBody defines parameters for EditSet.
 type EditSetJSONBody struct {
-	// Description Description of what to swim
-	Description    *string          `json:"description,omitempty"`
-	DistanceMeters *int             `json:"distanceMeters,omitempty"`
-	Equipment      *[]EquipmentEnum `json:"equipment,omitempty"`
-	Group          *GroupEnum       `json:"group,omitempty"`
-	Intensity      *IntensityEnum   `json:"intensity,omitempty"`
-	IsMain         *bool            `json:"isMain,omitempty"`
-	Progression    *ProgressionEnum `json:"progression,omitempty"`
+	Description    nullable.Nullable[string]          `json:"description,omitempty"`
+	DistanceMeters *int                               `json:"distanceMeters,omitempty"`
+	Equipment      *[]EquipmentEnum                   `json:"equipment,omitempty"`
+	Group          nullable.Nullable[GroupEnum]       `json:"group,omitempty"`
+	Intensity      nullable.Nullable[IntensityEnum]   `json:"intensity,omitempty"`
+	IsMain         *bool                              `json:"isMain,omitempty"`
+	Progression    nullable.Nullable[ProgressionEnum] `json:"progression,omitempty"`
 
 	// Repeat How many times to repeat this set
-	Repeat  *int                `json:"repeat,omitempty"`
-	Start   *Start              `json:"start,omitempty"`
-	StyleId *openapi_types.UUID `json:"styleId,omitempty"`
-	Type    *TypeEnum           `json:"type,omitempty"`
+	Repeat  *int                                  `json:"repeat,omitempty"`
+	Start   nullable.Nullable[Start]              `json:"start,omitempty"`
+	StyleId nullable.Nullable[openapi_types.UUID] `json:"styleId,omitempty"`
+	Type    *TypeEnum                             `json:"type,omitempty"`
 }
 
 // ReplaceSetComponentsJSONBody defines parameters for ReplaceSetComponents.
@@ -551,23 +563,23 @@ func (a ErrorDetail) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// AsStartWithoutSeconds returns the union data inside the Start as a StartWithoutSeconds
-func (t Start) AsStartWithoutSeconds() (StartWithoutSeconds, error) {
-	var body StartWithoutSeconds
+// AsLastFinishes returns the union data inside the Start as a LastFinishes
+func (t Start) AsLastFinishes() (LastFinishes, error) {
+	var body LastFinishes
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromStartWithoutSeconds overwrites any union data inside the Start as the provided StartWithoutSeconds
-func (t *Start) FromStartWithoutSeconds(v StartWithoutSeconds) error {
+// FromLastFinishes overwrites any union data inside the Start as the provided LastFinishes
+func (t *Start) FromLastFinishes(v LastFinishes) error {
 	v.Type = "last-finishes"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeStartWithoutSeconds performs a merge with any union data inside the Start, using the provided StartWithoutSeconds
-func (t *Start) MergeStartWithoutSeconds(v StartWithoutSeconds) error {
+// MergeLastFinishes performs a merge with any union data inside the Start, using the provided LastFinishes
+func (t *Start) MergeLastFinishes(v LastFinishes) error {
 	v.Type = "last-finishes"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -579,23 +591,51 @@ func (t *Start) MergeStartWithoutSeconds(v StartWithoutSeconds) error {
 	return err
 }
 
-// AsStartWithSeconds returns the union data inside the Start as a StartWithSeconds
-func (t Start) AsStartWithSeconds() (StartWithSeconds, error) {
-	var body StartWithSeconds
+// AsPause returns the union data inside the Start as a Pause
+func (t Start) AsPause() (Pause, error) {
+	var body Pause
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromStartWithSeconds overwrites any union data inside the Start as the provided StartWithSeconds
-func (t *Start) FromStartWithSeconds(v StartWithSeconds) error {
+// FromPause overwrites any union data inside the Start as the provided Pause
+func (t *Start) FromPause(v Pause) error {
+	v.Type = "pause"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePause performs a merge with any union data inside the Start, using the provided Pause
+func (t *Start) MergePause(v Pause) error {
+	v.Type = "pause"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsInterval returns the union data inside the Start as a Interval
+func (t Start) AsInterval() (Interval, error) {
+	var body Interval
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromInterval overwrites any union data inside the Start as the provided Interval
+func (t *Start) FromInterval(v Interval) error {
 	v.Type = "interval"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeStartWithSeconds performs a merge with any union data inside the Start, using the provided StartWithSeconds
-func (t *Start) MergeStartWithSeconds(v StartWithSeconds) error {
+// MergeInterval performs a merge with any union data inside the Start, using the provided Interval
+func (t *Start) MergeInterval(v Interval) error {
 	v.Type = "interval"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -622,9 +662,11 @@ func (t Start) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "interval":
-		return t.AsStartWithSeconds()
+		return t.AsInterval()
 	case "last-finishes":
-		return t.AsStartWithoutSeconds()
+		return t.AsLastFinishes()
+	case "pause":
+		return t.AsPause()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -1147,48 +1189,49 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xaX4/buBH/KgRboC/K2pvkitZvl0tyNZBNFmcf8hAserQ0tnmRSB1JreMu/N2LIan/",
-	"tCU7zrUH3MsmlijOj/N/hvNEY5nlUoAwms6eaM4Uy8CAsr/eKpnd4xP8kYCOFc8Nl4LO6HILZAUbLgQX",
-	"GyLXxGyBJMwAMTwDopjYwA2NKMfFvxWg9jSigmVAZ3StZEYjquMtZAy3XkuVMUNnFDd4hhvQiJp9jou1",
-	"UVxs6OEQ0XlyBMw8QQSMKNCyUDGUdHNmtjVZntCIKvit4AoSOjOqgCCIorAr+/Tv2QaOIPi45fGW5GwD",
-	"xEiiwBRKREQbpowmzJDpEVbgFydRwReW5SnQ2TSiGRc8KzL7f4+OCwMbUBW8Bf/PMYj/kjuSMbGvuKRr",
-	"qCfQ4Y7jEN4iRPbFQfyuifc2iPdnYXh6Qr1AJEcU6wjcAje8RLE+crO9Y1wswOhjKrYmRjFutV0XWcYU",
-	"B030VhZpQmIpDOOCZPhHg9FHAO4adFo4PaSVlCkwQQ8ICjkO2rySCQdrjT8oYAaWHsVP7jW+QPIg7H9Z",
-	"nqc8Zgh68qtG5E8NMn9VsKYz+pdJbfQT91ZP3sOu3NrRb5/fkyNrqUiMQJARrOJJT0MOEX2TcLMArbkU",
-	"1wb7imkYixYS3gFLtEN1HLS5BDBL0w9rOvs0HvoCDD1ETzRXMgdlvJy12acwT8b5JP9Ern6F2NDDw2hm",
-	"aDA35G3jUY21tDoNhhQayC/3Py/JBPV68sSTwy8hvt3JR7iQb+3TC9gtwHxQCai+Fb6HHaKybxsoacPx",
-	"vPznoKOswX9qkXvosfM0MzP56LTJEC6IrEDVambNvMernyBPWYzs+qHi+dczrh3IuYFMj7D5Jgha6xNT",
-	"iu17zGqQGMcre05N4AvXpmRVQ8/QHxIBOyIFBDhlqetcCh12gPbN1XzKKX+CeleJdcc00UUcg9brIk33",
-	"zh9CQrs+T38bgAsbfvYhnMs6RDXwoYV7eEpJdXVgdtfXYBhPQ6Be218r1ANcSMyWGSLjuFCQkKRAV0a2",
-	"TCSpzyQxj3PGcIhoLW39+4m7JOYUtBHlGoAWZRJwEbK26eZswwVzxE+jvq9XHiJaJSKjLb6nQwMWX1OI",
-	"mijHWL+HCglJuTZtx1jtip95bAgdg2PLIx33ctZltw8+OgZ0D92B/tSNsxFNuDZMxHBX1UYVsRfT6XQg",
-	"2Y0osjTP/IlGSepN+cUbUWQhyBsli3xolx9xUbkD4hGam/3QV/NyYfWlAWUlX8XlM3idK7lRPuMaUu96",
-	"aUlaQQ7MtEh+N8xvW3kNUVvYRYEsKqKtBLOnhEnhuHHHRWH8o16tlUqxIYnEMstmKfZUJGXaRJguZP7b",
-	"6ExNqk7WpvhBkB36VVspMZG4aqkiX5me9bs0GlsZnWQMpq993rQtKRQK7C90CBaxkUTveEajupKkbxWA",
-	"TYP7oP60RY0lZKhqvJ6pHekcoJr4rgGuJGbLdTf/vrJxlt8PhLV9Du4UIZ1ti2/2RMH++4muubAGKIVc",
-	"cywHtZDqM6Q0oivJVGKDXpKkPvwpFm8LgzqZF2n671Uh941IWCtoMx/CTCDBCksKlt43LMW1UbrBLYE+",
-	"++9YvOUCSCEw4hkmErZKgeDisgZyiRUXzjCCRlPBaW/+PdkWGRPPFDC3LXzJU+bCfGv30KbaMFOE3N9y",
-	"eU8U6CI1xK8JBmFu0sB5F1upTBeWSxn2A5A62YsjUOGMHIMrZjwEdKU20qaeNNzRSgHTRhslP9ufLP5c",
-	"/yiMAbVO916p8BFfc0SQKy6snXDUJxpRDA9B7WkbfAOFghidpLi1f5/bvy/s3rf273P790Vw026ld1a7",
-	"olMjflW/oike7296Hj3qZXkPgUaHPVQzRp/ffwkdBs6rn9utHHSDc/elb4D6X7dDebb1dlEvs4gcoMHz",
-	"+1B8rRbUdXoJo5lhT3mk5TMXCZZRoIn0KY5tKmAKVSU1ZRwiXJ/TCoouV90Kb3RCi+0WYdHdtyq+YOGE",
-	"DjgDwxJmGGErWRiSVyVV2RehUb+UDLjU90W2cs0pe0Xhmv6QNHOucOpeXgAczwmschCmrET8dUbrSiDg",
-	"96VhgVC0xMckloWw1SJLU7d5a8MXgx09t3tUXq1URwh5+24S1PC2TMfU1YVBh/rNvCkfo41ec4dzKFzU",
-	"ZZC/B/s637uoyhCOMsxQL6WvDPPce2QUkXpEWZ/I8T5ys11ALEWC1LE+erbmgust8mPgO1mY+tOcFRpG",
-	"kzpUlrN/725n7CkPEZUCRogyhAGlOeqb6oOKlc2ns35Qql6cV+qUuXOp1I5FUS2Yh8EUCt9GFYKQEYU4",
-	"0TtCF0lbzuNghIl7O2iTgy8QK67h9UBfp1znVMCy9x2Ijdm6mNVbP9I6xajtQnZpvwwd9OqZzlhHc05C",
-	"1MmGulHeuubX3uE05HHMlVtEA6lRd9ewu/r/yZNOX7hEZ4jlagnTkbxoZHQJiDUU18s4Y3HUfYMqsv9j",
-	"OnxZ5/ShTr28czqRgbWQVb2TAR3xvfFv3ParTv73YJI0Ug+ycpzgSib6O7YXL1KcBi1u82Mn6IqZz5+P",
-	"1qOjfmXIoUS06jc1IprAI6dlAlUI2z3aK5Y5akXeumGuYoDtBa5lgOU5CJZzonOI+dpfJdl758WOZ+/k",
-	"RpPv7+c3mDPxGPwFlB80uZsvyTv/NKKFwgxsa0yuZ5OJzEG4AaAbqTYT/7Ge3M2XjaYMbRKhEX0E5bqK",
-	"9PZmejO1eZIDSGf0hX0U2Xkrq4D1sIA7VwrGwkNrsufAmou+ts8X1g+0LnqfT18G2kJg7NWr281eZ750",
-	"60LqXu03ad95Hqprs32FwE1DoODZRqMorUE9HKLWONyRYFEvmZTzaYcHy4p42z+yHy+hzfGe/fEzNCaA",
-	"Jp3JlEOPZ9NhXvRuUy0Tp2cz8Qqsx+McZXth+qwLTU1cwsdT0xd/dKb6syFf/6YbkxZ9Jh+ihpFOMvkI",
-	"3fHPq+i7Hwu6RE6diaI/umjwOG6iKidSkUTuRDMlC0uofOsKKqkDZtEeirmE0eG5wj6/b4cZEJ7QuZDp",
-	"Lfa5ne2wUIBly4pPHb5NWiMSGwgwsBrkuC8bRufYQD0TfKz47yyuJ3RHfFAPYI9Y3JinHbG6P/OKZny5",
-	"ifXnYa4h9mV/ZGSM1MdlHi2jGUo/ls3xr2+SgwzodRRW33LJq/08odfzkV95qB/BNAduV3viypfgub5J",
-	"llXXOc1Z3wsyrtYA80VRKDQU+D9OvAKj0EGrsp0G9ViKpnNRoWRCViz+DCIhblmv2tjtdjd6x7NUbvRN",
-	"LLMJVgwoOk+uKllqsoeHw38DAAD//5m6/n6XMgAA",
+	"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",
+	"0XlyVclSkz3eH/8dAAD//43eaaw0NAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

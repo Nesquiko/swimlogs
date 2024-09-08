@@ -128,51 +128,32 @@ func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-//
-// func (app SwimLogsApp) EditSet(
-// 	ctx context.Context,
-// 	id uuid.UUID,
-// 	edited api.EditSetRequest,
-// ) (api.TrainingSet, int, error) {
-// 	validationErr := validateEditSetRequest(edited)
-// 	if validationErr != nil {
-// 		return api.TrainingSet{}, 0, validationErr
-// 	}
-//
-// 	var equipment []string = nil
-// 	if edited.Equipment != nil {
-// 		for _, e := range *edited.Equipment {
-// 			equipment = append(equipment, string(e))
-// 		}
-// 	}
-//
-// 	set, trainingTotalDist, err := app.pool.EditSet(ctx, id, struct {
-// 		Repeat         *int
-// 		DistanceMeters *int
-// 		Description    *string
-// 		Equipment      *[]string
-// 		StartType      *string
-// 		StartSeconds   *int
-// 		Group          *string
-// 		IsMain         *bool
-// 	}{
-// 		Repeat:         edited.Repeat,
-// 		DistanceMeters: edited.DistanceMeters,
-// 		Description:    edited.Description,
-// 		Equipment:      &equipment,
-// 		StartType:      (*string)(edited.StartType),
-// 		StartSeconds:   edited.StartSeconds,
-// 		Group:          (*string)(edited.Group),
-// 		IsMain:         edited.IsMain,
-// 	})
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return api.TrainingSet{}, 0, fmt.Errorf("EditSet not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return api.TrainingSet{}, 0, fmt.Errorf("EditSet: %w", err)
-// 	}
-//
-// 	return dataSetToApiSet(set), trainingTotalDist, nil
-// }
+func (app SwimLogsApp) EditSet(
+	ctx context.Context,
+	id uuid.UUID,
+	edited api.EditSetRequest,
+) (api.Training, error) {
+	changes := editSetToEmptySet(edited)
+
+	err := app.pool.EditSet(ctx, id, changes)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.Training{}, fmt.Errorf("EditSet set not found: %w", ErrNotFound)
+	} else if err != nil {
+		return api.Training{}, fmt.Errorf("EditSet set unknown: %w", err)
+	}
+
+	trainingId, err := app.pool.TrainingIdBySetId(ctx, id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.Training{}, fmt.Errorf("EditSet set id not found: %w", ErrNotFound)
+	} else if err != nil {
+		return api.Training{}, fmt.Errorf("EditSet set id unknown: %w", err)
+	}
+
+	t, err := app.pool.TrainingById(ctx, trainingId)
+
+	return dataTrainingToApiTraining(t), nil
+}
+
 //
 // func (app SwimLogsApp) MoveSet(
 // 	ctx context.Context,

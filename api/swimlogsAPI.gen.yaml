@@ -161,13 +161,26 @@ components:
         - paddles
         - parachute
         - pull_buoy
-    StartWithSeconds:
+    Pause:
       type: object
       properties:
         type:
           type: string
           enum:
             - pause
+        seconds:
+          type: integer
+          minimum: 1
+          maximum: 30000
+      required:
+        - type
+        - seconds
+    Interval:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
             - interval
         seconds:
           type: integer
@@ -176,7 +189,7 @@ components:
       required:
         - type
         - seconds
-    StartWithoutSeconds:
+    LastFinishes:
       type: object
       properties:
         type:
@@ -187,14 +200,15 @@ components:
         - type
     Start:
       oneOf:
-        - $ref: '#/components/schemas/StartWithoutSeconds'
-        - $ref: '#/components/schemas/StartWithSeconds'
+        - $ref: '#/components/schemas/LastFinishes'
+        - $ref: '#/components/schemas/Pause'
+        - $ref: '#/components/schemas/Interval'
       discriminator:
         propertyName: type
         mapping:
-          pause: '#/components/schemas/StartWithSeconds'
-          interval: '#/components/schemas/StartWithSeconds'
-          last-finishes: '#/components/schemas/StartWithoutSeconds'
+          pause: '#/components/schemas/Pause'
+          interval: '#/components/schemas/Interval'
+          last-finishes: '#/components/schemas/LastFinishes'
     GroupEnum:
       type: string
       enum:
@@ -207,6 +221,7 @@ components:
         - sprint
         - middle
         - long
+      nullable: true
     TypeEnum:
       type: string
       enum:
@@ -224,11 +239,13 @@ components:
         - sp1
         - sp2
         - sp3
+      nullable: true
     ProgressionEnum:
       type: string
       enum:
         - asc
         - desc
+      nullable: true
     BaseTrainingSet:
       type: object
       properties:
@@ -538,6 +555,18 @@ components:
                   styleId:
                     type: string
                     format: uuid
+                    nullable: true
+                  description:
+                    type: string
+                    nullable: true
+                  equipment:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EquipmentEnum'
+                  start:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/Start'
     MoveSetRequest:
       description: Request for moving set in order of training sets
       required: true
