@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -14,12 +15,12 @@ values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 `
 
 func persistComponent(ctx context.Context, tx pgx.Tx, c SetComponent) error {
-	if !c.Id.Valid {
+	if c.Id == uuid.Nil {
 		return fmt.Errorf("persistComponent component without id")
 	}
 
 	args := []any{
-		c.Id.UUID, c.SetId, c.Orders, c.IterationOrder, c.Repeat, c.DistanceMeters,
+		c.Id, c.SetId, c.Orders, c.IterationOrder, c.Repeat, c.DistanceMeters,
 		c.StartType, c.StartSeconds, c.StyleId, c.Intensity, c.Progression,
 		c.Description, c.Equipment, c.Group,
 	}

@@ -96,29 +96,27 @@ func (app SwimLogsApp) EditTrainingSession(
 	return trainingToSummary(edited, false), nil
 }
 
-// func (app SwimLogsApp) TrainingSummariesPage(
-//
-//	ctx context.Context,
-//	params api.SummariesPageParams,
-//
-//	) ([]api.TrainingSummary, int, error) {
-//		summariesPage, total, err := app.pool.TrainingSummaries(
-//			ctx,
-//			params.Page,
-//			params.PageSize,
-//			params.From,
-//			params.Until,
-//		)
-//		if err != nil {
-//			return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
-//		}
-//		summaries := make([]api.TrainingSummary, len(summariesPage))
-//		for i, d := range summariesPage {
-//			summaries[i] = trainingToSummary(d)
-//		}
-//
-//		return summaries, total, nil
-//	}
+func (app SwimLogsApp) TrainingSummariesPage(
+	ctx context.Context,
+	params api.SummariesPageParams,
+) ([]api.TrainingSummary, int, error) {
+	summariesPage, total, err := app.pool.TrainingSummaries(
+		ctx,
+		params.Page,
+		params.PageSize,
+		params.From,
+		params.Until,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("TrainingSummariesPage: %w", err)
+	}
+	summaries := make([]api.TrainingSummary, len(summariesPage))
+	for i, d := range summariesPage {
+		summaries[i] = trainingToSummary(d, true)
+	}
+
+	return summaries, total, nil
+}
 
 func (app SwimLogsApp) DeleteSet(ctx context.Context, id uuid.UUID) error {
 	err := app.pool.DeleteSet(ctx, id)

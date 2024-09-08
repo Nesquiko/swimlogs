@@ -5,9 +5,11 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,6 +26,11 @@ const MigrationsTestDirPath = "../../migrations"
 // URL of the test server, initializez in the TestMain function
 var ServerUrl string
 
+var (
+	ClearDB      func()         = nil
+	DebugDBQuery func(q string) = nil
+)
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -33,6 +40,31 @@ func TestMain(m *testing.M) {
 	server.SetupLogger(logLevel, false)
 
 	pgContainer := preparePostgres(ctx)
+	ClearDB = func() {
+		err := pgContainer.Restore(ctx)
+		if err != nil {
+			slog.Error("couldn't restore to snapshot", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+	}
+	DebugDBQuery = func(q string) {
+		_, r, err := pgContainer.Exec(
+			ctx,
+			[]string{"psql", "-U", "swimlogs", "-d", "swimlogs", "-c", q},
+		)
+		if err != nil {
+			slog.Error("DebugDBQuery exec", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		buf := new(strings.Builder)
+		_, err = io.Copy(buf, r)
+		if err != nil {
+			slog.Error("DebugDBQuery copy", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		slog.Debug("DebugDBQuery result", "result", buf.String())
+	}
+
 	portBindings, err := pgContainer.Ports(ctx)
 	if err != nil {
 		slog.Error("couldn't retrive test containers ports", slog.String("error", err.Error()))

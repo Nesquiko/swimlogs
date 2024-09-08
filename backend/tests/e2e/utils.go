@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-
-	"github.com/Nesquiko/swimlogs/pkg/api"
 )
 
 // waitForReady calls the specified endpoint until it gets a 200
@@ -71,11 +69,6 @@ func compareTimes(t1, t2 time.Time) bool {
 	h2, min2, _ := t2.Clock()
 
 	return y1 == y2 && m1 == m2 && d1 == d2 && h1 == h2 && min1 == min2
-}
-
-func compareSummaries(ts1, ts2 api.TrainingSummary) bool {
-	return ts1.Id == ts2.Id && ts1.DurationMin == ts2.DurationMin &&
-		ts1.TotalDistance == ts2.TotalDistance
 }
 
 func asPtr[T any](v T) *T {

@@ -10,7 +10,7 @@ create table if not exists set_components
 
     start_type       start_type,
     start_seconds    smallint,
-    style_id         uuid       not null references styles on delete set null,
+    style_id         uuid       references styles on delete set null,
     intensity        set_intensity,
     progression      set_progression,
     description      text,

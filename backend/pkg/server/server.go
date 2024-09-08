@@ -124,7 +124,12 @@ func validationErrorHandler(w http.ResponseWriter, message string, statusCode in
 		schema = &s
 	}
 
-	path := extractSchemaPath(split[2 : len(split)-1])
+	var path string
+	if strings.HasPrefix(split[0], "parameter") {
+		path = extractParamPath(split[0])
+	} else {
+		path = extractSchemaPath(split[2 : len(split)-1])
+	}
 	reason := split[len(split)-1]
 
 	encodeError(w, validationError(path, reason, statusCode, schema))
@@ -139,6 +144,14 @@ func extractSchemaPath(subPaths []string) string {
 		path += subPath
 	}
 	return path
+}
+
+func extractParamPath(path string) string {
+	p := strings.TrimPrefix(path, "parameter ")
+	p = strings.TrimSuffix(p, "in query has an error")
+	p = strings.TrimSpace(p)
+
+	return p
 }
 
 const (

@@ -2,10 +2,8 @@ package data
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -82,181 +80,6 @@ func (pool *PostgresDbPool) DeleteTraining(ctx context.Context, id uuid.UUID) er
 	return nil
 }
 
-func scan(training *Training, rows pgx.Rows) error {
-	t, s, c, err := scanAll(rows)
-
-	defer func() { *training = t }()
-
-	if err != nil {
-		return fmt.Errorf("scan scan all: %w", err)
-	}
-	t.Sets = training.Sets
-
-	if len(t.Sets) == 0 {
-		t.Sets = make([]TrainingSet, 1)
-		t.Sets[0] = s
-	}
-
-	if s.Id != t.Sets[len(t.Sets)-1].Id {
-		t.Sets = append(t.Sets, s)
-	}
-
-	if !c.Id.Valid {
-		return nil
-	}
-
-	lastSet := &t.Sets[len(t.Sets)-1]
-	if lastSet.Components == nil {
-		lastSet.Components = &[]SetComponent{}
-	}
-	comps := *lastSet.Components
-	comps = append(*lastSet.Components, c)
-	lastSet.Components = &comps
-
-	return nil
-}
-
-func scanAll(rows pgx.Rows) (Training, TrainingSet, SetComponent, error) {
-	var row joinedRow
-	dests := []any{
-		&row.TrainingId, &row.TrainingStart, &row.TrainingDurationMin,
-		&row.TrainingCreatedAt, &row.TrainingModifiedAt, &row.SetId,
-		&row.SetSetOrder, &row.SetRepeat, &row.SetDistanceMeters,
-		&row.SetDescription, &row.SetStartType, &row.SetStartSeconds,
-		&row.SetEquipment, &row.SetGroup, &row.SetIsMain, &row.SetSetType,
-		&row.SetIntensity, &row.SetProgression, &row.SetStyleId,
-		&row.SetStyleName, &row.SetStyleExeciseName, &row.SetStyleExeciseDescription,
-		&row.CompId, &row.CompOrders, &row.CompIterationOrder, &row.CompRepeat,
-		&row.CompDistanceMeters, &row.CompStartType, &row.CompStartSeconds,
-		&row.CompIntensity, &row.CompProgression, &row.CompDescription,
-		&row.CompEquipment, &row.CompGroup, &row.CompStyleId, &row.CompStyleName,
-		&row.CompStyleExeciseName, &row.CompStyleExeciseDescription,
-	}
-
-	err := rows.Scan(dests...)
-	if err != nil {
-		return Training{}, TrainingSet{}, SetComponent{}, fmt.Errorf("scanAll: %w", err)
-	}
-
-	return row.ToTraining(), row.ToTrainingSet(), row.ToSetComponent(), nil
-}
-
-type joinedRow struct {
-	TrainingId          uuid.UUID
-	TrainingStart       time.Time
-	TrainingDurationMin int
-	TrainingCreatedAt   time.Time
-	TrainingModifiedAt  time.Time
-
-	SetId             uuid.UUID
-	SetSetOrder       int
-	SetRepeat         int
-	SetDistanceMeters int
-	SetDescription    *string
-	SetStartType      *string
-	SetStartSeconds   *int
-	SetEquipment      *[]string
-	SetGroup          *string
-	SetIsMain         bool
-	SetSetType        string
-	SetIntensity      *string
-	SetProgression    *string
-
-	SetStyleId                 uuid.UUID
-	SetStyleName               sql.NullString
-	SetStyleExeciseName        *string
-	SetStyleExeciseDescription *string
-
-	CompId             uuid.NullUUID
-	CompOrders         []int
-	CompIterationOrder *int
-	CompRepeat         sql.NullInt64
-	CompDistanceMeters sql.NullInt64
-	CompStartType      *string
-	CompStartSeconds   *int
-	CompIntensity      *string
-	CompProgression    *string
-	CompDescription    *string
-	CompEquipment      *[]string
-	CompGroup          *string
-
-	CompStyleId                 uuid.UUID
-	CompStyleName               sql.NullString
-	CompStyleExeciseName        *string
-	CompStyleExeciseDescription *string
-}
-
-func (r joinedRow) ToTraining() Training {
-	return Training{
-		Id:          r.TrainingId,
-		Start:       r.TrainingStart,
-		DurationMin: r.TrainingDurationMin,
-		CreatedAt:   r.TrainingCreatedAt,
-		ModifiedAt:  r.TrainingModifiedAt,
-	}
-}
-
-func (r joinedRow) ToTrainingSet() TrainingSet {
-	s := TrainingSet{
-		Id:             r.SetId,
-		TrainingId:     r.TrainingId,
-		SetOrder:       r.SetSetOrder,
-		Repeat:         r.SetRepeat,
-		DistanceMeters: r.SetDistanceMeters,
-		Description:    r.SetDescription,
-		Equipment:      r.SetEquipment,
-		StartType:      r.SetStartType,
-		StartSeconds:   r.SetStartSeconds,
-		Group:          r.SetGroup,
-		IsMain:         r.SetIsMain,
-		SetType:        r.SetSetType,
-		Intensity:      r.SetIntensity,
-		Progression:    r.SetProgression,
-	}
-
-	if r.SetStyleId != uuid.Nil {
-		s.Style = &Style{
-			Id:                 r.SetStyleId,
-			Name:               r.SetStyleName.String,
-			ExeciseName:        r.SetStyleExeciseName,
-			ExeciseDescription: r.SetStyleExeciseDescription,
-		}
-		s.StyleId = &s.Style.Id
-	}
-
-	return s
-}
-
-func (r joinedRow) ToSetComponent() SetComponent {
-	c := SetComponent{
-		Id:             r.CompId,
-		SetId:          r.SetId,
-		Orders:         r.CompOrders,
-		IterationOrder: r.CompIterationOrder,
-		Repeat:         int(r.CompRepeat.Int64),
-		DistanceMeters: int(r.CompDistanceMeters.Int64),
-		Equipment:      r.CompEquipment,
-		StartType:      r.CompStartType,
-		StartSeconds:   r.CompStartSeconds,
-		Group:          r.CompGroup,
-		Intensity:      r.CompIntensity,
-		Progression:    r.CompProgression,
-		Description:    r.CompDescription,
-	}
-
-	if r.CompStyleId != uuid.Nil {
-		c.Style = &Style{
-			Id:                 r.CompStyleId,
-			Name:               r.CompStyleName.String,
-			ExeciseName:        r.CompStyleExeciseName,
-			ExeciseDescription: r.CompStyleExeciseDescription,
-		}
-		c.StyleId = &c.Style.Id
-	}
-
-	return c
-}
-
 const insertTraining = `
 insert into trainings (id, start, duration_min, created_at, modified_at)
 values ($1, $2, $3, now(), now())
@@ -303,66 +126,33 @@ func deleteTraining(ctx context.Context, id uuid.UUID, tx pgx.Tx) error {
 
 const selectTrainingSummariesPage = `
 with filtered as (
-    select t.id, t.start, t.duration_min, t.created_at, t.modified_at, sum(s.repeat * s.distance_meters)
-    from trainings t join sets s on t.id = s.training_id
+    select t.id, t.start, t.duration_min, t.created_at, t.modified_at,
+    sum(s.repeat * s.distance_meters) as total_distance
+        from trainings t join sets s on t.id = s.training_id
     where t.start between $3 and $4
-    group by t.id, t.start, t.duration_min, t.created_at, t.modified_at)
-select t.*, count(t.id) over (), s.*
-from filtered t left join sets s on s.training_id = t.id and s.is_main = true
+    group by t.id, t.start, t.duration_min, t.created_at, t.modified_at
+    order by t.start desc, t.duration_min, t.created_at
+    limit $1 offset $2)
+select
+    t.id, t.start, t.duration_min, t.created_at, t.modified_at, t.total_distance,
+    (select count(*) from trainings) as count,
+
+    s.id, s.training_id, s.set_order, s.repeat, s.distance_meters,  s.description,
+    s.start_type, s.start_seconds, s.equipment, s."group", s.is_main,
+    s.type, s.intensity, s.progression,
+
+    set_style.id, set_style.name, set_style.exercise_name, set_style.exercise_description
+from filtered t
+    left join sets s on s.training_id = t.id and s.is_main = true
+    left join styles set_style on s.style_id = set_style.id
 order by t.start desc, t.duration_min, t.created_at
-limit $1 offset $2
 `
 
-type EmptyTrainingSet struct {
-	Id             *uuid.UUID
-	TrainingId     *uuid.UUID
-	SetOrder       *int
-	Repeat         *int
-	DistanceMeters *int
-	Description    *string
-	Equipment      *[]string
-	StartType      *string
-	StartSeconds   *int
-	Group          *string
-	IsMain         *bool
-}
-
-func (s EmptyTrainingSet) isFilled() bool {
-	return s.Id != nil && s.TrainingId != nil && s.SetOrder != nil && s.Repeat != nil &&
-		s.DistanceMeters != nil && s.IsMain != nil
-}
-
-func (s EmptyTrainingSet) intoTrainingSet() TrainingSet {
-	if s.Id == nil {
-		slog.Error(
-			"EmptyTrainingSet.intoTrainingSe: this should't be called, on non validated EmptyTrainingSet",
-		)
-		return TrainingSet{}
-	}
-
-	return TrainingSet{
-		Id:             *s.Id,
-		TrainingId:     *s.TrainingId,
-		SetOrder:       *s.SetOrder,
-		Repeat:         *s.Repeat,
-		DistanceMeters: *s.DistanceMeters,
-		Description:    s.Description,
-		Equipment:      s.Equipment,
-		StartType:      s.StartType,
-		StartSeconds:   s.StartSeconds,
-		Group:          s.Group,
-		IsMain:         *s.IsMain,
-	}
-}
-
-// TODO from and until filters
 func (psg *PostgresDbPool) TrainingSummaries(
 	ctx context.Context,
 	page, pageSize int,
 	from, until *time.Time,
 ) ([]Training, int, error) {
-	ts := make([]Training, 0)
-
 	fromStr := "-infinity"
 	untilStr := "infinity"
 
@@ -381,49 +171,43 @@ func (psg *PostgresDbPool) TrainingSummaries(
 		fromStr,
 		untilStr,
 	)
+	defer rows.Close()
 	if err != nil {
 		return nil, 0, fmt.Errorf("TrainingSummaries query error: %w", err)
 	}
-	defer rows.Close()
 
+	ts := make([]Training, 0)
 	count := 0
 	lastTrainingId := uuid.UUID{}
 	for rows.Next() {
 		t := Training{}
-		s := EmptyTrainingSet{}
+		s := emptyTrainingSet{}
 
 		scanArgs := []any{
-			&t.Id,
-			&t.Start,
-			&t.DurationMin,
-			&t.CreatedAt,
-			&t.ModifiedAt,
-			&t.TotalDistance,
+			&t.Id, &t.Start, &t.DurationMin, &t.CreatedAt, &t.ModifiedAt, &t.TotalDistance,
 			&count,
-			&s.Id,
-			&s.TrainingId,
-			&s.SetOrder,
-			&s.Repeat,
-			&s.DistanceMeters,
-			&s.Description,
-			&s.StartType,
-			&s.StartSeconds,
-			&s.Equipment,
-			&s.Group,
-			&s.IsMain,
+
+			&s.Id, &s.TrainingId, &s.SetOrder, &s.Repeat, &s.DistanceMeters,
+			&s.Description, &s.StartType, &s.StartSeconds,
+			&s.Equipment, &s.Group, &s.IsMain, &s.SetType,
+			&s.Intensity, &s.Progression,
+
+			&s.Style.Id, &s.Style.Name, &s.Style.ExeciseName,
+			&s.Style.ExeciseDescription,
 		}
+
 		err := rows.Scan(scanArgs...)
 		if err != nil {
 			return nil, 0, fmt.Errorf("TrainingSummaries scanning row: %w", err)
 		}
 
 		if lastTrainingId != t.Id {
-			if s.isFilled() {
+			if s.Id != nil {
 				t.Sets = append(t.Sets, s.intoTrainingSet())
 			}
 			ts = append(ts, t)
 			lastTrainingId = t.Id
-		} else if s.isFilled() {
+		} else if s.Id != nil {
 			ts[len(ts)-1].Sets = append(ts[len(ts)-1].Sets, s.intoTrainingSet())
 		}
 	}
@@ -666,4 +450,154 @@ func (pool *PostgresDbPool) TrainingIdBySetId(
 		return uuid.UUID{}, fmt.Errorf("TrainingIdBySetId: %w", err)
 	}
 	return id, nil
+}
+
+func scan(training *Training, rows pgx.Row) error {
+	t, s, c, err := scanAll(rows)
+
+	defer func() { *training = t }()
+
+	if err != nil {
+		return fmt.Errorf("scan scan all: %w", err)
+	}
+	t.Sets = training.Sets
+
+	if len(t.Sets) == 0 {
+		t.Sets = make([]TrainingSet, 1)
+		t.Sets[0] = s
+	}
+
+	if s.Id != t.Sets[len(t.Sets)-1].Id {
+		t.Sets = append(t.Sets, s)
+	}
+
+	if c.Id == uuid.Nil {
+		return nil
+	}
+
+	lastSet := &t.Sets[len(t.Sets)-1]
+	if lastSet.Components == nil {
+		lastSet.Components = &[]SetComponent{}
+	}
+	comps := *lastSet.Components
+	comps = append(*lastSet.Components, c)
+	lastSet.Components = &comps
+
+	return nil
+}
+
+func scanAll(rows pgx.Row) (Training, TrainingSet, SetComponent, error) {
+	var row joinedRow
+	dests := []any{
+		&row.training.Id, &row.training.Start, &row.training.DurationMin,
+		&row.training.CreatedAt, &row.training.ModifiedAt,
+
+		&row.set.Id, &row.set.SetOrder, &row.set.Repeat, &row.set.DistanceMeters,
+		&row.set.Description, &row.set.StartType, &row.set.StartSeconds,
+		&row.set.Equipment, &row.set.Group, &row.set.IsMain, &row.set.SetType,
+		&row.set.Intensity, &row.set.Progression,
+
+		&row.setStyle.Id, &row.setStyle.Name, &row.setStyle.ExeciseName,
+		&row.setStyle.ExeciseDescription,
+
+		&row.comp.Id, &row.comp.Orders, &row.comp.IterationOrder, &row.comp.Repeat,
+		&row.comp.DistanceMeters, &row.comp.StartType, &row.comp.StartSeconds,
+		&row.comp.Intensity, &row.comp.Progression, &row.comp.Description,
+		&row.comp.Equipment, &row.comp.Group,
+
+		&row.compStyle.Id, &row.compStyle.Name, &row.compStyle.ExeciseName,
+		&row.compStyle.ExeciseDescription,
+	}
+
+	err := rows.Scan(dests...)
+	if err != nil {
+		return Training{}, TrainingSet{}, SetComponent{}, fmt.Errorf("scanAll: %w", err)
+	}
+
+	return row.toTraining(), row.toTrainingSet(), row.toSetComponent(), nil
+}
+
+type joinedRow struct {
+	training Training
+
+	set      TrainingSet
+	setStyle emptyStyle
+
+	comp      emptySetComponent
+	compStyle emptyStyle
+}
+
+func (r joinedRow) toTraining() Training {
+	return Training{
+		Id:          r.training.Id,
+		Start:       r.training.Start,
+		DurationMin: r.training.DurationMin,
+		CreatedAt:   r.training.CreatedAt,
+		ModifiedAt:  r.training.ModifiedAt,
+	}
+}
+
+func (r joinedRow) toTrainingSet() TrainingSet {
+	s := TrainingSet{
+		Id:             r.set.Id,
+		TrainingId:     r.training.Id,
+		SetOrder:       r.set.SetOrder,
+		Repeat:         r.set.Repeat,
+		DistanceMeters: r.set.DistanceMeters,
+		Description:    r.set.Description,
+		Equipment:      r.set.Equipment,
+		StartType:      r.set.StartType,
+		StartSeconds:   r.set.StartSeconds,
+		Group:          r.set.Group,
+		IsMain:         r.set.IsMain,
+		SetType:        r.set.SetType,
+		Intensity:      r.set.Intensity,
+		Progression:    r.set.Progression,
+	}
+
+	if r.setStyle.Id != nil {
+		s.Style = &Style{
+			Id:                 *r.setStyle.Id,
+			Name:               *r.setStyle.Name,
+			ExeciseName:        r.setStyle.ExeciseName,
+			ExeciseDescription: r.setStyle.ExeciseDescription,
+		}
+		s.StyleId = &s.Style.Id
+	}
+
+	return s
+}
+
+func (r joinedRow) toSetComponent() SetComponent {
+	if r.comp.Id == nil {
+		return SetComponent{}
+	}
+
+	c := SetComponent{
+		Id:             *r.comp.Id,
+		SetId:          r.set.Id,
+		Orders:         r.comp.Orders,
+		IterationOrder: r.comp.IterationOrder,
+		Repeat:         *r.comp.Repeat,
+		DistanceMeters: *r.comp.DistanceMeters,
+		Equipment:      r.comp.Equipment,
+		StartType:      r.comp.StartType,
+		StartSeconds:   r.comp.StartSeconds,
+		Group:          r.comp.Group,
+		Intensity:      r.comp.Intensity,
+		Progression:    r.comp.Progression,
+		Description:    r.comp.Description,
+	}
+
+	if r.compStyle.Id != nil {
+		c.Style = &Style{
+			Id:                 *r.compStyle.Id,
+			Name:               *r.compStyle.Name,
+			ExeciseName:        r.compStyle.ExeciseName,
+			ExeciseDescription: r.compStyle.ExeciseDescription,
+		}
+		c.StyleId = &c.Style.Id
+	}
+
+	return c
 }

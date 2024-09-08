@@ -52,8 +52,8 @@ func TestTrainingById_MatchingResponse(t *testing.T) {
 			assert.Equal(expectedDisc, disc)
 
 			switch disc {
-			case string(api.LastFinishes):
-			case string(api.Interval), string(api.Pause):
+			case string(api.LastFinishesTypeLastFinishes):
+			case string(api.IntervalTypeInterval), string(api.PauseTypePause):
 			default:
 				assert.Failf("unknown start type: %q", disc)
 			}

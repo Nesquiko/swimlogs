@@ -127,9 +127,8 @@ func mapDataStart(typ string, seconds *int) *api.Start {
 }
 
 func newCompToDataComp(c api.NewSetComponent, setId uuid.UUID) data.SetComponent {
-	id := uuid.NullUUID{UUID: uuid.New(), Valid: true}
 	comp := data.SetComponent{
-		Id:             id,
+		Id:             uuid.New(),
 		SetId:          setId,
 		Orders:         c.ComponentOrders,
 		Repeat:         c.Repeat,
@@ -220,7 +219,7 @@ func dataSetToApiSet(s data.TrainingSet) api.TrainingSet {
 
 func dataCompToApiComp(c data.SetComponent) api.SetComponent {
 	comp := api.SetComponent{
-		Id:              c.Id.UUID,
+		Id:              c.Id,
 		ComponentOrders: c.Orders,
 		IterationOrder:  c.IterationOrder,
 		Repeat:          c.Repeat,

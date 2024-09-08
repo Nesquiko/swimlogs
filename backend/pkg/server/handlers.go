@@ -155,7 +155,21 @@ func (s SwimLogsServer) SummariesPage(
 	r *http.Request,
 	params api.SummariesPageParams,
 ) {
-	panic("unimplemented")
+	summaries, total, err := s.app.TrainingSummariesPage(r.Context(), params)
+	if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "SummariesPage"),
+		)
+		encodeError(w, internalServerError())
+		return
+	}
+
+	pagination := api.Pagination{Page: params.Page, PageSize: len(summaries), Total: total}
+
+	response := api.TrainingSummariesResponse{Summaries: summaries, Pagination: pagination}
+	encode(w, http.StatusOK, response)
 }
 
 func (s SwimLogsServer) EditSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
