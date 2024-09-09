@@ -154,40 +154,34 @@ func (app SwimLogsApp) EditSet(
 	return dataTrainingToApiTraining(t), nil
 }
 
-//
-// func (app SwimLogsApp) MoveSet(
-// 	ctx context.Context,
-// 	id uuid.UUID,
-// 	newSetOrder int,
-// ) (api.Training, error) {
-// 	validationErr := validateNewSetOrder(newSetOrder)
-// 	if validationErr != nil {
-// 		return api.Training{}, validationErr
-// 	}
-//
-// 	err := app.pool.MoveSet(ctx, id, newSetOrder)
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return api.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
-// 	}
-//
-// 	trainingId, err := app.pool.TrainingIdBySetId(ctx, id)
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return api.Training{}, fmt.Errorf("MoveSet training id not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
-// 	}
-//
-// 	t, err := app.pool.Training(ctx, trainingId)
-// 	if errors.Is(err, data.ErrRowsNotFound) {
-// 		return api.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
-// 	} else if err != nil {
-// 		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
-// 	}
-//
-// 	return dataTrainingToApiTraining(t), nil
-// }
+func (app SwimLogsApp) MoveSet(
+	ctx context.Context,
+	id uuid.UUID,
+	newSetOrder int,
+) (api.Training, error) {
+	err := app.pool.MoveSet(ctx, id, newSetOrder)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	trainingId, err := app.pool.TrainingIdBySetId(ctx, id)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.Training{}, fmt.Errorf("MoveSet training id not found: %w", ErrNotFound)
+	} else if err != nil {
+		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	t, err := app.pool.TrainingById(ctx, trainingId)
+	if errors.Is(err, data.ErrRowsNotFound) {
+		return api.Training{}, fmt.Errorf("MoveSet not found: %w", ErrNotFound)
+	} else if err != nil {
+		return api.Training{}, fmt.Errorf("MoveSet: %w", err)
+	}
+
+	return dataTrainingToApiTraining(t), nil
+}
 
 func aggregateStyleIds(t api.NewTraining) []uuid.UUID {
 	ids := make([]uuid.UUID, 0)

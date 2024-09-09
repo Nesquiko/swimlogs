@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Nesquiko/swimlogs/apidef"
+	"github.com/Nesquiko/swimlogs/pkg/api"
 	"github.com/Nesquiko/swimlogs/pkg/server"
 )
 
@@ -62,15 +62,15 @@ func TestMoveSet(t *testing.T) {
 		t.Run(tC.name, func(t *testing.T) {
 			t.Parallel()
 
-			newTrainingReq := apidef.CreateTrainingRequest{
-				DurationMin: 60,
-				Sets: []apidef.NewTrainingSet{
-					{SetOrder: 0, DistanceMeters: 1, Repeat: 1},
-					{SetOrder: 1, DistanceMeters: 2, Repeat: 1},
-					{SetOrder: 2, DistanceMeters: 3, Repeat: 1},
-					{SetOrder: 3, DistanceMeters: 4, Repeat: 1},
-					{SetOrder: 4, DistanceMeters: 5, Repeat: 1},
-					{SetOrder: 5, DistanceMeters: 6, Repeat: 1},
+			newTrainingReq := api.CreateTrainingRequest{
+				DurationMinutes: 60,
+				Sets: []api.NewTrainingSet{
+					{SetOrder: 0, DistanceMeters: 1, Repeat: 1, Type: api.Normal},
+					{SetOrder: 1, DistanceMeters: 2, Repeat: 1, Type: api.Normal},
+					{SetOrder: 2, DistanceMeters: 3, Repeat: 1, Type: api.Normal},
+					{SetOrder: 3, DistanceMeters: 4, Repeat: 1, Type: api.Normal},
+					{SetOrder: 4, DistanceMeters: 5, Repeat: 1, Type: api.Normal},
+					{SetOrder: 5, DistanceMeters: 6, Repeat: 1, Type: api.Normal},
 				},
 				Start: time.Now(),
 			}
@@ -78,7 +78,7 @@ func TestMoveSet(t *testing.T) {
 			sets := mustReadTraining(t, trainingId).Sets
 			setId := sets[tC.initialSetOrder].Id
 
-			request := apidef.MoveSetRequest{NewSetOrder: tC.newSetOrder}
+			request := api.MoveSetRequest{NewSetOrder: tC.newSetOrder}
 			training := mustMoveSet(t, setId, request)
 
 			assert := assert.New(t)
@@ -93,14 +93,14 @@ func TestMoveSet(t *testing.T) {
 	}
 }
 
-func mustMoveSet(t *testing.T, setId uuid.UUID, request apidef.MoveSetRequest) apidef.Training {
+func mustMoveSet(t *testing.T, setId uuid.UUID, request api.MoveSetRequest) api.Training {
 	res, err := moveSet(setId, request)
 	defer res.Body.Close()
 	require.NoError(t, err)
 
 	if !assert.Equal(t, http.StatusOK, res.StatusCode) {
 		if res.Header.Get(server.ContentType) == server.ApplicationProblemJSON {
-			var apiErr apidef.ErrorDetail
+			var apiErr api.ErrorDetail
 			err := json.NewDecoder(res.Body).Decode(&apiErr)
 			require.NoError(t, err)
 			require.Failf(t, server.ApplicationProblemJSON, "error: %+v", apiErr)
@@ -108,14 +108,14 @@ func mustMoveSet(t *testing.T, setId uuid.UUID, request apidef.MoveSetRequest) a
 		require.Failf(t, "error", "res: %+v", res)
 	}
 
-	var tr apidef.Training
+	var tr api.Training
 	err = json.NewDecoder(res.Body).Decode(&tr)
 	require.NoErrorf(t, err, "response: %+v", res)
 
 	return tr
 }
 
-func moveSet(id uuid.UUID, request apidef.MoveSetRequest) (*http.Response, error) {
+func moveSet(id uuid.UUID, request api.MoveSetRequest) (*http.Response, error) {
 	url := ServerUrl + "/sets/" + id.String() + "/move"
 	client := http.Client{}
 

@@ -209,77 +209,34 @@ func (s SwimLogsServer) EditSet(w http.ResponseWriter, r *http.Request, id uuid.
 }
 
 func (s SwimLogsServer) MoveSet(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
-	panic("unimplemented")
+	request, decodeErr := Decode[api.MoveSetRequest](w, r)
+	if decodeErr != nil {
+		encodeError(w, decodeErr)
+		return
+	}
+	t, err := s.app.MoveSet(r.Context(), id, request.NewSetOrder)
+
+	if errors.Is(err, app.ErrNotFound) {
+		slog.Warn(
+			"set not found",
+			slog.String("error", err.Error()),
+			slog.String("id", id.String()),
+		)
+		encodeError(w, notFoundId("set", id))
+		return
+	} else if err != nil {
+		slog.Error(
+			UnexpectedError,
+			slog.String("error", err.Error()),
+			slog.String("where", "MoveSet"),
+		)
+		encodeError(w, internalServerError())
+		return
+	}
+
+	encode(w, http.StatusOK, t)
 }
 
 func (s SwimLogsServer) ReplaceSetComponents(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
 	panic("unimplemented")
 }
-
-// // (PATCH /sets/{id})
-// func (s *SwimLogsServer) EditSet(
-// 	ctx context.Context,
-// 	id uuid.UUID,
-// 	r api.EditSetRequest,
-// ) (api.EditSetResponse, int, error) {
-// 	set, totalDistance, err := s.app.EditSet(ctx, id, r)
-// 	if err != nil {
-// 		if validationErr, ok := err.(*app.ValidationError); ok {
-// 			apiErr := fromValidationError(validationErr)
-// 			slog.Warn("invalid set", slog.String("error", validationErr.Error()))
-// 			return api.EditSetResponse{}, apiErr.Status, apiErr
-// 		}
-//
-// 		if errors.Is(err, app.ErrNotFound) {
-// 			slog.Warn(
-// 				"set not found",
-// 				slog.String("error", err.Error()),
-// 				slog.String("id", id.String()),
-// 			)
-// 			return api.EditSetResponse{}, http.StatusNotFound, notFoundId("set", id)
-// 		}
-//
-// 		slog.Error(
-// 			UnexpectedError,
-// 			slog.String("error", err.Error()),
-// 			slog.String("where", "EditSet"),
-// 		)
-// 		apiErr := internalServerError()
-// 		return api.EditSetResponse{}, apiErr.Status, apiErr
-// 	}
-// 	return api.EditSetResponse{
-// 		Set:           set,
-// 		TotalDistance: totalDistance,
-// 	}, http.StatusOK, nil
-// }
-//
-// func (s *SwimLogsServer) MoveSet(
-// 	ctx context.Context,
-// 	id uuid.UUID,
-// 	r api.MoveSetRequest,
-// ) (api.Training, int, error) {
-// 	t, err := s.app.MoveSet(ctx, id, r.NewSetOrder)
-//
-// 	if validationErr, ok := err.(*app.ValidationError); ok {
-// 		apiErr := fromValidationError(validationErr)
-// 		slog.Warn("invalid new set order", slog.String("error", validationErr.Error()))
-// 		return api.Training{}, apiErr.Status, apiErr
-// 	} else if errors.Is(err, app.ErrNotFound) {
-// 		slog.Warn(
-// 			"set not found",
-// 			slog.String("error", err.Error()),
-// 			slog.String("id", id.String()),
-// 		)
-// 		return api.Training{}, http.StatusNotFound, notFoundId("set", id)
-// 	} else if err != nil {
-// 		slog.Error(
-// 			UnexpectedError,
-// 			slog.String("error", err.Error()),
-// 			slog.String("where", "MoveSet"),
-// 		)
-// 		apiErr := internalServerError()
-// 		return api.Training{}, apiErr.Status, apiErr
-// 	}
-//
-// 	return t, http.StatusOK, nil
-// }

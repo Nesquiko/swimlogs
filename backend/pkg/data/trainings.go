@@ -293,21 +293,18 @@ func (pool *PostgresDbPool) MoveSet(
 	id uuid.UUID,
 	newSetOrder int,
 ) error {
-	err := Tx(ctx, pool, func(ctx context.Context, tx pgx.Tx) error {
-		return pool.moveSet(ctx, id, newSetOrder, tx)
-	})
+	err := Tx(
+		ctx,
+		pool,
+		func(ctx context.Context, tx pgx.Tx) error { return moveSet(ctx, id, newSetOrder, tx) },
+	)
 	if err != nil {
 		return fmt.Errorf("MoveSet: %w", err)
 	}
 	return nil
 }
 
-func (pool *PostgresDbPool) moveSet(
-	ctx context.Context,
-	id uuid.UUID,
-	newSetOrder int,
-	tx pgx.Tx,
-) error {
+func moveSet(ctx context.Context, id uuid.UUID, newSetOrder int, tx pgx.Tx) error {
 	ct, err := tx.Exec(ctx, moveSets, id, newSetOrder)
 	if err != nil {
 		return fmt.Errorf("moveSet move query: %w", err)
