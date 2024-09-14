@@ -2,6 +2,7 @@ import {
   createContext,
   createEffect,
   createResource,
+  on,
   ParentComponent,
   startTransition,
   Suspense,
@@ -15,7 +16,13 @@ import {
   trans,
   Trans,
 } from './components/i18n';
-import { Location, useLocation } from '@solidjs/router';
+import {
+  Location,
+  NavigateOptions,
+  Navigator,
+  useLocation,
+  useNavigate,
+} from '@solidjs/router';
 import { makePersisted } from '@solid-primitives/storage';
 import { createStore } from 'solid-js/store';
 import { Meta, Title } from '@solidjs/meta';
@@ -64,12 +71,20 @@ function deserializeSettings(value: string, location: Location): Settings {
   };
 }
 
+type GoBackToFuncType = () => {
+  to: string;
+  options?: Partial<NavigateOptions>;
+};
+
 export interface AppState {
   get isDark(): boolean;
   setDark(value: boolean): void;
   get locale(): Locale;
   setLocale(value: Locale): void;
+  // Sets function which is evaluated when user presses browsers back button.
+  setGoBackTo(value: GoBackToFuncType | undefined): void;
   t: Trans;
+  navigate: Navigator;
 }
 
 const AppContext = createContext<AppState>({} as AppState);
@@ -99,6 +114,9 @@ export const AppContextProvider: ParentComponent = (props) => {
   });
 
   const t = trans(dict);
+  const navigate = useNavigate();
+  const backHandler: { canGoBack?: GoBackToFuncType } = {};
+
   const state: AppState = {
     get isDark() {
       return settings.dark;
@@ -114,8 +132,28 @@ export const AppContextProvider: ParentComponent = (props) => {
         setSettings('locale', value);
       });
     },
+    setGoBackTo(value) {
+      backHandler.canGoBack = value;
+    },
     t,
+    navigate,
   };
+
+  createEffect(
+    on(
+      () => location.pathname,
+      () => (backHandler.canGoBack = undefined)
+    )
+  );
+
+  window.addEventListener('popstate', () => {
+    if (!backHandler.canGoBack) {
+      return;
+    }
+
+    const params = backHandler.canGoBack();
+    if (params) navigate(params.to, params.options);
+  });
 
   return (
     <Suspense>

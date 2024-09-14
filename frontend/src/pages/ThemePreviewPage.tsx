@@ -13,7 +13,7 @@ const ThemePreviewPage: Component = () => {
       </p>
       <p class="bg-muted text-xl text-muted-foreground">Muted</p>
       <p class="bg-popover text-xl text-popover-foreground">Popover</p>
-      <p class="bg-border text-xl text-input">Border + Input</p>
+      <p class="bg-border text-xl">Border + Input</p>
       <p class="bg-card text-xl text-card-foreground">Card</p>
       <p class="bg-primary text-xl text-primary-foreground">Primary</p>
       <p class="bg-secondary text-xl text-secondary-foreground">Secondary</p>
@@ -25,7 +25,7 @@ const ThemePreviewPage: Component = () => {
       <p class="bg-success text-xl text-success-foreground">Success</p>
       <p class="bg-warning text-xl text-warning-foreground">Warning</p>
       <p class="bg-error text-xl text-error-foreground">Error</p>
-      <p class="bg-ring text-xl text-ring">Ring</p>
+      <p class="bg-ring text-xl">Ring</p>
     </div>
   );
 };

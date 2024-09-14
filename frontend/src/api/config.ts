@@ -1,4 +1,4 @@
-import { BASE_PATH, Configuration, ErrorDetail, FetchAPI } from 'swimlogs-api';
+import { BASE_PATH, Configuration, ErrorDetail, FetchAPI } from './generated';
 
 const fetchApi: FetchAPI = async (input, init): Promise<Response> => {
   if (!init) init = {};

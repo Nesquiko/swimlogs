@@ -39,7 +39,7 @@ const BottomNav: Component = () => {
           'rounded-tl-2xl': i === 0,
           'rounded-tr-2xl': i === NavItems.length - 1,
         }}
-        onClick={() => navigate(item.location)}
+        onClick={() => navigate(item.location, { replace: true })}
       >
         <item.icon />
         <span>{t(item.labelKey)}</span>
@@ -48,7 +48,7 @@ const BottomNav: Component = () => {
   };
 
   return (
-    <nav class="fixed bottom-0 flex w-full justify-center bg-background">
+    <nav class="fixed bottom-0 left-0 right-0 flex w-full justify-center bg-background">
       <For each={NavItems}>{(item, i) => navItem(item, i())}</For>
     </nav>
   );

@@ -1,10 +1,9 @@
 import {
-  FetchError,
   ResponseError,
   SummariesPageRequest,
   SummariesPageResponse,
   TrainingsApi,
-} from 'swimlogs-api';
+} from './generated';
 import { ApiError, config } from './config';
 
 const trainingApi = new TrainingsApi(config);

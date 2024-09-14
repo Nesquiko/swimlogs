@@ -7,59 +7,83 @@ import ProfilePage from './pages/profile/ProfilePage';
 import HomePage from './pages/home/HomePage';
 import ThemePreviewPage from './pages/ThemePreviewPage';
 import CreateTrainingPage from './pages/new-training/CreateTrainingPage';
+import { NewTrainingContextProvider } from './pages/new-training/NewTrainingContext';
+import SetFormPage from './pages/new-training/SetFormPage';
+import NotFoundPage from './NotFound';
 
 const App: Component = () => {
+  const placeholder = (label: string) => <div>{label}</div>;
+
   return (
     <MetaProvider>
       <main class="min-h-screen bg-background">
         <Router
           root={(props) => (
             <AppContextProvider>
-              <div class="px-4 py-6">
-                <Suspense>{props.children}</Suspense>
-              </div>
-              <BottomNav />
+              <Suspense>
+                <div class="px-4 py-6">{props.children}</div>
+              </Suspense>
             </AppContextProvider>
           )}
         >
-          <Routes />
+          <Route path="*404" component={NotFoundPage} />
+          <Route
+            path="/"
+            component={(props) => (
+              <>
+                {props.children}
+                <BottomNav />
+              </>
+            )}
+          >
+            <Route path="/" component={HomePage} />
+            <Route path="/theme-preview" component={ThemePreviewPage} />
+            <Route path="/calendar" component={() => placeholder('Calendar')} />
+            <Route path="/profile" component={ProfilePage} />
+          </Route>
+
+          <Route
+            path="/training/create"
+            component={(props) => (
+              <NewTrainingContextProvider>
+                {props.children}
+              </NewTrainingContextProvider>
+            )}
+          >
+            <Route path="/" component={CreateTrainingPage} />
+            <Route path="/set/new" component={SetFormPage} />
+          </Route>
         </Router>
       </main>
     </MetaProvider>
   );
 };
 
-const Routes: Component = () => {
-  const placeholder = (label: string) => <div>{label}</div>;
-  return (
-    <>
-      <Route path="/theme-preview" component={ThemePreviewPage} />
-      <Route path="/" component={HomePage} />
-      <Route path="/calendar" component={() => placeholder('Calendar')} />
-      <Route path="/profile" component={ProfilePage} />
-      <Route path="/training/create" component={CreateTrainingPage} />
-      {/* <Route path="/training/new" component={TrainingCreatePage} /> */}
-      {/* <Route path="/training/:id"> */}
-      {/*   <Route */}
-      {/*     path="/display" */}
-      {/*     component={TrainingDisplayPage} */}
-      {/*     load={(args) => { */}
-      {/*       return { trainingPromise: loadTrainingById(args) }; */}
-      {/*     }} */}
-      {/*   /> */}
-      {/*   <Route */}
-      {/*     path="/edit" */}
-      {/*     component={TrainingEditPage} */}
-      {/*     load={(args) => { */}
-      {/*       return { trainingPromise: loadTrainingById(args) }; */}
-      {/*     }} */}
-      {/*   /> */}
-      {/*   <Route path="/edit/session" component={() => <>Edit Session</>} /> */}
-      {/* </Route> */}
-      {/**/}
-      {/* <Route path="/trainings" component={TrainingHistoryPage} /> */}
-    </>
-  );
-};
+// const Routes: Component = () => {
+//   return (
+//     <>
+//       <Route path="/training/new" component={TrainingCreatePage} />
+//       <Route path="/training/:id">
+//         <Route
+//           path="/display"
+//           component={TrainingDisplayPage}
+//           load={(args) => {
+//             return { trainingPromise: loadTrainingById(args) };
+//           }}
+//         />
+//         <Route
+//           path="/edit"
+//           component={TrainingEditPage}
+//           load={(args) => {
+//             return { trainingPromise: loadTrainingById(args) };
+//           }}
+//         />
+//         <Route path="/edit/session" component={() => <>Edit Session</>} />
+//       </Route>
+//
+//       <Route path="/trainings" component={TrainingHistoryPage} />
+//     </>
+//   );
+// };
 
 export default App;

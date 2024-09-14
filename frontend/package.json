@@ -6,15 +6,16 @@
   "scripts": {
     "test": "vitest",
     "dev": "vite",
+    "generate-api": "./generate-ts-openapi.sh",
     "compile": "tsc --noEmit",
-    "build": "tsc --noEmit && vite build",
+    "build": "bun run generate-api && tsc --noEmit && vite build",
     "serve": "vite preview",
     "lint": "eslint 'src/**'",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json}'"
   },
   "license": "MIT",
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.13.4",
+    "@openapitools/openapi-generator-cli": "^2.13.5",
     "autoprefixer": "^10.4.20",
     "jsdom": "^24.1.1",
     "postcss": "^8.4.40",
@@ -28,7 +29,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.6.0",
-    "@kobalte/core": "^0.13.4",
+    "@kobalte/core": "^0.13.6",
     "@mbarzda/solid-i18next": "^1.4.1",
     "@solid-primitives/i18n": "^2.1.1",
     "@solid-primitives/storage": "^3.8.0",
@@ -41,7 +42,6 @@
     "i18next-http-backend": "^2.5.2",
     "solid-icons": "^1.1.0",
     "solid-js": "^1.8.19",
-    "swimlogs-api": "file:../api",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7"
   }

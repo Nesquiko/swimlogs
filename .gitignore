@@ -12,3 +12,4 @@ api/.openapi-generator-ignore
 api/index.ts
 api/runtime.ts
 backend/c.out
+frontend/src/api/generated

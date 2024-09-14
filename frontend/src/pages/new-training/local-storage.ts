@@ -1,15 +1,15 @@
-import { NewTraining } from 'swimlogs-api';
+import { NewTraining } from '~/api/generated';
 
 const NEW_TRAINING_LOCAL_STORAGE_KEY = 'new-training';
 
-export const saveTrainingToLocalStorage = (training: NewTraining) => {
+export function saveTrainingToLocalStorage(training: NewTraining) {
   localStorage.setItem(
     NEW_TRAINING_LOCAL_STORAGE_KEY,
     JSON.stringify(training)
   );
-};
+}
 
-export const loadTrainingFromLocalStorage = () => {
+export function loadTrainingFromLocalStorage() {
   const item = localStorage.getItem(NEW_TRAINING_LOCAL_STORAGE_KEY);
   if (!item) {
     return undefined;
@@ -17,8 +17,8 @@ export const loadTrainingFromLocalStorage = () => {
   const training = JSON.parse(item) as NewTraining;
   training.start = new Date(training.start);
   return training;
-};
+}
 
-export const clearTrainingFromLocalStorage = () => {
+export function clearTrainingFromLocalStorage() {
   localStorage.removeItem(NEW_TRAINING_LOCAL_STORAGE_KEY);
-};
+}
