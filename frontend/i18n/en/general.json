@@ -11,5 +11,9 @@
   "starttype": {
     "interval": "Interval",
     "pause": "Pause"
+  },
+  "training": {
+    "repeat": "Repeat",
+    "distance": "Distance"
   }
 }

@@ -15,7 +15,7 @@ const CreateTrainingPage: Component = () => {
           class="inline cursor-pointer"
           onClick={() => navigate(-1)}
         />
-        <span>New training</span>
+        <span>{t('newtraining.new.training')}</span>
       </h1>
       <Button
         size="icon"

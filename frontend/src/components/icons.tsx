@@ -19,6 +19,7 @@ import {
   FaSolidRepeat,
   FaSolidPlus,
   FaSolidArrowLeft,
+  FaSolidMinus,
 } from 'solid-icons/fa';
 
 export type IconProps = SolidIconProps;
@@ -36,4 +37,5 @@ export const IconClock: Component<IconProps> = FaRegularClock;
 export const IconRepeat: Component<IconProps> = FaSolidRepeat;
 export const IconX: Component<IconProps> = HiOutlineXMark;
 export const IconPlus: Component<IconProps> = FaSolidPlus;
+export const IconMinus: Component<IconProps> = FaSolidMinus;
 export const IconArrowLeft: Component<IconProps> = FaSolidArrowLeft;

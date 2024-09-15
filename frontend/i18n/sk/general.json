@@ -11,5 +11,9 @@
   "starttype": {
     "interval": "Interval",
     "pause": "Pauza"
+  },
+  "training": {
+    "repeat": "Opakovania",
+    "distance": "Dĺžka"
   }
 }

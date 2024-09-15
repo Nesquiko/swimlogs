@@ -7,10 +7,12 @@ import TodaySection, {
   TodaySectionLoading,
 } from './TodaysSection';
 import { Button } from '~/components/ui/button';
+import { useAppState } from '~/AppContext';
 
 const [todaysTrainings] = createResource(getTodaysTrainings);
 
 const HomePage: Component = () => {
+  const { t } = useAppState();
   const navigate = useNavigate();
 
   return (
@@ -30,7 +32,7 @@ const HomePage: Component = () => {
 
       <Button class="w-full" onClick={() => navigate('/training/create')}>
         <IconPlus />
-        <span class="px-2">Add training</span>
+        <span class="px-2">{t('home.add.traing')}</span>
       </Button>
 
       {/*   <h1 class="text-2xl font-bold"> */}
