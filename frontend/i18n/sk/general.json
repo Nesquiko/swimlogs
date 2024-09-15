@@ -14,6 +14,7 @@
   },
   "training": {
     "repeat": "Opakovania",
-    "distance": "Dĺžka"
+    "distance": "Dĺžka",
+    "equipment": "Pomôcky"
   }
 }

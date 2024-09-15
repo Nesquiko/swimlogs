@@ -14,6 +14,7 @@
   },
   "training": {
     "repeat": "Repeat",
-    "distance": "Distance"
+    "distance": "Distance",
+    "equipment": "Equipment"
   }
 }

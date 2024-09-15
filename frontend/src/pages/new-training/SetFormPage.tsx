@@ -1,13 +1,14 @@
-import { Component, For } from 'solid-js';
+import { Accessor, Component, For } from 'solid-js';
 import { useAppState } from '~/AppContext';
 import { useNewTraining } from './NewTrainingContext';
 import { IconArrowLeft } from '~/components/icons';
-import { NewTrainingSet, TypeEnum } from '~/api/generated';
+import { EquipmentEnum, NewTrainingSet, TypeEnum } from '~/api/generated';
 import { createStore } from 'solid-js/store';
 import { MobileNumberField } from '~/components/ui/number-field';
 import { Button } from '~/components/ui/button';
 import { Label } from '~/components/ui/label';
 import { randomId } from '~/lib/str';
+import { EquipmentButton } from '~/components/Equipment';
 
 const DISTANCES = [25, 50, 75, 100, 200, 400];
 
@@ -50,15 +51,38 @@ const SetFormPage: Component = () => {
   };
   const distanceId = randomId();
 
+  const equipmentButton = (eq: EquipmentEnum) => {
+    return (
+      <EquipmentButton
+        eq={eq}
+        isActive={set.equipment?.includes(eq) ?? false}
+        onClick={() => {
+          if (!set.equipment) {
+            setSet('equipment', [eq]);
+            return;
+          }
+
+          if (set.equipment.includes(eq)) {
+            setSet('equipment', (eqs) => eqs?.filter((e) => e !== eq));
+            return;
+          }
+
+          setSet('equipment', [...set.equipment, eq]);
+        }}
+      />
+    );
+  };
+
   return (
-    <div>
-      <h1 class="flex items-center gap-2 pb-4 text-2xl">
+    <div class="flex flex-col gap-4">
+      <h1 class="flex items-center gap-2 text-2xl">
         <IconArrowLeft
           class="inline cursor-pointer"
           onClick={() => navigate(-1)}
         />
         <span>{t('newtraining.new.set')}</span>
       </h1>
+
       <div class="grid grid-cols-2">
         <MobileNumberField
           value={set.repeat}
@@ -93,6 +117,21 @@ const SetFormPage: Component = () => {
           />
         </div>
       </div>
+
+      <Label>{t('general.training.equipment')}</Label>
+      <div class="grid grid-cols-3 gap-4">
+        {equipmentButton(EquipmentEnum.Snorkel)}
+        {equipmentButton(EquipmentEnum.Board)}
+        {equipmentButton(EquipmentEnum.Paddles)}
+      </div>
+      <div class="grid grid-cols-4 gap-4">
+        {equipmentButton(EquipmentEnum.Fins)}
+        {equipmentButton(EquipmentEnum.Monofin)}
+        {equipmentButton(EquipmentEnum.PullBuoy)}
+        {equipmentButton(EquipmentEnum.Parachute)}
+      </div>
+
+      <pre>{JSON.stringify(set, null, 2)}</pre>
     </div>
   );
 };
