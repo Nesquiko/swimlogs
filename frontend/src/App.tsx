@@ -5,7 +5,7 @@ import { AppContextProvider } from './AppContext';
 import BottomNav from './components/BottomNav';
 import ProfilePage from './pages/profile/ProfilePage';
 import HomePage from './pages/home/HomePage';
-import ThemePreviewPage from './pages/ThemePreviewPage';
+import ThemePreviewPage, { DevOnlyThemeSwitch } from './pages/ThemePreviewPage';
 import CreateTrainingPage from './pages/new-training/CreateTrainingPage';
 import { NewTrainingContextProvider } from './pages/new-training/NewTrainingContext';
 import SetFormPage from './pages/new-training/SetFormPage';
@@ -20,6 +20,7 @@ const App: Component = () => {
         <Router
           root={(props) => (
             <AppContextProvider>
+              {import.meta.env.DEV && <DevOnlyThemeSwitch />}
               <Suspense>
                 <div class="px-4 py-6">{props.children}</div>
               </Suspense>

@@ -30,4 +30,13 @@ const ThemePreviewPage: Component = () => {
   );
 };
 
+export const DevOnlyThemeSwitch: Component = () => {
+  const context = useAppState();
+  return (
+    <div class="fixed left-2 top-1/2 w-fit bg-background/45">
+      <ThemeToggleButton context={context} />
+    </div>
+  );
+};
+
 export default ThemePreviewPage;

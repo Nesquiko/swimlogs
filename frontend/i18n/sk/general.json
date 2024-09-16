@@ -15,6 +15,15 @@
   "training": {
     "repeat": "Opakovania",
     "distance": "Dĺžka",
-    "equipment": "Pomôcky"
+    "equipment": "Pomôcky",
+    "equipments": {
+      "fins": "Plutvy",
+      "monofin": "Monoplutva",
+      "snorkel": "Šnorchel",
+      "board": "Doska",
+      "paddles": "Pádla",
+      "parachute": "Padák",
+      "pull_buoy": "Piškóta"
+    }
   }
 }

@@ -15,6 +15,15 @@
   "training": {
     "repeat": "Repeat",
     "distance": "Distance",
-    "equipment": "Equipment"
+    "equipment": "Equipment",
+    "equipments": {
+      "fins": "Fins",
+      "monofin": "Monofin",
+      "snorkel": "Snorkel",
+      "board": "Board",
+      "paddles": "Paddles",
+      "parachute": "Parachute",
+      "pull_buoy": "Pull buoy"
+    }
   }
 }

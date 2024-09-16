@@ -1,14 +1,22 @@
-import { Accessor, Component, For } from 'solid-js';
+import { Component, For } from 'solid-js';
 import { useAppState } from '~/AppContext';
 import { useNewTraining } from './NewTrainingContext';
-import { IconArrowLeft } from '~/components/icons';
+import { IconArrowLeft, IconX } from '~/components/icons';
 import { EquipmentEnum, NewTrainingSet, TypeEnum } from '~/api/generated';
 import { createStore } from 'solid-js/store';
 import { MobileNumberField } from '~/components/ui/number-field';
 import { Button } from '~/components/ui/button';
 import { Label } from '~/components/ui/label';
 import { randomId } from '~/lib/str';
-import { EquipmentButton } from '~/components/Equipment';
+import { EquipmentIcons } from '~/components/Equipment';
+import {
+  MultiSelect,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select';
 
 const DISTANCES = [25, 50, 75, 100, 200, 400];
 
@@ -50,28 +58,6 @@ const SetFormPage: Component = () => {
     );
   };
   const distanceId = randomId();
-
-  const equipmentButton = (eq: EquipmentEnum) => {
-    return (
-      <EquipmentButton
-        eq={eq}
-        isActive={set.equipment?.includes(eq) ?? false}
-        onClick={() => {
-          if (!set.equipment) {
-            setSet('equipment', [eq]);
-            return;
-          }
-
-          if (set.equipment.includes(eq)) {
-            setSet('equipment', (eqs) => eqs?.filter((e) => e !== eq));
-            return;
-          }
-
-          setSet('equipment', [...set.equipment, eq]);
-        }}
-      />
-    );
-  };
 
   return (
     <div class="flex flex-col gap-4">
@@ -118,18 +104,68 @@ const SetFormPage: Component = () => {
         </div>
       </div>
 
-      <Label>{t('general.training.equipment')}</Label>
-      <div class="grid grid-cols-3 gap-4">
-        {equipmentButton(EquipmentEnum.Snorkel)}
-        {equipmentButton(EquipmentEnum.Board)}
-        {equipmentButton(EquipmentEnum.Paddles)}
-      </div>
-      <div class="grid grid-cols-4 gap-4">
-        {equipmentButton(EquipmentEnum.Fins)}
-        {equipmentButton(EquipmentEnum.Monofin)}
-        {equipmentButton(EquipmentEnum.PullBuoy)}
-        {equipmentButton(EquipmentEnum.Parachute)}
-      </div>
+      <MultiSelect<EquipmentEnum>
+        values={set.equipment ?? []}
+        onChange={(eqs) => {
+          setSet('equipment', eqs);
+        }}
+        options={Object.values(EquipmentEnum) as EquipmentEnum[]}
+        itemComponent={(props) => {
+          const EquipmentIcon = EquipmentIcons.get(props.item.rawValue)!;
+          return (
+            <SelectItem item={props.item}>
+              <div class="flex items-center justify-start gap-4">
+                <EquipmentIcon class="stroke-1 dark:fill-primary-foreground dark:stroke-primary-foreground" />
+                <span>
+                  {/* @ts-ignore option values are taken from EquipmentEnum */}
+                  {t(`general.training.equipments.${props.item.textValue}`)}
+                </span>
+              </div>
+            </SelectItem>
+          );
+        }}
+      >
+        <SelectLabel class="text-sm">
+          {t('general.training.equipment')}
+        </SelectLabel>
+        <SelectTrigger
+          aria-label="equipment"
+          as="div"
+          class="h-fit min-h-16 w-full"
+        >
+          <SelectValue<EquipmentEnum>>
+            {(state) => (
+              <div>
+                <For each={state.selectedOptions()}>
+                  {(option) => {
+                    const EquipmentIcon = EquipmentIcons.get(option)!;
+                    return (
+                      <span
+                        class="inline-flex items-center justify-start"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <EquipmentIcon
+                          size="size-10"
+                          class="stroke-1 dark:fill-primary-foreground dark:stroke-primary-foreground"
+                        />
+                        {t(`general.training.equipments.${option}`)}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => state.remove(option)}
+                        >
+                          <IconX size={20} />
+                        </Button>
+                      </span>
+                    );
+                  }}
+                </For>
+              </div>
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent />
+      </MultiSelect>
 
       <pre>{JSON.stringify(set, null, 2)}</pre>
     </div>
@@ -142,7 +178,15 @@ const defaultNewSet = (setOrder: number): NewTrainingSet => {
     type: TypeEnum.Normal,
     repeat: 1,
     distanceMeters: 100,
-    equipment: [],
+    equipment: [
+      EquipmentEnum.Paddles,
+      EquipmentEnum.Fins,
+      EquipmentEnum.Board,
+      EquipmentEnum.Monofin,
+      EquipmentEnum.Parachute,
+      EquipmentEnum.PullBuoy,
+      EquipmentEnum.Snorkel,
+    ],
   };
 };
 

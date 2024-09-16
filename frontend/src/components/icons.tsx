@@ -1,5 +1,5 @@
 import { type IconProps as SolidIconProps } from 'solid-icons';
-import { HiOutlineXMark } from 'solid-icons/hi';
+import { HiOutlineXMark, HiSolidChevronUpDown } from 'solid-icons/hi';
 import {
   BiRegularSun,
   BiSolidHome,
@@ -20,6 +20,7 @@ import {
   FaSolidPlus,
   FaSolidArrowLeft,
   FaSolidMinus,
+  FaSolidCheck,
 } from 'solid-icons/fa';
 
 export type IconProps = SolidIconProps;
@@ -39,3 +40,5 @@ export const IconX: Component<IconProps> = HiOutlineXMark;
 export const IconPlus: Component<IconProps> = FaSolidPlus;
 export const IconMinus: Component<IconProps> = FaSolidMinus;
 export const IconArrowLeft: Component<IconProps> = FaSolidArrowLeft;
+export const IconCheck: Component<IconProps> = FaSolidCheck;
+export const IconExpand: Component<IconProps> = HiSolidChevronUpDown;
