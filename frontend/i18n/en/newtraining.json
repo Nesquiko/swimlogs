@@ -1,5 +1,17 @@
 {
   "new.training": "New training",
   "new.set": "New set",
-  "or.different": "Or different"
+  "new.compound.set": "New compound set",
+  "new.pyramid.set": "New pyramid set",
+  "new.super.set": "New super set",
+  "total.distance": "Total distance",
+  "repeat.count": "Repeat count",
+  "or.different": "Or different",
+  "repetitions.all.same": "All same",
+  "repetitions.different": "Different",
+  "is.main": "Is main?",
+  "new.set.part": "New set part",
+  "style": "Style",
+  "pull-kick": "Pull/Kick",
+  "exercise": "Exercise"
 }

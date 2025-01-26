@@ -160,7 +160,7 @@ export const AppContextProvider: ParentComponent = (props) => {
       <AppContext.Provider value={state}>
         <Title>Swimlogs</Title>
         <Meta name="lang" content={locale()} />
-        <div>{props.children}</div>
+        <div class="h-screen">{props.children}</div>
       </AppContext.Provider>
     </Suspense>
   );

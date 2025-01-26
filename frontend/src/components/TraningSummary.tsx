@@ -129,4 +129,6 @@ function distancePerGroup(
   });
 }
 
+// TODO add skeleton training summary
+
 export default TrainingSummary;

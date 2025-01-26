@@ -13,6 +13,8 @@ import {
 } from 'solid-icons/io';
 import { Component } from 'solid-js';
 import {
+  FaSolidGripVertical,
+  FaSolidTrash,
   FaRegularUser,
   FaSolidBug,
   FaRegularClock,
@@ -21,7 +23,14 @@ import {
   FaSolidArrowLeft,
   FaSolidMinus,
   FaSolidCheck,
+  FaSolidPersonSwimming,
+  FaSolidLayerGroup,
+  FaSolidStairs,
+  FaSolidArrowRight,
+  FaSolidPen,
 } from 'solid-icons/fa';
+import { ImFire } from 'solid-icons/im';
+import { BsThreeDots } from 'solid-icons/bs';
 
 export type IconProps = SolidIconProps;
 
@@ -40,5 +49,14 @@ export const IconX: Component<IconProps> = HiOutlineXMark;
 export const IconPlus: Component<IconProps> = FaSolidPlus;
 export const IconMinus: Component<IconProps> = FaSolidMinus;
 export const IconArrowLeft: Component<IconProps> = FaSolidArrowLeft;
+export const IconArrowRight: Component<IconProps> = FaSolidArrowRight;
 export const IconCheck: Component<IconProps> = FaSolidCheck;
 export const IconExpand: Component<IconProps> = HiSolidChevronUpDown;
+export const IconSwimmer: Component<IconProps> = FaSolidPersonSwimming;
+export const IconGroup: Component<IconProps> = FaSolidLayerGroup;
+export const IconPyramid: Component<IconProps> = FaSolidStairs;
+export const IconFire: Component<IconProps> = ImFire;
+export const IconMenu: Component<IconProps> = BsThreeDots;
+export const IconDraggable: Component<IconProps> = FaSolidGripVertical;
+export const IconTrash: Component<IconProps> = FaSolidTrash;
+export const IconPen: Component<IconProps> = FaSolidPen;

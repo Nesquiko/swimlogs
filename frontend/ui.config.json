@@ -1,11 +1,12 @@
 {
+  "$schema": "https://solid-ui.com/schema.json",
   "tsx": true,
-  "componentDir": "./src/components/ui",
   "tailwind": {
     "config": "tailwind.config.cjs",
     "css": "src/index.css"
   },
   "aliases": {
-    "path": "~/*"
+    "components": "~/components/ui",
+    "utils": "~/lib/utils"
   }
 }

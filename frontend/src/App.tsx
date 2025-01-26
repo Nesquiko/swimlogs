@@ -10,19 +10,20 @@ import CreateTrainingPage from './pages/new-training/CreateTrainingPage';
 import { NewTrainingContextProvider } from './pages/new-training/NewTrainingContext';
 import SetFormPage from './pages/new-training/SetFormPage';
 import NotFoundPage from './NotFound';
+import NewSetProcessPage from './pages/new-training/NewSetProcessPage';
 
 const App: Component = () => {
   const placeholder = (label: string) => <div>{label}</div>;
 
   return (
     <MetaProvider>
-      <main class="min-h-screen bg-background">
+      <main class="h-screen bg-background">
         <Router
           root={(props) => (
             <AppContextProvider>
               {import.meta.env.DEV && <DevOnlyThemeSwitch />}
               <Suspense>
-                <div class="px-4 py-6">{props.children}</div>
+                <div class="h-full px-4 py-6">{props.children}</div>
               </Suspense>
             </AppContextProvider>
           )}
@@ -52,7 +53,8 @@ const App: Component = () => {
             )}
           >
             <Route path="/" component={CreateTrainingPage} />
-            <Route path="/set/new" component={SetFormPage} />
+            <Route path="/set/new" component={NewSetProcessPage} />
+            <Route path="/set/new/old" component={SetFormPage} />
           </Route>
         </Router>
       </main>

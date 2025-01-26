@@ -1,4 +1,6 @@
 {
+  "delete": "Vymazať",
+  "edit": "Upraviť",
   "days": {
     "monday": "Pondelok",
     "tuesday": "Utorok",
@@ -10,12 +12,16 @@
   },
   "starttype": {
     "interval": "Interval",
-    "pause": "Pauza"
+    "pause": "Pauza",
+    "last-finishes": "Posledný dopláva"
   },
+  "seconds": "Sekundy",
+  "minutes": "Minúty",
   "training": {
     "repeat": "Opakovania",
     "distance": "Dĺžka",
     "equipment": "Pomôcky",
+    "start": "Štart",
     "equipments": {
       "fins": "Plutvy",
       "monofin": "Monoplutva",
@@ -24,6 +30,12 @@
       "paddles": "Pádla",
       "parachute": "Padák",
       "pull_buoy": "Piškóta"
+    },
+    "set.types": {
+      "normal": "Normalná",
+      "compound": "Zložená",
+      "pyramid": "Pyramida",
+      "super": "Super"
     }
   }
 }

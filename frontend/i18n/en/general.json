@@ -1,4 +1,6 @@
 {
+  "delete": "Delete",
+  "edit": "Edit",
   "days": {
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -10,12 +12,16 @@
   },
   "starttype": {
     "interval": "Interval",
-    "pause": "Pause"
+    "pause": "Pause",
+    "last-finishes": "Last finishes"
   },
+  "seconds": "Seconds",
+  "minutes": "Minutes",
   "training": {
     "repeat": "Repeat",
     "distance": "Distance",
     "equipment": "Equipment",
+    "start": "Start",
     "equipments": {
       "fins": "Fins",
       "monofin": "Monofin",
@@ -24,6 +30,12 @@
       "paddles": "Paddles",
       "parachute": "Parachute",
       "pull_buoy": "Pull buoy"
+    },
+    "set.types": {
+      "normal": "Normal",
+      "compound": "Compound",
+      "pyramid": "Pyramid",
+      "super": "Super"
     }
   }
 }

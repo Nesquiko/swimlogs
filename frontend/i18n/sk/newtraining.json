@@ -1,5 +1,18 @@
 {
   "new.training": "Nový tréning",
   "new.set": "Nová séria",
-  "or.different": "Alebo iná"
+  "new.compound.set": "Nová zložená séria",
+  "new.pyramid.set": "Nová pyramída",
+  "new.super.set": "Nová super séria",
+
+  "total.distance": "Celková dĺžka",
+  "repeat.count": "Počet opakovaní",
+  "or.different": "Alebo",
+  "repetitions.all.same": "Všetky rovnaké",
+  "repetitions.different": "Každé inakšie",
+  "is.main": "Je hlavná?",
+  "new.set.part": "Nová časť série",
+  "style": "Štýl",
+  "pull-kick": "Ruky/Nohy",
+  "exercise": "Cvičenie"
 }

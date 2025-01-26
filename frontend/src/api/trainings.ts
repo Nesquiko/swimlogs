@@ -13,7 +13,8 @@ export async function getTodaysTrainings(): Promise<SummariesPageResponse> {
   const until = new Date(new Date().setHours(23, 59, 0, 0));
   const params: SummariesPageRequest = { page: 0, pageSize: 10, from, until };
 
-  return getTrainingSummaries(params);
+  // TODO uncomment this return getTrainingSummaries(params);
+  return { summaries: [], pagination: { total: 0, page: 0, pageSize: 0 } };
 }
 
 export async function getThisWeekTrainings(): Promise<SummariesPageResponse> {

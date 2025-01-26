@@ -204,7 +204,7 @@ const MobileNumberField: Component<MobileNumberFieldProps> = (props) => {
         >
           {decrement}
         </NumberFieldDecrementTrigger>
-        <NumberFieldInput class="pl-12" />
+        <NumberFieldInput class="px-12 text-center" />
         <NumberFieldIncrementTrigger
           classList={{
             'text-muted-foreground': props.isValid,
